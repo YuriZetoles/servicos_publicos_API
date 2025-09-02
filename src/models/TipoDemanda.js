@@ -7,18 +7,7 @@ class TipoDemanda {
             {
                 titulo: { type: String, required: [true, "O título da demanda é obrigatório!"]},
                 descricao: { type: String, required: [true, "A descrição da demanda é obrigatória!"]},
-                link_imagem: {
-                    type: String,
-                    required: false,
-                    default: "",
-                    validate: {
-                        validator: function (v) {
-                            if (!v) return true; 
-                            return /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(v);
-                        },
-                        message: props => `${props.value} não é um nome de imagem válido!`
-                    }
-                },
+                link_imagem: { type: String },
                 icone: {
                     type: String,
                     required: false,
