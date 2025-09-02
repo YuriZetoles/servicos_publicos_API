@@ -95,7 +95,7 @@ describe("Modelo TipoDemanda", () => {
       error = err;
     }
 
-    expect(error.errors.link_imagem.message).toBe("arquivo.txt não é um nome de imagem válido!");
+    expect(error.link_imagem.message).toBe("arquivo.txt não é um nome de imagem válido!");
   });
 
   it("Deve aceitar demanda com link_imagem vazio", async () => {

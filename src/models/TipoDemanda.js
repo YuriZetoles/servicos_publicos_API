@@ -7,7 +7,7 @@ class TipoDemanda {
             {
                 titulo: { type: String, required: [true, "O título da demanda é obrigatório!"]},
                 descricao: { type: String, required: [true, "A descrição da demanda é obrigatória!"]},
-                link_imagem: { type: String },
+                link_imagem: { type: String, default: "" },
                 icone: {
                     type: String,
                     required: false,
