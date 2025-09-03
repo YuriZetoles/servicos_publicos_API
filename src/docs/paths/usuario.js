@@ -213,59 +213,13 @@ const usuarioRoutes = {
                 content: {
                     "application/json": {
                         schema: {
-                            $ref: "#/components/schemas/UsuarioPutPatch"
+                            $ref: "#/components/schemas/UsuarioPatch"
                         }
                     }
                 }
             },
             responses: {
-                200: commonResponses[200]("#/components/schemas/UsuarioPutPatch"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        },
-        put: {
-            tags: ["Usuários"],
-            summary: "Atualização de usuário (PUT)",
-            description: `
-            + Caso de uso: - Permitir que os usuários atualizem parcialmente seus próprios dados.
-            
-            + Função de Negócio:
-                - Permitir ao front-end atualizar um usuário.
-                + Recebe como path parameter:
-                    - **id**: identificador do usuário (MongoDB ObjectId).
-
-            + Regras de Negócio:
-                - O ID deve ser validado com o UsuarioIDSchema.
-                - Os dados enviados devem seguir o UsuarioUpdateSchema.
-                - Não deve permitir a atualização do email ou senha.
-
-            + Resultado Esperado:
-                - HTTP 200 OK e os dados da usuario são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
-        `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
-                }
-            ],
-             requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/UsuarioPutPatch"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/UsuarioPutPatch"),
+                200: commonResponses[200]("#/components/schemas/UsuarioPatch"),
                 400: commonResponses[400](),
                 401: commonResponses[401](),
                 404: commonResponses[404](),
