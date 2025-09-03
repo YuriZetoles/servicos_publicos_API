@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mongodb:
+    container_name: mongodb-servicos
+    image: mongo:8
+    volumes:
+      - vol-mongodb-servicos:/data/db
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    container_name: api
+    build: ./
+    environment:
+      DB_URL: "mongodb://mongodb-servicos:27017/exemplo"
+      NODE_ENV: "development"
+      TERM: "xterm"
+    ports:
+      - 5011:5011
+    volumes:
+      - ./:/app:delegated
+      - node_modules:/app/node_modules
+    command: ["run", "dev"]
+    depends_on:
+      - mongodb
+
+volumes:
+  vol-mongodb-servicos:
+  node_modules:
