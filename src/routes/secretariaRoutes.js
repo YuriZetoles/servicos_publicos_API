@@ -14,7 +14,6 @@ router
     .get("/secretaria/:id",AuthMiddleware, asyncWrapper(secretariaController.listar.bind(secretariaController)))
     .post("/secretaria",AuthMiddleware, AuthPermission, asyncWrapper(secretariaController.criar.bind(secretariaController)))
     .patch("/secretaria/:id",AuthMiddleware, AuthPermission, asyncWrapper(secretariaController.atualizar.bind(secretariaController)))
-    .put("/secretaria/:id",AuthMiddleware, AuthPermission, asyncWrapper(secretariaController.atualizar.bind(secretariaController)))
     .delete("/secretaria/:id",AuthMiddleware, AuthPermission, asyncWrapper(secretariaController.deletar.bind(secretariaController)))
 
     console.log("Rotas de Secretaria carregadas");

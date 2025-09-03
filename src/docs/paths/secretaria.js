@@ -147,59 +147,13 @@ const secretariaRoutes = {
                 content: {
                     "application/json": {
                         schema: {
-                            $ref: "#/components/schemas/SecretariaPutPatch"
+                            $ref: "#/components/schemas/SecretariaPatch"
                         }
                     }
                 }
             },
             responses: {
-                200: commonResponses[200]("#/components/schemas/SecretariaPutPatch"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        },
-        put: {
-            tags: ["Secretaria"],
-            summary: "Atualização de secretaria (PUT)",
-            description: `
-            + Caso de uso: - Permitir que o administrador atualize totalmente os dados de uma secretaria existente.
-            
-            + Função de Negócio:
-                - Permitir à front-end permitir atualizar uma secretaria.
-                + Recebe como path parameter:
-                    - **id**: identificador da secretaria (MongoDB ObjectId).
-
-            + Regras de Negócio:
-                - O ID deve ser validado com o SecretariaIDSchema.
-                - Os dados enviados devem seguir o SecretariaUpdateSchema.
-                - Não deve permitir a criação de secretaria com nomes e/ou sigla duplicados.
-
-            + Resultado Esperado:
-                - HTTP 200 OK e os dados da secretaria são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
-        `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
-                }
-            ],
-             requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/SecretariaPutPatch"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/SecretariaPutPatch"),
+                200: commonResponses[200]("#/components/schemas/SecretariaPatch"),
                 400: commonResponses[400](),
                 401: commonResponses[401](),
                 404: commonResponses[404](),
