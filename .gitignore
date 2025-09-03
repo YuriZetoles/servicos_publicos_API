@@ -1,6 +1,9 @@
 # Node modules
 /node_modules/
 
+# Uloads
+/uploads/
+
 # Build
 /dist/
 /build/

@@ -131,7 +131,6 @@ class DemandaController{
     /**
      * Faz upload de uma foto para um usuário.
      */
-    ///*
     async fotoUpload(req, res, next) {
         try {
             const { id, tipo } = req.params;

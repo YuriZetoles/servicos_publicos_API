@@ -43,10 +43,10 @@ class AuthService {
             })
         }
 
-        // gerar novo access token com instância injetada
+        // Gerar novo access token com instância injetada
         const accessToken = await this.TokenUtil.generateAccessToken(userEncontrado._id);
 
-        // buscar user com os tokens já armazenados
+        // Buscar user com os tokens já armazenados
         const userComToken = await this.repository.buscarPorID(userEncontrado._id, true);
         let refreshtoken = userComToken.refreshtoken;
         console.log("refresh token no banco", refreshtoken);
@@ -135,7 +135,7 @@ class AuthService {
         // Atualiza o usuário com os novos tokens
         await this.repository.armazenarTokens(id, accesstoken, refreshtoken);
 
-        // monta o objeto de usuário com os tokens para resposta
+        // Monta o objeto de usuário com os tokens para resposta
         const userLogado = await this.repository.buscarPorID(id, { includeTokens: true });
         delete userLogado.senha;
         const userObjeto = userLogado.toObject();
