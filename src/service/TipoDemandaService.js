@@ -4,7 +4,7 @@ import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, S
 //import AuthHelper from '../utils/AuthHelper.js';
 import mongoose from 'mongoose';
 import TipoDemandaRepository from '../repository/TipoDemandaRepository.js';
-import TipoDemandaUpdateSchema from '../utils/validators/schemas/zod/TipoDemandaSchema.js';
+import { TipoDemandaUpdateSchema } from '../utils/validators/schemas/zod/TipoDemandaSchema.js';
 import UsuarioRepository from '../repository/UsuarioRepository.js';
 import { parse } from 'dotenv';
 
