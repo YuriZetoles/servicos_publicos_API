@@ -4,6 +4,7 @@ import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, S
 //import AuthHelper from '../utils/AuthHelper.js';
 import mongoose from 'mongoose';
 import TipoDemandaRepository from '../repository/TipoDemandaRepository.js';
+import TipoDemandaUpdateSchema from '../utils/validators/schemas/zod/TipoDemandaSchema.js';
 import UsuarioRepository from '../repository/UsuarioRepository.js';
 import { parse } from 'dotenv';
 
@@ -75,6 +76,21 @@ class TipoDemandaService {
 
         const tipoDemanda = await this.repository.buscarPorID(id);
         const usuariosTipoDemanda = (tipoDemanda?.usuarios).map(u => u._id.toString());
+       
+        const isAdmin = nivel.administrador;
+        const isSecretario = nivel.secretario;
+
+        if (!(isAdmin || (isSecretario && usuariosTipoDemanda.includes(userId)))) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.FORBIDDEN.code,
+                errorType: 'permissionError',
+                field: 'TipoDemanda',
+                details: [],
+                customMessage: "Você não tem permissão para atualizar a imagem dessa demanda."
+            });
+        }
+        
+        await this.ensureTipoDemandaExists(id);
 
         const data = await this.repository.atualizarFoto(id,parsedData);
         return data;
@@ -106,6 +122,64 @@ class TipoDemandaService {
                 customMessage: 'Titulo já cadastrado.',
             });
         }
+    }
+    
+    /**
+     * Valida extensão, tamanho, redimensiona e salva a imagem,
+     * atualiza o tipo demana e retorna nome do arquivo + metadados.
+    */
+    async processarFoto(tipoDemandaId, file, tipo, req) {
+        const ext = path.extname(file.name).slice(1).toLowerCase();
+        const validExts = ['jpg', 'jpeg', 'png', 'svg'];
+        if (!validExts.includes(ext)) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'file',
+                customMessage: 'Extensão inválida. Permitido: jpg, jpeg, png, svg.'
+            });
+        }
+
+        const MAX_BYTES = 50 * 1024 * 1024;
+        if (file.size > MAX_BYTES) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'file',
+                customMessage: 'Arquivo excede 50MB.'
+            });
+        }
+
+        const fileName = `${uuidv4()}.${ext}`;
+        const uploadsDir = path.join(getDirname(), '..', '..', 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        const uploadPath = path.join(uploadsDir, fileName);
+
+        const transformer = sharp(file.data).resize(400, 400, {
+            fit: sharp.fit.cover,
+            position: sharp.strategy.entropy
+        });
+        if (['jpg', 'jpeg'].includes(ext)) {
+            transformer.jpeg({ quality: 80 });
+        }
+
+        const buffer = await transformer.toBuffer();
+        await fs.promises.writeFile(uploadPath, buffer);
+
+        const dados = { link_imagem: fileName };
+        TipoDemandaUpdateSchema.parse(dados);
+        await this.atualizarFoto(tipoDemandaId, dados, req);
+
+        return {
+            fileName,
+            metadata: {
+                fileExtension: ext,
+                fileSize: file.size,
+                md5: file.md5,
+            },
+        };
     }
 
     async validarTipo(tipo) {
