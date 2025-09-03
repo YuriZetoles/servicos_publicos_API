@@ -58,7 +58,7 @@ const demandaSchemas = {
         }
     }
   },
-  DemandaPutPatch: {
+  DemandaPatch: {
     ...deepCopy(demandaJsonSchema),
     required: [],
     description: "Schema para atualização de um demanda",
@@ -98,7 +98,7 @@ const removalMapping = {
   DemandaListagem: ['__v'],
   DemandaDetalhes: ['__v'],
   DemandaPost: ['createdAt', 'updatedAt', '__v', '_id'],
-  DemandaPutPatch: ['createdAt', 'updatedAt', '__v', '_id'],
+  DemandaPatch: ['createdAt', 'updatedAt', '__v', '_id'],
   DemandaDelete: ['createdAt', 'updatedAt', '__v', '_id']
 };
 
@@ -116,7 +116,7 @@ const demandaMongooseSchema = Demanda.schema;
 demandaSchemas.DemandaListagem.example = await generateExample(demandaSchemas.DemandaListagem, null, demandaMongooseSchema);
 demandaSchemas.DemandaDetalhes.example = await generateExample(demandaSchemas.DemandaDetalhes, null, demandaMongooseSchema);
 demandaSchemas.DemandaPost.example = await generateExample(demandaSchemas.DemandaPost, null, demandaMongooseSchema);
-demandaSchemas.DemandaPutPatch.example = await generateExample(demandaSchemas.DemandaPutPatch, null, demandaMongooseSchema);
+demandaSchemas.DemandaPatch.example = await generateExample(demandaSchemas.DemandaPatch, null, demandaMongooseSchema);
 
 /**
  * Schemas personalizados para upload/download de foto de usuário, não há como automatizar

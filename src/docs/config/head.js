@@ -1,18 +1,4 @@
-//import authPaths from "../paths/auth.js";
-import usuarioPaths from "../paths/usuario.js";
-import usuarioSchemas from "../schemas/usuarioSchema.js";
-import tipoDemandaPaths from "../paths/tipoDemanda.js";
-import tipoDemandaSchemas from "../schemas/tipoDemandaSchema.js";
-import secretariaPaths from "../paths/secretaria.js";
-import secretariaSchemas from "../schemas/secretariaSchema.js";
-import gruposPaths from "../paths/grupos.js";
-import grupoSchemas from "../schemas/gruposSchema.js";
-import authPaths from "../paths/auth.js";
-import authSchemas from "../schemas/authSchema.js";
-import demandaPaths from "../paths/demanda.js";
-import demandaSchemas from "../schemas/demandaSchema.js";
-
-// Função para definir as URLs do servidor dependendo do ambiente
+// Função para obter as opções do Swagger
 const getServersInCorrectOrder = () => {
     const devUrl = { url: process.env.SWAGGER_DEV_URL || `http://localhost:5011` };
     const prodUrl1 = { url: process.env.SWAGGER_PROD_URL || "http://localhost:5011/servicos" };
@@ -21,8 +7,22 @@ const getServersInCorrectOrder = () => {
     else return [devUrl, prodUrl1];
 };
 
-// Função para obter as opções do Swagger
-const getSwaggerOptions = () => {
+
+const getSwaggerOptions = async () => {
+    const t = process.env.NODE_ENV === 'development' ? `?t=${Date.now()}` : '';
+    const usuarioPaths = (await import(new URL("../paths/usuario.js", import.meta.url).href + t)).default;
+    const usuarioSchemas = (await import(new URL("../schemas/usuarioSchema.js", import.meta.url).href + t)).default;
+    const tipoDemandaPaths = (await import(new URL("../paths/tipoDemanda.js", import.meta.url).href + t)).default;
+    const tipoDemandaSchemas = (await import(new URL("../schemas/tipoDemandaSchema.js", import.meta.url).href + t)).default;
+    const secretariaPaths = (await import(new URL("../paths/secretaria.js", import.meta.url).href + t)).default;
+    const secretariaSchemas = (await import(new URL("../schemas/secretariaSchema.js", import.meta.url).href + t)).default;
+    const gruposPaths = (await import(new URL("../paths/grupos.js", import.meta.url).href + t)).default;
+    const grupoSchemas = (await import(new URL("../schemas/gruposSchema.js", import.meta.url).href + t)).default;
+    const authPaths = (await import(new URL("../paths/auth.js", import.meta.url).href + t)).default;
+    const authSchemas = (await import(new URL("../schemas/authSchema.js", import.meta.url).href + t)).default;
+    const demandaPaths = (await import(new URL("../paths/demanda.js", import.meta.url).href + t)).default;
+    const demandaSchemas = (await import(new URL("../schemas/demandaSchema.js", import.meta.url).href + t)).default;
+
     return {
         swaggerDefinition: {
             openapi: "3.0.0",

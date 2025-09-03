@@ -1,6 +1,7 @@
 {
     "execMap": {
-        "js": "clear && node"
+        "js": "node"
     },
-    "watch": ["server.js", "src/"]
+    "watch": ["server.js", "src/", "src/docs/", "src/routes/"],
+    "legacyWatch": true
 }

@@ -14,7 +14,6 @@ router
     .get("/tipoDemanda/:id", AuthMiddleware, asyncWrapper(tipoDemandaController.listar.bind(tipoDemandaController)))
     .post("/tipoDemanda", AuthMiddleware, AuthPermission, asyncWrapper(tipoDemandaController.criar.bind(tipoDemandaController)))
     .patch("/tipoDemanda/:id", AuthMiddleware, AuthPermission, asyncWrapper(tipoDemandaController.atualizar.bind(tipoDemandaController)))
-    .put("/tipoDemanda/:id", AuthMiddleware, AuthPermission, asyncWrapper(tipoDemandaController.atualizar.bind(tipoDemandaController)))
     .delete("/tipoDemanda/:id", AuthMiddleware, AuthPermission, asyncWrapper(tipoDemandaController.deletar.bind(tipoDemandaController)))
 
     .post("/tipodemanda/:id/foto", AuthMiddleware, AuthPermission, asyncWrapper(tipoDemandaController.fotoUpload.bind(tipoDemandaController)))

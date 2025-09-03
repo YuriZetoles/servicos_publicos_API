@@ -149,54 +149,7 @@ const gruposRoutes = {
                 content: {
                     "application/json": {
                         schema: {
-                            $ref: "#/components/schemas/GrupoPutPatch"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/GrupoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        },
-        put: {
-            tags: ["Grupos"],
-            summary: "Atualiza um grupo",
-            description: `
-            + Caso de uso: - Permitir que o administrador atualize parcialmente ou totalmente os dados de um grupo existente.
-            
-            + Função de Negócio:
-                - Permitir à front-end permitir atualizar um grupo.
-                + Recebe como path parameter:
-                    - **id**: identificador do grupo (MongoDB ObjectId).
-
-            + Regras de Negócio:
-                - O ID deve ser validado com o GrupoIDSchema.
-                - Os dados enviados devem seguir o GrupoUpdateSchema.
-
-            + Resultado Esperado:
-                - HTTP 200 OK e os dados do grupo são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
-        `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string"
-                    }
-                }
-            ],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/GrupoPutPatch"
+                            $ref: "#/components/schemas/GrupoPatch"
                         }
                     }
                 }
