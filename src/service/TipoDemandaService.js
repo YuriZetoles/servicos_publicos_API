@@ -4,11 +4,22 @@ import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, S
 //import AuthHelper from '../utils/AuthHelper.js';
 import mongoose from 'mongoose';
 import TipoDemandaRepository from '../repository/TipoDemandaRepository.js';
+import UsuarioRepository from '../repository/UsuarioRepository.js';
 import { parse } from 'dotenv';
+
+// Importações necessárias para o upload de arquivos
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+import sharp from 'sharp';
+// Helper para __dirname em módulo ES
+const getDirname = () => path.dirname(fileURLToPath(import.meta.url));
 
 class TipoDemandaService {
     constructor() {
         this.repository = new TipoDemandaRepository();
+        this.userRepository = new UsuarioRepository();
     }
 
     async listar(req) {
@@ -52,6 +63,20 @@ class TipoDemandaService {
         await this.ensureTipoDemandaExists(id);
 
         const data = await this.repository.deletar(id)
+        return data;
+    }
+
+    async atualizarFoto(id, parsedData, req) {
+        await this.ensureTipoDemandaExists(id);
+
+        const usuario = await this.userRepository.buscarPorID(req.user_id);
+        const nivel = usuario?.nivel_acesso;
+        const userId = usuario._id.toString();
+
+        const tipoDemanda = await this.repository.buscarPorID(id);
+        const usuariosTipoDemanda = (tipoDemanda?.usuarios).map(u => u._id.toString());
+
+        const data = await this.repository.atualizarFoto(id,parsedData);
         return data;
     }
 

@@ -13,8 +13,12 @@ import {
 } from '../utils/helpers/index.js';
 
 // Importações necessárias para o upload de arquivos
+import fileUpload from "express-fileupload";
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { v4 as uuidv4 } from "uuid";
+import fs from 'fs';
+import sharp from "sharp";
 // Helper para __dirname em módulo ES
 const getDirname = () => path.dirname(fileURLToPath(import.meta.url));
 
@@ -91,6 +95,80 @@ class TipoDemandaController {
         return CommonResponse.success(res, data, 200, 'TipoDemanda excluída com sucesso.');
     }
 
+    /**
+     * Faz upload de uma foto para um usuário.
+     */
+    async fotoUpload(req, res, next) {
+        try {
+            const { id } = req.params;
+            TipoDemandaIDSchema.parse(id);
+
+            const file = req.files?.file;
+            if (!file) {
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                    errorType: 'validationError',
+                    field: 'file',
+                    details: [],
+                    customMessage: 'Nenhum arquivo enviado para upload.'
+                });
+            }
+
+            const { fileName, metadata } = await this.service.processarFoto(file, id);
+
+            return CommonResponse.success(res, {
+                message: 'Arquivo recebido e Tipo Demanda atualizada com sucesso.',
+                dados: { link_imagem: fileName },
+                metadados: metadata
+            });
+        } catch (error) {
+            console.error('Erro no fotoUpload:', error);
+            return next(error);
+        }
+    }
+
+
+    /**
+     * Faz download da foto de um usuário.
+     */
+    async getFoto(req, res, next) {
+        try {
+            const id = req?.params?.id;
+            TipoDemandaIDSchema.parse(id);
+
+            const tipoDemanda = await this.service.listar(id);
+            const { link_imagem } = tipoDemanda;
+
+            if (!link_imagem) {
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.NOT_FOUND.code,
+                    errorType: 'notFound',
+                    field: 'link_imagem',
+                    details: [],
+                    customMessage: "Tipo Demanda não possui foto cadastrada."
+                });
+            }
+
+            const filename = link_imagem;
+            const uploadDir = path.join(getDirname(), '..', '../uploads');
+            const filePath = path.join(uploadDir, filename);
+
+            const extensao = path.extname(filename).slice(1).toLowerCase();
+            const mimeTypes = {
+                jpg: 'image/jpeg',
+                jpeg: 'image/jpeg',
+                png: 'image/png',
+                svg: 'image/svg+xml'
+            };
+            const contentType = mimeTypes[extensao] || 'application/octet-stream';
+
+            res.setHeader('Content-Type', contentType);
+            return res.sendFile(filePath);
+        } catch (error) {
+            console.error('Erro no getFoto:', error);
+            return next(error);
+        }
+    }
 }
 
 export default TipoDemandaController;
