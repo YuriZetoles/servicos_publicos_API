@@ -214,61 +214,13 @@ const demandaRoutes = {
                 content: {
                     "application/json": {
                         schema: {
-                            $ref: "#/components/schemas/DemandaPutPatch"
+                            $ref: "#/components/schemas/DemandaPatch"
                         }
                     }
                 }
             },
             responses: {
-                200: commonResponses[200]("#/components/schemas/DemandaPutPatch"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        },
-        put: {
-            tags: ["Demandas"],
-            summary: "Atualização de demanda (PUT)",
-            description: `
-            + Caso de uso: - Permitir que os munícipes atualizem parcialmente suas demandas.
-            
-            + Função de Negócio:
-                - Permitir ao front-end atualizar um demanda.
-                + Recebe como path parameter:
-                    - **id**: identificador do demanda (MongoDB ObjectId).
-
-            + Regras de Negócio:
-                - O ID deve ser validado com o DemandaIDSchema.
-                - Os dados enviados devem seguir o DemandaUpdateSchema.
-                - Não deve permitir a atualização do tipo ou data.
-                - Apenas os munícipes e administradores podem atualizar uma demandas através dessa rota.
-                - Rota usada principalmente para trazer o feedback da resolução da demanda.
-
-            + Resultado Esperado:
-                - HTTP 200 OK e os dados da demanda são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
-        `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
-                }
-            ],
-             requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/DemandaPutPatch"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/DemandaPutPatch"),
+                200: commonResponses[200]("#/components/schemas/DemandaPatch"),
                 400: commonResponses[400](),
                 401: commonResponses[401](),
                 404: commonResponses[404](),
@@ -366,54 +318,6 @@ const demandaRoutes = {
                 500: commonResponses[500]()
             }
         },
-        put: {
-            tags: ["Demandas"],
-            summary: "Atribuição de demanda (PUT)",
-            description: `
-            + Caso de uso: - Permitir que os secretários atribuam demandas aos operadores.
-            
-            + Função de Negócio:
-                - Permitir ao front-end atribuir um demanda.
-                + Recebe como path parameter:
-                    - **id**: identificador do demanda (MongoDB ObjectId).
-
-            + Regras de Negócio:
-                - O ID deve ser validado com o DemandaIDSchema.
-                - Os dados enviados devem seguir o DemandaUpdateSchema.
-                - Devem permitir a atualizaçao apenas do usuário na demanda, adicionando o ID do operador.
-                - Apenas os secretários podem atualizar uma demanda através dessa rota.
-                - O secretário e operador devem ser da mesma secretaria.
-
-            + Resultado Esperado:
-                - HTTP 200 OK e os dados da demanda são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
-        `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
-                }
-            ],
-             requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/DemandaAtribuir"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/DemandaAtribuir"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        },
     },
     "/demandas/{id}/devolver": {
         patch: {
@@ -464,106 +368,11 @@ const demandaRoutes = {
                 500: commonResponses[500]()
             }
         },
-        put: {
-            tags: ["Demandas"],
-            summary: "Devolução de demanda (PUT)",
-            description: `
-            + Caso de uso: - Permitir que os operadores devolvam demandas à secretaria.
-            
-            + Função de Negócio:
-                - Permitir ao front-end devolver um demanda.
-                + Recebe como path parameter:
-                    - **id**: identificador do demanda (MongoDB ObjectId).
-
-            + Regras de Negócio:
-                - O ID deve ser validado com o DemandaIDSchema.
-                - Os dados enviados devem seguir o DemandaUpdateSchema.
-                - Devem permitir a atualizaçao apenas do campo motivo_devolucao da demanda.
-                - O operador será automaticamente retirado da demanda.
-                - Apenas os operadores podem devolver uma demanda através dessa rota.
-
-            + Resultado Esperado:
-                - HTTP 200 OK e os dados da demanda são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
-        `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
-                }
-            ],
-             requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/DemandaDevolver"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/DemandaDevolver"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        },
     },
     "/demandas/{id}/resolver": {
         patch: {
             tags: ["Demandas"],
             summary: "Resolução de demanda (PATCH)",
-            description: `
-            + Caso de uso: - Permitir que os operadores resolvam demandas.
-            
-            + Função de Negócio:
-                - Permitir ao front-end resolver um demanda.
-                + Recebe como path parameter:
-                    - **id**: identificador do demanda (MongoDB ObjectId).
-
-            + Regras de Negócio:
-                - O ID deve ser validado com o DemandaIDSchema.
-                - Os dados enviados devem seguir o DemandaUpdateSchema.
-                - Devem permitir a atualizaçao apenas dos campos link_imagem_resolucao e resolucao na demanda.
-                - Apenas o operador pode resolver uma demanda.
-
-            + Resultado Esperado:
-                - HTTP 200 OK e os dados da demanda são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
-        `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
-                }
-            ],
-             requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/DemandaResolver"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/DemandaResolver"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        },
-        put: {
-            tags: ["Demandas"],
-            summary: "Resolução de demanda (PUT)",
             description: `
             + Caso de uso: - Permitir que os operadores resolvam demandas.
             
