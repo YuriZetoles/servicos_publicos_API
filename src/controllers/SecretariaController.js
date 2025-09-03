@@ -26,10 +26,10 @@ class SecretariaController {
             SecretariaIDSchema.parse(id);
         }
 
-        //Validação das queries (se existirem)
+        // Validação das queries (se existirem)
         const query = req.query || {};
         if (Object.keys(query).length !== 0) {
-        // deve apenas validar o objeto query, tendo erro o zod será responsável por lançar o erro
+        // Deve apenas validar o objeto query, tendo erro o zod será responsável por lançar o erro
             await SecretariaQuerySchema.parseAsync(query);
         }
 

@@ -43,7 +43,7 @@ class UsuarioController {
         //Validação das queries (se existirem)
         const query = req?.query;
         if (Object.keys(query).length !== 0) {
-            // deve apenas validar o objeto query, tendo erro o zod será responsável por lançar o erro
+            // Deve apenas validar o objeto query, tendo erro o zod será responsável por lançar o erro
             await UsuarioQuerySchema.parseAsync(query);
         }
 
@@ -130,10 +130,10 @@ class UsuarioController {
         const data = await this.service.deletar(id, req);
         return CommonResponse.success(res, data, 200, 'Usuário excluído com sucesso.');
     }
-        /**
+
+    /**
      * Faz upload de uma foto para um usuário.
      */
-    ///*
     async fotoUpload(req, res, next) {
         try {
             console.log('Estou no fotoUpload em UsuarioController');
@@ -153,7 +153,7 @@ class UsuarioController {
                 });
             }
 
-            // delega toda a lógica de validação e processamento ao service
+            // Delega toda a lógica de validação e processamento ao service
             const { fileName, metadata } = await this.service.processarFoto(id, file, req);
 
             return CommonResponse.success(res, {
