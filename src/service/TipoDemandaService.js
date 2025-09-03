@@ -92,7 +92,7 @@ class TipoDemandaService {
         
         await this.ensureTipoDemandaExists(id);
 
-        const data = await this.repository.atualizarFoto(id,parsedData);
+        const data = await this.repository.atualizar(id,parsedData);
         return data;
     }
 

@@ -114,7 +114,7 @@ class TipoDemandaController {
                 });
             }
 
-            const { fileName, metadata } = await this.service.processarFoto(file, id);
+            const { fileName, metadata } = await this.service.processarFoto(id, file, null, req);
 
             return CommonResponse.success(res, {
                 message: 'Arquivo recebido e Tipo Demanda atualizada com sucesso.',
