@@ -28,9 +28,10 @@ const routes = (app) => {
         res.redirect("/docs");
     });
 
-    const swaggerDocs = swaggerJSDoc(getSwaggerOptions());
     app.use(swaggerUI.serve);
-    app.get("/docs", (req, res, next) => {
+    app.get("/docs", async (req, res, next) => {
+        const opts = await getSwaggerOptions();
+        const swaggerDocs = swaggerJSDoc(opts);
         swaggerUI.setup(swaggerDocs)(req, res, next);
     });
 
