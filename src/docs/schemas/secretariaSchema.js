@@ -44,7 +44,7 @@ const secretariaSchemas = {
     ],
     description: "Schema para criação de um tipo Demanda"
   },
-  SecretariaPutPatch: {
+  SecretariaPatch: {
     ...deepCopy(secretariaJsonSchema),
     required: [],
     description: "Schema para atualização de um tipo Demanda"
@@ -56,7 +56,7 @@ const removalMapping = {
   SecretariaListagem: ['__v'],
   SecretariaDetalhes: ['__v'],
   SecretariaPost: ['createdAt', 'updatedAt', '__v', '_id'],
-  SecretariaPutPatch: ['createdAt', 'updatedAt', '__v', '_id'],
+  SecretariaPatch: ['createdAt', 'updatedAt', '__v', '_id'],
   SecretariaDelete: ['createdAt', 'updatedAt', '__v', '_id'],
 };
 
@@ -74,6 +74,6 @@ const secretariaMongooseSchema = Secretaria.schema;
 secretariaSchemas.SecretariaListagem.example = await generateExample(secretariaSchemas.SecretariaListagem, null, secretariaMongooseSchema);
 secretariaSchemas.SecretariaDetalhes.example = await generateExample(secretariaSchemas.SecretariaDetalhes, null, secretariaMongooseSchema);
 secretariaSchemas.SecretariaPost.example = await generateExample(secretariaSchemas.SecretariaPost, null, secretariaMongooseSchema);
-secretariaSchemas.SecretariaPutPatch.example = await generateExample(secretariaSchemas.SecretariaPutPatch, null, secretariaMongooseSchema);
+secretariaSchemas.SecretariaPatch.example = await generateExample(secretariaSchemas.SecretariaPatch, null, secretariaMongooseSchema);
 
 export default secretariaSchemas;

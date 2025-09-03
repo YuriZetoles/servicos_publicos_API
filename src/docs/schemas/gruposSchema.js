@@ -41,7 +41,7 @@ const gruposSchemas = {
     ...deepCopy(grupoJsonSchema),
     description: "Schema para criação de usuário"
   },
-  GrupoPutPatch: {
+  GrupoPatch: {
     ...deepCopy(grupoJsonSchema),
     required: [],
     description: "Schema para atualização de usuário"
@@ -53,7 +53,7 @@ const removalMapping = {
   GrupoListagem: ['__v'],
   GrupoDetalhes: ['__v'],
   GrupoPost: ['createdAt', 'updatedAt', '__v', '_id'],
-  GrupoPutPatch: ['createdAt', 'updatedAt', '__v', '_id'],
+  GrupoPatch: ['createdAt', 'updatedAt', '__v', '_id'],
 };
 
 // Aplica a remoção de campos de forma individual a cada schema
@@ -70,6 +70,6 @@ const grupoMongooseSchema = Grupo.schema;
 gruposSchemas.GrupoListagem.example = await generateExample(gruposSchemas.GrupoListagem, null, grupoMongooseSchema);
 gruposSchemas.GrupoDetalhes.example = await generateExample(gruposSchemas.GrupoDetalhes, null, grupoMongooseSchema);
 gruposSchemas.GrupoPost.example = await generateExample(gruposSchemas.GrupoPost, null, grupoMongooseSchema);
-gruposSchemas.GrupoPutPatch.example = await generateExample(gruposSchemas.GrupoPutPatch, null, grupoMongooseSchema);
+gruposSchemas.GrupoPatch.example = await generateExample(gruposSchemas.GrupoPatch, null, grupoMongooseSchema);
 
 export default gruposSchemas;

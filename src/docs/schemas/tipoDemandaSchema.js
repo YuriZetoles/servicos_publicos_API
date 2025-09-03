@@ -46,7 +46,7 @@ const tipoDemandaSchemas = {
     ],
     description: "Schema para criação de um tipo Demanda"
   },
-  TipoDemandaPutPatch: {
+  TipoDemandaPatch: {
     ...deepCopy(tipoDemandaJsonSchema),
     required: [],
     description: "Schema para atualização de um tipo Demanda"
@@ -58,7 +58,7 @@ const removalMapping = {
   TipoDemandaListagem: ['__v'],
   TipoDemandaDetalhes: ['__v'],
   TipoDemandaPost: ['createdAt', 'updatedAt', '__v', '_id'],
-  TipoDemandaPutPatch: ['createdAt', 'updatedAt', '__v', '_id'],
+  TipoDemandaPatch: ['createdAt', 'updatedAt', '__v', '_id'],
   TipoDemandaDelete: ['createdAt', 'updatedAt', '__v', '_id'],
 };
 
@@ -76,6 +76,6 @@ const TipoDemandaMongooseSchema = TipoDemanda.schema;
 tipoDemandaSchemas.TipoDemandaListagem.example = await generateExample(tipoDemandaSchemas.TipoDemandaListagem, null, TipoDemandaMongooseSchema);
 tipoDemandaSchemas.TipoDemandaDetalhes.example = await generateExample(tipoDemandaSchemas.TipoDemandaDetalhes, null, TipoDemandaMongooseSchema);
 tipoDemandaSchemas.TipoDemandaPost.example = await generateExample(tipoDemandaSchemas.TipoDemandaPost, null, TipoDemandaMongooseSchema);
-tipoDemandaSchemas.TipoDemandaPutPatch.example = await generateExample(tipoDemandaSchemas.TipoDemandaPutPatch, null, TipoDemandaMongooseSchema);
+tipoDemandaSchemas.TipoDemandaPatch.example = await generateExample(tipoDemandaSchemas.TipoDemandaPatch, null, TipoDemandaMongooseSchema);
 
 export default tipoDemandaSchemas;

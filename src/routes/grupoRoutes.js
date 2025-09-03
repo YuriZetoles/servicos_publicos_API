@@ -1,6 +1,8 @@
 import express from "express";
 import GrupoController from "../controllers/GrupoController.js";
-import { asyncWrapper } from "../utils/helpers/index.js";
+import {
+  asyncWrapper
+} from "../utils/helpers/index.js";
 import mongoose from "mongoose";
 import AuthMiddleware from "../middlewares/AuthMiddleware.js";
 import AuthPermission from "../middlewares/AuthPermission.js";
@@ -29,12 +31,6 @@ router
     asyncWrapper(gruposController.criar.bind(gruposController))
   )
   .patch(
-    "/grupos/:id",
-    AuthMiddleware,
-    AuthPermission,
-    asyncWrapper(gruposController.atualizar.bind(gruposController))
-  )
-  .put(
     "/grupos/:id",
     AuthMiddleware,
     AuthPermission,
