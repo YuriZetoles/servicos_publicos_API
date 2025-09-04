@@ -1,12 +1,9 @@
 // /src/services/TipoDemandaService.js
-//import bcrypt from 'bcrypt';
+
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
-//import AuthHelper from '../utils/AuthHelper.js';
-import mongoose from 'mongoose';
 import TipoDemandaRepository from '../repository/TipoDemandaRepository.js';
 import { TipoDemandaUpdateSchema } from '../utils/validators/schemas/zod/TipoDemandaSchema.js';
 import UsuarioRepository from '../repository/UsuarioRepository.js';
-import { parse } from 'dotenv';
 
 // Importações necessárias para o upload de arquivos
 import path from 'path';
@@ -30,9 +27,10 @@ class TipoDemandaService {
         return data;
     }
 
-    async criar(parsedData) {
+    async criar(parsedData, req) {
         console.log("Estou no criar em TipoDemandaService")
 
+        parsedData.usuarios = [req.user_id]
         //validar nome unico e tipo
         await this.validarTitulo(parsedData.titulo);
         await this.validarTipo(parsedData.tipo);
@@ -128,7 +126,7 @@ class TipoDemandaService {
      * Valida extensão, tamanho, redimensiona e salva a imagem,
      * atualiza o tipo demana e retorna nome do arquivo + metadados.
     */
-    async processarFoto(tipoDemandaId, file, tipo, req) {
+    async processarFoto(tipoDemandaId, file, req) {
         const ext = path.extname(file.name).slice(1).toLowerCase();
         const validExts = ['jpg', 'jpeg', 'png', 'svg'];
         if (!validExts.includes(ext)) {

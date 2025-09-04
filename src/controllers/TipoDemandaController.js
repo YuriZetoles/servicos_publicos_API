@@ -50,7 +50,7 @@ class TipoDemandaController {
         console.log('Estou no criar em TipoDemandaController');
     
         const parsedData = TipoDemandaSchema.parse(req.body);
-        let data = await this.service.criar(parsedData);
+        let data = await this.service.criar(parsedData, req);
     
         let tipoDemandaLimpo = data.toObject();
     
@@ -114,7 +114,7 @@ class TipoDemandaController {
                 });
             }
 
-            const { fileName, metadata } = await this.service.processarFoto(id, file, null, req);
+            const { fileName, metadata } = await this.service.processarFoto(id, file, req);
 
             return CommonResponse.success(res, {
                 message: 'Arquivo recebido e Tipo Demanda atualizada com sucesso.',
@@ -133,10 +133,10 @@ class TipoDemandaController {
      */
     async getFoto(req, res, next) {
         try {
-            const id = req?.params?.id;
+            const { id } = req?.params;
             TipoDemandaIDSchema.parse(id);
 
-            const tipoDemanda = await this.service.listar(id);
+            const tipoDemanda = await this.service.listar({ params: { id }});
             const { link_imagem } = tipoDemanda;
 
             if (!link_imagem) {

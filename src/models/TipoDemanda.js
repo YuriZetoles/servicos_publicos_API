@@ -13,13 +13,20 @@ class TipoDemanda {
                     required: false,
                     default: "",
                     validate: {
-                    validator: function (v) {
-                        if (!v) return true;
-                        return /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(v);
-                    },
-                    message: props => `${props.value} não é um nome de imagem válido!`
-                }
+                        validator: function (v) {
+                            if (!v) return true;
+                            return /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(v);
+                        },
+                        message: props => `${props.value} não é um nome de imagem válido!`
+                    }
                 },
+                //referência para usuários
+                usuarios: [
+                    {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: 'usuarios'
+                    }
+                ],
                 subdescricao: { type: String, required: [true, "A subdescrição da demanda é obrigatória!"]},
                 tipo: { type: String, required: [true, "O tipo da demanda é obrigatório!"]},
             }, 

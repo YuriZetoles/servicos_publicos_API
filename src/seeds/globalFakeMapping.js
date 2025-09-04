@@ -87,6 +87,7 @@ const fakeMappings = {
     titulo: () => fakebr.lorem.word(),
     icone: () => fakebr.internet.url() + "/" + uuid() + ".jpg",
     subdescricao: () => fakebr.lorem.sentence(),
+    usuarios: () => [{ _id: new mongoose.Types.ObjectId().toString() }],
     tipo: () => {
       const values = [
         "Coleta",
