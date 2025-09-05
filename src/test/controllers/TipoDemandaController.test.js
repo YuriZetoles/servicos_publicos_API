@@ -85,7 +85,7 @@ describe('TipoDemandaController', () => {
         await tipoDemandaController.criar(req, res);
 
         expect(tipoDemandaController.service.criar).toHaveBeenCalledTimes(1);
-        expect(tipoDemandaController.service.criar).toHaveBeenCalledWith(req.body);
+        expect(tipoDemandaController.service.criar).toHaveBeenCalledWith(req.body, req);
         expect(res.status).toHaveBeenCalledWith(201);
         expect(res.json).toHaveBeenCalledWith({
             //error: false,
