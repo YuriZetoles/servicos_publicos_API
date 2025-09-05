@@ -32,29 +32,32 @@ describe('TipoDemandaService', () => {
 
   it('Deve criar um tipo de demanda com título único e tipo válido', async () => {
     const dados = { titulo: 'Nova Demanda', tipo: 'Coleta' };
+    const req = { user_id: '507f1f77bcf86cd799439011' };
 
     repositoryMock.buscarPorTitulo.mockResolvedValue(null);
     repositoryMock.criar.mockResolvedValue(dados);
 
-    const resultado = await service.criar(dados);
+    const resultado = await service.criar(dados, req);
 
     expect(repositoryMock.buscarPorTitulo).toHaveBeenCalledWith('Nova Demanda', null);
-    expect(repositoryMock.criar).toHaveBeenCalledWith(dados);
+    expect(repositoryMock.criar).toHaveBeenCalledWith({ ...dados, usuarios: [req.user_id] });
     expect(resultado).toEqual(dados);
   });
 
   it('Deve lançar erro ao tentar criar tipo de demanda com título já existente', async () => {
+    const req = { user_id: '507f1f77bcf86cd799439011' };
     repositoryMock.buscarPorTitulo.mockResolvedValue({ titulo: 'Existente' });
 
-    await expect(service.criar({ titulo: 'Existente', tipo: 'Coleta' })).rejects.toThrow(CustomError);
+    await expect(service.criar({ titulo: 'Existente', tipo: 'Coleta' }, req)).rejects.toThrow(CustomError);
   });
 
   it('Deve lançar erro ao tentar criar tipo de demanda com tipo inválido', async () => {
+    const req = { user_id: '507f1f77bcf86cd799439011' };
     repositoryMock.buscarPorTitulo.mockResolvedValue(null);
 
     const dados = { titulo: 'Nova Demanda', tipo: 'Transporte' };
 
-    await expect(service.criar(dados)).rejects.toThrow(CustomError);
+    await expect(service.criar(dados, req)).rejects.toThrow(CustomError);
   });
 
   it('Deve atualizar um tipo de demanda existente com dados válidos', async () => {

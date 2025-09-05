@@ -78,4 +78,55 @@ tipoDemandaSchemas.TipoDemandaDetalhes.example = await generateExample(tipoDeman
 tipoDemandaSchemas.TipoDemandaPost.example = await generateExample(tipoDemandaSchemas.TipoDemandaPost, null, TipoDemandaMongooseSchema);
 tipoDemandaSchemas.TipoDemandaPatch.example = await generateExample(tipoDemandaSchemas.TipoDemandaPatch, null, TipoDemandaMongooseSchema);
 
+/**
+ * Schemas personalizados para upload/download de foto de tipo demanda, não há como automatizar
+ */
+tipoDemandaSchemas.TipoDemandaFotoPayload = {
+  type: "object",
+  properties: {
+    message: {
+      type: "string",
+      description: "Mensagem de sucesso da operação de upload",
+      example: "Arquivo recebido e tipo demanda atualizado com sucesso."
+    },
+    dados: {
+      type: "object",
+      description: "Dados atualizados do tipo demanda",
+      properties: {
+        link_imagem: {
+          type: "string",
+          description: "Nome do arquivo de foto salvo",
+          example: "c25069f4-d07b-4836-97a1-2c600b67f9f2.jpg"
+        }
+      },
+      required: ["link_imagem"]
+    },
+    metadados: {
+      type: "object",
+      description: "Informações técnicas sobre o arquivo enviado",
+      properties: {
+        fileName: {
+          type: "string",
+          example: "c25069f4-d07b-4836-97a1-2c600b67f9f2.jpg"
+        },
+        fileExtension: {
+          type: "string",
+          example: "jpg"
+        },
+        fileSize: {
+          type: "integer",
+          example: 121421
+        },
+        md5: {
+          type: "string",
+          example: "1bd822a4b1ca3c6224b5be5ef330ebdf"
+        }
+      },
+      required: ["fileName", "fileExtension", "fileSize", "md5"]
+    }
+  },
+  required: ["message", "dados", "metadados"],
+  description: "Payload de resultado de upload de foto de tipo demanda"
+};
+
 export default tipoDemandaSchemas;
