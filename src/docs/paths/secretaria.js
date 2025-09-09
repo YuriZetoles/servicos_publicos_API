@@ -27,7 +27,7 @@ const secretariaRoutes = {
             security: [{ bearerAuth: [] }],
             parameters: generateParameters(secretariaSchemas.SecretariaFiltro),
             responses: {
-                200: commonResponses[200](secretariaSchemas.SecretariaListagem),
+                200: commonResponses[200]("#/components/schemas/SecretariaListagem"),
                 400: commonResponses[400](),
                 401: commonResponses[401](),
                 404: commonResponses[404](),
