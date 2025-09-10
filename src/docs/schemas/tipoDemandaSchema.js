@@ -1,4 +1,5 @@
 // schemas/TipoDemandasSchemas.js
+
 import mongoose from 'mongoose';
 import mongooseSchemaJsonSchema from 'mongoose-schema-jsonschema';
 import removeFieldsRecursively from '../../utils/swagger_utils/removeFields.js';
@@ -6,7 +7,10 @@ import TipoDemanda from '../../models/TipoDemanda.js';
 
 
 // Importa as funções utilitárias separadas
-import { deepCopy, generateExample } from '../utils/schemaGenerate.js';
+import {
+  deepCopy,
+  generateExample
+} from '../utils/schemaGenerate.js';
 
 // Registra o plugin para que o Mongoose ganhe o método jsonSchema()
 mongooseSchemaJsonSchema(mongoose);
@@ -17,7 +21,6 @@ const tipoDemandaJsonSchema = TipoDemanda.schema.jsonSchema();
 // Remove campos que não queremos na base original
 delete tipoDemandaJsonSchema.properties.__v;
 
-// Componha os diferentes contratos da sua API utilizando cópias profundas dos schemas
 const tipoDemandaSchemas = {
   TipoDemandaFiltro: {
     type: "object",
@@ -37,12 +40,12 @@ const tipoDemandaSchemas = {
   TipoDemandaPost: {
     ...deepCopy(tipoDemandaJsonSchema),
     required: [
-        'titulo',
-        'descricao',
-        'subdescricao',
-        'icone',
-        'link_imagem',
-        'tipo'
+      'titulo',
+      'descricao',
+      'subdescricao',
+      'icone',
+      'link_imagem',
+      'tipo'
     ],
     description: "Schema para criação de um tipo Demanda"
   },

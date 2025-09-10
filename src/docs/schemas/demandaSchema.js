@@ -1,10 +1,15 @@
+// src/docs/schemas/demandaSchema.js
+
 import mongoose from 'mongoose';
 import mongooseSchemaJsonSchema from 'mongoose-schema-jsonschema';
 import removeFieldsRecursively from '../../utils/swagger_utils/removeFields.js';
 import Demanda from '../../models/Demanda.js';
 
 // Importa as funções utilitárias separadas
-import { deepCopy, generateExample } from '../utils/schemaGenerate.js';
+import {
+  deepCopy,
+  generateExample
+} from '../utils/schemaGenerate.js';
 
 // Registra o plugin para que o Mongoose ganhe o método jsonSchema()
 mongooseSchemaJsonSchema(mongoose);
@@ -15,7 +20,6 @@ const demandaJsonSchema = Demanda.schema.jsonSchema();
 // Remove campos que não queremos na base original
 delete demandaJsonSchema.properties.__v;
 
-// Componha os diferentes contratos da sua API utilizando cópias profundas dos schemas
 const demandaSchemas = {
   DemandaFiltro: {
     type: "object",
@@ -40,22 +44,22 @@ const demandaSchemas = {
   DemandaPost: {
     ...deepCopy(demandaJsonSchema),
     required: [
-        'tipo',
-        'descricao',
-        'endereco'
+      'tipo',
+      'descricao',
+      'endereco'
     ],
     description: "Schema para criação de um demanda",
     example: {
       tipo: "Iluminação",
       descricao: "Poste quebrado.",
       endereco: {
-          logradouro: "Rua das Flores",
-          bairro: "Jardim Bom",
-          numero: 123,
-          cidade: "São Paulo",
-          estado: "SP",
-          cep: "01234567"
-        }
+        logradouro: "Rua das Flores",
+        bairro: "Jardim Bom",
+        numero: 123,
+        cidade: "São Paulo",
+        estado: "SP",
+        cep: "01234567"
+      }
     }
   },
   DemandaPatch: {
