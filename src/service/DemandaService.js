@@ -1,30 +1,40 @@
-import mongoose from "mongoose";
+// /src/services/DemandaService.js
+
 import DemandaRepository from "../repository/DemandaRepository.js";
-import { parse } from 'dotenv';
 import CustomError from "../utils/helpers/CustomError.js";
 import UsuarioRepository from "../repository/UsuarioRepository.js";
 import SecretariaRepository from "../repository/SecretariaRepository.js";
-import { DemandaSchema, DemandaUpdateSchema } from '../utils/validators/schemas/zod/DemandaSchema.js';
+import {
+    DemandaSchema,
+    DemandaUpdateSchema
+} from '../utils/validators/schemas/zod/DemandaSchema.js';
 import HttpStatusCodes from "../utils/helpers/HttpStatusCodes.js";
 
 // Importações necessárias para o upload de arquivos
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { v4 as uuidv4 } from 'uuid';
+import {
+    fileURLToPath
+} from 'url';
+import {
+    v4 as uuidv4
+} from 'uuid';
 import fs from 'fs';
 import sharp from 'sharp';
 // Helper para __dirname em módulo ES
-const getDirname = () => path.dirname(fileURLToPath(import.meta.url));
+const getDirname = () => path.dirname(fileURLToPath(
+    import.meta.url));
 
 class DemandaService {
-    constructor(){
+    constructor() {
         this.repository = new DemandaRepository()
         this.userRepository = new UsuarioRepository()
         this.secretariaRepository = new SecretariaRepository()
     }
 
-async listar(req) {
-        const { id } = req.params;
+    async listar(req) {
+        const {
+            id
+        } = req.params;
 
         if (id) {
             const data = await this.repository.buscarPorID(id);
@@ -56,7 +66,7 @@ async listar(req) {
             });
         }
 
-        if(nivel.municipe) {
+        if (nivel.municipe) {
             const userId = usuario._id.toString()
 
             data.docs = data.docs.filter(demanda => {
@@ -91,7 +101,7 @@ async listar(req) {
             });
         }
 
-        if(nivel.municipe) {
+        if (nivel.municipe) {
             const secretaria = await this.secretariaRepository.buscarPorTipo(parsedData.tipo);
 
             parsedData.usuarios = [req.user_id]
@@ -105,7 +115,7 @@ async listar(req) {
         }
 
         const data = await this.repository.criar(parsedData);
-        
+
         return data;
     }
 
@@ -128,7 +138,7 @@ async listar(req) {
                 customMessage: "Somente os munícipes podem atualizar uma demanda através dessa rota."
             });
         }
-            
+
         delete parsedData.resolucao;
         delete parsedData.motivo_devolucao;
         delete parsedData.link_imagem_resolucao;
@@ -147,11 +157,11 @@ async listar(req) {
 
         if (!nivel.secretario) {
             throw new CustomError({
-            statusCode: HttpStatusCodes.FORBIDDEN.code,
-            errorType: 'permissionError',
-            field: 'Usuário',
-            details: [],
-            customMessage: "Apenas secretários podem atribuir operadores a uma demanda."
+                statusCode: HttpStatusCodes.FORBIDDEN.code,
+                errorType: 'permissionError',
+                field: 'Usuário',
+                details: [],
+                customMessage: "Apenas secretários podem atribuir operadores a uma demanda."
             });
         }
 
@@ -162,21 +172,21 @@ async listar(req) {
         const permited = secretariasDemanda.some(id => secretariasUsuario.includes(id));
         if (!permited) {
             throw new CustomError({
-            statusCode: HttpStatusCodes.FORBIDDEN.code,
-            errorType: 'permissionError',
-            field: 'Usuário',
-            details: [],
-            customMessage: "Você não tem permissão para atribuir essa demanda."
+                statusCode: HttpStatusCodes.FORBIDDEN.code,
+                errorType: 'permissionError',
+                field: 'Usuário',
+                details: [],
+                customMessage: "Você não tem permissão para atribuir essa demanda."
             });
         }
 
         if (!parsedData.usuarios || parsedData.usuarios.length === 0) {
             throw new CustomError({
-            statusCode: HttpStatusCodes.BAD_REQUEST.code,
-            errorType: 'validationError',
-            field: 'Usuários',
-            details: [],
-            customMessage: "Você deve informar pelo menos um usuário operador para atribuir."
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'Usuários',
+                details: [],
+                customMessage: "Você deve informar pelo menos um usuário operador para atribuir."
             });
         }
 
@@ -185,11 +195,11 @@ async listar(req) {
 
         if (!todosSaoOperadores) {
             throw new CustomError({
-            statusCode: HttpStatusCodes.BAD_REQUEST.code,
-            errorType: 'validationError',
-            field: 'Usuários',
-            details: [],
-            customMessage: "Só é possível associar usuários do tipo operador."
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'Usuários',
+                details: [],
+                customMessage: "Só é possível associar usuários do tipo operador."
             });
         }
 
@@ -317,11 +327,11 @@ async listar(req) {
         const demanda = await this.repository.buscarPorID(id);
 
         const userId = usuario._id.toString();
-        
-        const usuariosDemanda = (demanda?.usuarios).map(u=>u._id.toString())
+
+        const usuariosDemanda = (demanda?.usuarios).map(u => u._id.toString())
 
         if (nivel.municipe) {
-            if(!usuariosDemanda.includes(userId)) {
+            if (!usuariosDemanda.includes(userId)) {
                 throw new CustomError({
                     statusCode: HttpStatusCodes.FORBIDDEN.code,
                     errorType: 'permissionError',
@@ -346,7 +356,7 @@ async listar(req) {
 
     async nivelAcesso(nivelAcesso) {
         const permissoes = {
-            secretario: ["_id", "tipo", "status", "data", "resolucao", "feedback", "descricao", "avaliacao_resolucao", "link_imagem", "motivo_devolucao", "link_imagem_resolucao", "usuarios", "createdAt", "updatedAt", "estatisticas", "endereco"], 
+            secretario: ["_id", "tipo", "status", "data", "resolucao", "feedback", "descricao", "avaliacao_resolucao", "link_imagem", "motivo_devolucao", "link_imagem_resolucao", "usuarios", "createdAt", "updatedAt", "estatisticas", "endereco"],
             administrador: ["_id", "tipo", "status", "data", "resolucao", "feedback", "descricao", "avaliacao_resolucao", "link_imagem", "motivo_devolucao", "link_imagem_resolucao", "usuarios", "secretarias", "createdAt", "updatedAt", "estatisticas", "endereco"],
             municipe: ["tipo", "_id", "status", "resolucao", "feedback", "descricao", "avaliacao_resolucao", "link_imagem_resolucao", "link_imagem", "endereco", "createdAt", "updatedAt", "estatisticas"],
             operador: ["_id", "tipo", "status", "data", "resolucao", "feedback", "descricao", "avaliacao_resolucao", "link_imagem", "motivo_devolucao", "link_imagem_resolucao", "createdAt", "updatedAt", "estatisticas", "endereco"]
@@ -363,7 +373,7 @@ async listar(req) {
         const camposPermitidos = await this.nivelAcesso(usuario.nivel_acesso);
 
         Object.keys(demanda).forEach(campo => {
-            if(!camposPermitidos.includes(campo)){
+            if (!camposPermitidos.includes(campo)) {
                 delete demanda[campo];
             }
         });
@@ -372,7 +382,7 @@ async listar(req) {
     }
 
     removerCampos(obj, campos) {
-        for(const campo of campos){
+        for (const campo of campos) {
             delete obj[campo];
         }
     }
@@ -385,10 +395,10 @@ async listar(req) {
         });
     }
 
-          /**
-   * Valida extensão, tamanho, redimensiona e salva a imagem,
-   * atualiza o usuário e retorna nome do arquivo + metadados.
-   */
+    /**
+     * Valida extensão, tamanho, redimensiona e salva a imagem,
+     * atualiza o usuário e retorna nome do arquivo + metadados.
+     */
     async processarFoto(demandaId, file, tipo, req) {
         const ext = path.extname(file.name).slice(1).toLowerCase();
         const validExts = ['jpg', 'jpeg', 'png', 'svg'];
@@ -414,7 +424,9 @@ async listar(req) {
         const fileName = `${uuidv4()}.${ext}`;
         const uploadsDir = path.join(getDirname(), '..', '..', 'uploads');
         if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
+            fs.mkdirSync(uploadsDir, {
+                recursive: true
+            });
         }
         const uploadPath = path.join(uploadsDir, fileName);
 
@@ -423,7 +435,9 @@ async listar(req) {
             position: sharp.strategy.entropy
         });
         if (['jpg', 'jpeg'].includes(ext)) {
-            transformer.jpeg({ quality: 80 });
+            transformer.jpeg({
+                quality: 80
+            });
         }
 
         const buffer = await transformer.toBuffer();
@@ -431,7 +445,9 @@ async listar(req) {
 
         // Define dinamicamente o campo a ser atualizado
         const campo = tipo === "resolucao" ? "link_imagem_resolucao" : "link_imagem";
-        const dados = { [campo]: fileName };
+        const dados = {
+            [campo]: fileName
+        };
 
         DemandaUpdateSchema.parse(dados);
         await this.atualizarFoto(demandaId, dados, req);
@@ -446,6 +462,6 @@ async listar(req) {
         };
     }
 
-} 
+}
 
 export default DemandaService;
