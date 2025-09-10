@@ -1,14 +1,19 @@
 // src/middlewares/AuthMiddleware.js
+
 import jwt from 'jsonwebtoken';
-import { promisify } from 'util';
+import {
+  promisify
+} from 'util';
 import AuthenticationError from '../utils/errors/AuthenticationError.js';
 import TokenExpiredError from '../utils/errors/TokenExpiredError.js';
-import { CustomError } from '../utils/helpers/index.js';
+import {
+  CustomError
+} from '../utils/helpers/index.js';
 import AuthService from '../service/AuthService.js';
 
 class AuthMiddleware {
   constructor() {
-   this.service = new AuthService();
+    this.service = new AuthService();
 
     /**
      * Vinculação para grantir ao método handle o contexto 'this' correto
