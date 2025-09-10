@@ -1,6 +1,10 @@
+// src/docs/paths/tipoDemanda.js
+
 import tipoDemandaSchemas from "../schemas/tipoDemandaSchema.js";
 import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js"; // ajuste o caminho conforme necessário
+import {
+    generateParameters
+} from "./utils/generateParameters.js"; 
 
 const tipoDemandaRoutes = {
     "/tipoDemanda": {
@@ -23,7 +27,9 @@ const tipoDemandaRoutes = {
             - 200 OK com corpo conforme schema **tipoDemandaListagem**, contendo:
                 • **items**: array de tipoDemandas. 
       `,
-            security: [{ bearerAuth: [] }],
+            security: [{
+                bearerAuth: []
+            }],
             parameters: generateParameters(tipoDemandaSchemas.TipoDemandaFiltro),
             responses: {
                 200: commonResponses[200]("#/components/schemas/TipoDemandaListagem"),
@@ -58,8 +64,10 @@ const tipoDemandaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK retornando a mensagem de tipo de demanda criado com sucesso e retorna os dados do registro recém-criado, incluindo seu ID.
         `,
-            security: [{ bearerAuth: [] }],
-             requestBody: {
+            security: [{
+                bearerAuth: []
+            }],
+            requestBody: {
                 content: {
                     "application/json": {
                         schema: {
@@ -96,17 +104,17 @@ const tipoDemandaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **tipoDemandaDetalhes**, contendo dados completos do tipoDemanda.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string",
                 }
-            ],
+            }],
             responses: {
                 200: commonResponses[200]("#/components/schemas/TipoDemandaDetalhes"),
                 400: commonResponses[400](),
@@ -135,16 +143,18 @@ const tipoDemandaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK e os dados do tipo de demanda são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
                 }
-            ],
-             requestBody: {
+            }],
+            requestBody: {
                 content: {
                     "application/json": {
                         schema: {
@@ -181,17 +191,17 @@ const tipoDemandaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK e o tipo de demanda é removido com sucesso do banco de dados e o sistema retorna uma mensagem de sucesso e os dados do TipoDemanda excluído.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string",
                 }
-            ],
+            }],
             responses: {
                 200: commonResponses[200](),
                 400: commonResponses[400](),
@@ -219,15 +229,17 @@ const tipoDemandaRoutes = {
             + Resultado Esperado:
                 - 200 OK com mensagem de sucesso, link_imagem atualizado e metadados do arquivo.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
-                },
-            ],
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
+                }
+            }, ],
             requestBody: {
                 content: {
                     "multipart/form-data": {
@@ -268,21 +280,36 @@ const tipoDemandaRoutes = {
             + Resultado Esperado:
                 - 200 OK com o arquivo de imagem.
         `,
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
-                },
-            ],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
+                }
+            }, ],
             responses: {
                 200: {
                     description: "Arquivo de imagem retornado",
                     content: {
-                        "image/jpeg": { schema: { type: "string", format: "binary" } },
-                        "image/png": { schema: { type: "string", format: "binary" } },
-                        "image/svg+xml": { schema: { type: "string", format: "binary" } }
+                        "image/jpeg": {
+                            schema: {
+                                type: "string",
+                                format: "binary"
+                            }
+                        },
+                        "image/png": {
+                            schema: {
+                                type: "string",
+                                format: "binary"
+                            }
+                        },
+                        "image/svg+xml": {
+                            schema: {
+                                type: "string",
+                                format: "binary"
+                            }
+                        }
                     }
                 },
                 400: commonResponses[400](),

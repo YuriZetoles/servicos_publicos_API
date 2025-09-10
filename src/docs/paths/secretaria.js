@@ -1,7 +1,10 @@
+// src/docs/paths/secretaria.js
+
 import secretariaSchemas from "../schemas/secretariaSchema.js";
-//import authSchemas from "../schemas/authSchema.js";
 import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js"; // ajuste o caminho conforme necessário
+import {
+    generateParameters
+} from "./utils/generateParameters.js";
 
 const secretariaRoutes = {
     "/secretaria": {
@@ -24,7 +27,9 @@ const secretariaRoutes = {
             - 200 OK com corpo conforme schema **SecretariaListagem**, contendo:
                 • **items**: array de secretarias. 
       `,
-            security: [{ bearerAuth: [] }],
+            security: [{
+                bearerAuth: []
+            }],
             parameters: generateParameters(secretariaSchemas.SecretariaFiltro),
             responses: {
                 200: commonResponses[200]("#/components/schemas/SecretariaListagem"),
@@ -57,8 +62,10 @@ const secretariaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK retornando a mensagem de secretaria criada com sucesso e retorna os dados do registro recém-criado, incluindo seu ID.
         `,
-            security: [{ bearerAuth: [] }],
-             requestBody: {
+            security: [{
+                bearerAuth: []
+            }],
+            requestBody: {
                 content: {
                     "application/json": {
                         schema: {
@@ -95,17 +102,17 @@ const secretariaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **SecretariaDetalhes**, contendo dados completos da secretaria.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string",
                 }
-            ],
+            }],
             responses: {
                 200: commonResponses[200]("#/components/schemas/SecretariaDetalhes"),
                 400: commonResponses[400](),
@@ -134,16 +141,18 @@ const secretariaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK e os dados da secretaria são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
                 }
-            ],
-             requestBody: {
+            }],
+            requestBody: {
                 content: {
                     "application/json": {
                         schema: {
@@ -180,17 +189,17 @@ const secretariaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK e a secretaria é removido com sucesso do banco de dados e o sistema retorna uma mensagem de sucesso e os dados da secretaria excluída.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string",
                 }
-            ],
+            }],
             responses: {
                 200: commonResponses[200](),
                 400: commonResponses[400](),
