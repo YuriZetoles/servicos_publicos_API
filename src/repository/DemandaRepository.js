@@ -1,9 +1,17 @@
+// /src/repository/DemandaRepository.js
+
 import Demanda from "../models/Demanda.js";
 import Usuario from "../models/Usuario.js";
-import mongoose from "mongoose";
 import DemandaFilterBuild from './filters/DemandaFilterBuild.js'
-import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
-import { populate } from "dotenv";
+import {
+    CommonResponse,
+    CustomError,
+    HttpStatusCodes,
+    errorHandler,
+    messages,
+    StatusService,
+    asyncWrapper
+} from '../utils/helpers/index.js';
 
 class DemandaRepository {
     constructor({
@@ -15,15 +23,18 @@ class DemandaRepository {
     }
 
     async buscarPorID(id, includeTokens = false) {
-    let query = this.modelDemanda.findById(id)
-        .populate({
-            path: 'usuarios',
-            populate: [
-                { path: 'secretarias' },
-                { path: 'grupo' }
-            ]
-        })
-        .populate('secretarias');
+        let query = this.modelDemanda.findById(id)
+            .populate({
+                path: 'usuarios',
+                populate: [{
+                        path: 'secretarias'
+                    },
+                    {
+                        path: 'grupo'
+                    }
+                ]
+            })
+            .populate('secretarias');
 
         if (includeTokens) {
             query = query.select('+refreshtoken +accesstoken');
@@ -31,7 +42,7 @@ class DemandaRepository {
 
         const demanda = await query;
 
-        if(!demanda) {
+        if (!demanda) {
             throw new CustomError({
                 statusCode: 404,
                 errorType: 'resourceNotFound',
@@ -45,7 +56,16 @@ class DemandaRepository {
     }
 
     async listar(req) {
-        const { tipo, status, data_inicio, data_fim, endereco, usuario, secretaria, page = 1 } = req.query;
+        const {
+            tipo,
+            status,
+            data_inicio,
+            data_fim,
+            endereco,
+            usuario,
+            secretaria,
+            page = 1
+        } = req.query;
         const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
 
         const filterBuilder = new DemandaFilterBuild()
@@ -62,11 +82,21 @@ class DemandaRepository {
         const options = {
             page: parseInt(page, 10),
             limit: limite,
-            populate: [
-                { path: 'usuarios', populate: [ { path: 'secretarias' }, { path: 'grupo' }] },
-                { path: 'secretarias' }
+            populate: [{
+                    path: 'usuarios',
+                    populate: [{
+                        path: 'secretarias'
+                    }, {
+                        path: 'grupo'
+                    }]
+                },
+                {
+                    path: 'secretarias'
+                }
             ],
-            sort: { nome: 1 }
+            sort: {
+                nome: 1
+            }
         };
 
         const resultado = await this.modelDemanda.paginate(filtros, options);
@@ -77,31 +107,38 @@ class DemandaRepository {
 
             return {
                 ...demandaObj,
-                estatisticas: { totalUsuarios }
+                estatisticas: {
+                    totalUsuarios
+                }
             };
         });
 
         return resultado;
     }
 
-    async criar(dadosDemanda){
+    async criar(dadosDemanda) {
         const demanda = new this.modelDemanda(dadosDemanda);
         return await demanda.save()
     }
 
-    async atualizar(id, parsedData){
-        const demanda = await this.modelDemanda.findByIdAndUpdate(id, parsedData, { new: true })
+    async atualizar(id, parsedData) {
+        const demanda = await this.modelDemanda.findByIdAndUpdate(id, parsedData, {
+                new: true
+            })
             .populate({
                 path: 'usuarios',
-                populate: [
-                    { path: 'secretarias' },
-                    { path: 'grupo' }
+                populate: [{
+                        path: 'secretarias'
+                    },
+                    {
+                        path: 'grupo'
+                    }
                 ]
             })
             .populate('secretarias');
 
-        if(!demanda) {
-            throw new CustomError ({
+        if (!demanda) {
+            throw new CustomError({
                 statusCode: 404,
                 errorType: 'resouceNotFound',
                 field: 'Demanda',
@@ -113,19 +150,24 @@ class DemandaRepository {
         return demanda;
     }
 
-    async atribuir(id, parsedData){
-        const demanda = await this.modelDemanda.findByIdAndUpdate(id, parsedData, { new: true })
-                .populate({
-                    path: 'usuarios',
-                    populate: [
-                        { path: 'secretarias' },
-                        { path: 'grupo' }
-                    ]
-                })
-                .populate('secretarias');
+    async atribuir(id, parsedData) {
+        const demanda = await this.modelDemanda.findByIdAndUpdate(id, parsedData, {
+                new: true
+            })
+            .populate({
+                path: 'usuarios',
+                populate: [{
+                        path: 'secretarias'
+                    },
+                    {
+                        path: 'grupo'
+                    }
+                ]
+            })
+            .populate('secretarias');
 
-        if(!demanda) {
-            throw new CustomError ({
+        if (!demanda) {
+            throw new CustomError({
                 statusCode: 404,
                 errorType: 'resouceNotFound',
                 field: 'Demanda',
@@ -137,19 +179,24 @@ class DemandaRepository {
         return demanda;
     }
 
-    async devolver(id, parsedData){
-        const demanda = await this.modelDemanda.findByIdAndUpdate(id, parsedData, { new: true })
-                .populate({
-                    path: 'usuarios',
-                    populate: [
-                        { path: 'secretarias' },
-                        { path: 'grupo' }
-                    ]
-                })
-                .populate('secretarias');
+    async devolver(id, parsedData) {
+        const demanda = await this.modelDemanda.findByIdAndUpdate(id, parsedData, {
+                new: true
+            })
+            .populate({
+                path: 'usuarios',
+                populate: [{
+                        path: 'secretarias'
+                    },
+                    {
+                        path: 'grupo'
+                    }
+                ]
+            })
+            .populate('secretarias');
 
-        if(!demanda) {
-            throw new CustomError ({
+        if (!demanda) {
+            throw new CustomError({
                 statusCode: 404,
                 errorType: 'resourceNotFound',
                 field: 'Demanda',
@@ -161,19 +208,24 @@ class DemandaRepository {
         return demanda;
     }
 
-    async resolver(id, parsedData){
-        const demanda = await this.modelDemanda.findByIdAndUpdate(id, parsedData, { new: true })
-                .populate({
-                    path: 'usuarios',
-                    populate: [
-                        { path: 'secretarias' },
-                        { path: 'grupo' }
-                    ]
-                })
-                .populate('secretarias');
+    async resolver(id, parsedData) {
+        const demanda = await this.modelDemanda.findByIdAndUpdate(id, parsedData, {
+                new: true
+            })
+            .populate({
+                path: 'usuarios',
+                populate: [{
+                        path: 'secretarias'
+                    },
+                    {
+                        path: 'grupo'
+                    }
+                ]
+            })
+            .populate('secretarias');
 
-        if(!demanda) {
-            throw new CustomError ({
+        if (!demanda) {
+            throw new CustomError({
                 statusCode: 404,
                 errorType: 'resourceNotFound',
                 field: 'Demanda',
@@ -187,17 +239,20 @@ class DemandaRepository {
 
     async deletar(id) {
         const demanda = await this.modelDemanda.findByIdAndDelete(id)
-                .populate({
-                    path: 'usuarios',
-                    populate: [
-                        { path: 'secretarias' },
-                        { path: 'grupo' }
-                    ]
-                })
-                .populate('secretarias');
+            .populate({
+                path: 'usuarios',
+                populate: [{
+                        path: 'secretarias'
+                    },
+                    {
+                        path: 'grupo'
+                    }
+                ]
+            })
+            .populate('secretarias');
 
-        if(!demanda) {
-            throw new CustomError ({
+        if (!demanda) {
+            throw new CustomError({
                 statusCode: 404,
                 errorType: 'resouceNotFound',
                 field: 'Demanda',

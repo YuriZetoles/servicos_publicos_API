@@ -1,6 +1,15 @@
+// /src/repository/GrupoRepository.js
+
 import Grupo from '../models/Grupo.js';
-import mongoose from 'mongoose';
-import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
+import {
+    CommonResponse,
+    CustomError,
+    HttpStatusCodes,
+    errorHandler,
+    messages,
+    StatusService,
+    asyncWrapper
+} from '../utils/helpers/index.js';
 import GrupoFilterBuilder from './filters/GrupoFilterBuild.js';
 
 class GrupoRepository {
@@ -18,7 +27,7 @@ class GrupoRepository {
         }
 
         const grupo = await query;
-        
+
         if (!grupo) {
             throw new CustomError({
                 statusCode: 404,
@@ -33,10 +42,14 @@ class GrupoRepository {
     }
 
     async buscarPorNome(nome, idIgnorado = null) {
-        const filtro = { nome };
+        const filtro = {
+            nome
+        };
 
         if (idIgnorado) {
-            filtro._id = { $ne: idIgnorado }; 
+            filtro._id = {
+                $ne: idIgnorado
+            };
         }
         const documento = await this.modelGrupo.findOne(filtro);
 
@@ -44,9 +57,11 @@ class GrupoRepository {
     }
 
     async listar(req) {
-        const { id } = req.params;
+        const {
+            id
+        } = req.params;
 
-        if(id) {
+        if (id) {
             const data = await this.modelGrupo.findById(id)
 
             if (!data) {
@@ -62,14 +77,18 @@ class GrupoRepository {
             return data;
         }
 
-        const { nome, ativo, page = 1 } = req.query;
+        const {
+            nome,
+            ativo,
+            page = 1
+        } = req.query;
         const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100)
-        
+
         const filterBuilder = new GrupoFilterBuilder()
             .comNome(nome || '')
             .comAtivo(ativo)
 
-        if(typeof filterBuilder.build !== 'function') {
+        if (typeof filterBuilder.build !== 'function') {
             throw new CustomError({
                 statusCode: 500,
                 errorType: 'internalServerError',
@@ -84,7 +103,9 @@ class GrupoRepository {
         const options = {
             page: parseInt(page, 10),
             limit: parseInt(limite, 10),
-            sort: { nome: 1 },
+            sort: {
+                nome: 1
+            },
         };
 
         const resultado = await this.modelGrupo.paginate(filtros, options);
@@ -93,32 +114,34 @@ class GrupoRepository {
             const grupoObj = typeof doc.toObject === 'function' ? doc.toObject() : doc;
             return grupoObj;
         });
-        
+
         return resultado;
     }
 
-    async criar(dadosGrupo){
+    async criar(dadosGrupo) {
         const grupo = new this.modelGrupo(dadosGrupo);
         return await grupo.save()
     }
 
     async atualizar(id, parsedData) {
-            const grupo = await this.modelGrupo.findByIdAndUpdate(id, parsedData, { new: true });
-    
-            if (!grupo) {
-                throw new CustomError({
-                    statusCode: 404,
-                    errorType: 'resourceNotFound',
-                    field: 'Grupo',
-                    details: [],
-                    customMessage: messages.error.resourceNotFound('Grupo')
-                });
-            }
-    
-            return grupo;
+        const grupo = await this.modelGrupo.findByIdAndUpdate(id, parsedData, {
+            new: true
+        });
+
+        if (!grupo) {
+            throw new CustomError({
+                statusCode: 404,
+                errorType: 'resourceNotFound',
+                field: 'Grupo',
+                details: [],
+                customMessage: messages.error.resourceNotFound('Grupo')
+            });
         }
-         
-    async deletar(id){
+
+        return grupo;
+    }
+
+    async deletar(id) {
         const grupo = await this.modelGrupo.findByIdAndDelete(id);
 
         if (!grupo) {
