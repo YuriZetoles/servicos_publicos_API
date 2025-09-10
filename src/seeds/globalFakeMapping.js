@@ -1,9 +1,17 @@
-import { faker } from "@faker-js/faker/locale/pt_BR";
+// src/seeds/globalFakeMapping.js
+
+import {
+  faker
+} from "@faker-js/faker/locale/pt_BR";
 import fakebr from "faker-br";
-import mongoose, { model } from "mongoose";
-import { v4 as uuid } from "uuid";
+import mongoose from "mongoose";
+import {
+  v4 as uuid
+} from "uuid";
 import loadModels from "./loadModels.js";
-import { estadosBrasil } from "../models/Usuario.js";
+import {
+  estadosBrasil
+} from "../models/Usuario.js";
 
 const fakeMappings = {
   common: {
@@ -21,7 +29,9 @@ const fakeMappings = {
       ];
       return values[Math.floor(Math.random() * values.length)];
     },
-    secretarias: () => [{ _id: new mongoose.Types.ObjectId().toString() }],
+    secretarias: () => [{
+      _id: new mongoose.Types.ObjectId().toString()
+    }],
     descricao: () => fakebr.lorem.sentence(),
   },
 
@@ -87,7 +97,9 @@ const fakeMappings = {
     titulo: () => fakebr.lorem.word(),
     icone: () => fakebr.internet.url() + "/" + uuid() + ".jpg",
     subdescricao: () => fakebr.lorem.sentence(),
-    usuarios: () => [{ _id: new mongoose.Types.ObjectId().toString() }],
+    usuarios: () => [{
+      _id: new mongoose.Types.ObjectId().toString()
+    }],
     tipo: () => {
       const values = [
         "Coleta",
@@ -112,32 +124,32 @@ const fakeMappings = {
     avaliacao_resolucao: () => fakebr.lorem.sentence(),
     motivo_devolucao: () => fakebr.lorem.sentence(),
     link_imagem_resolucao: () => fakebr.internet.url() + "/" + uuid() + ".jpg",
-    usuarios: () => [{ _id: new mongoose.Types.ObjectId().toString() }],
+    usuarios: () => [{
+      _id: new mongoose.Types.ObjectId().toString()
+    }],
     endereco: {
-        logradouro: fakebr.address.streetName(),
-        cep: fakebr.address.zipCode(),
-        bairro: fakebr.address.county(),
-        numero: (Math.floor(Math.random() * 9999) + 1000),
-        complemento: fakebr.address.secondaryAddress()
-      }
+      logradouro: fakebr.address.streetName(),
+      cep: fakebr.address.zipCode(),
+      bairro: fakebr.address.county(),
+      numero: (Math.floor(Math.random() * 9999) + 1000),
+      complemento: fakebr.address.secondaryAddress()
+    }
   },
 
   Grupo: {
     ativo: () => Math.random() < 0.9, // true na maioria das vezes
     permissoes: () => {
       // Um array fake com 1 ou 2 permissões
-      return [
-        {
-          rota: 'demandas',
-          dominio: 'localhost',
-          ativo: true,
-          buscar: true,
-          enviar: true,
-          substituir: true,
-          modificar: true,
-          excluir: false,
-        },
-      ];
+      return [{
+        rota: 'demandas',
+        dominio: 'localhost',
+        ativo: true,
+        buscar: true,
+        enviar: true,
+        substituir: true,
+        modificar: true,
+        excluir: false,
+      }, ];
     },
   },
 
@@ -159,18 +171,16 @@ const fakeMappings = {
     ativo: () => Math.random() < 0.9, // true na maioria das vezes
     permissoes: () => {
       // Um array fake com 1 ou 2 permissões
-      return [
-        {
-          rota: "demandas",
-          dominio: "localhost",
-          ativo: true,
-          buscar: true,
-          enviar: true,
-          substituir: true,
-          modificar: true,
-          excluir: false,
-        },
-      ];
+      return [{
+        rota: "demandas",
+        dominio: "localhost",
+        ativo: true,
+        buscar: true,
+        enviar: true,
+        substituir: true,
+        modificar: true,
+        excluir: false,
+      }, ];
     },
   },
 
@@ -201,9 +211,13 @@ const fakeMappings = {
  */
 export async function getGlobalFakeMapping() {
   const models = await loadModels();
-  let globalMapping = { ...fakeMappings.common };
+  let globalMapping = {
+    ...fakeMappings.common
+  };
 
-  models.forEach(({ name }) => {
+  models.forEach(({
+    name
+  }) => {
     if (fakeMappings[name]) {
       globalMapping = {
         ...globalMapping,
@@ -260,7 +274,10 @@ async function validateAllMappings() {
   const models = await loadModels();
   let totalMissing = {};
 
-  models.forEach(({ model, name }) => {
+  models.forEach(({
+    model,
+    name
+  }) => {
     // Combina os campos comuns com os específicos de cada model
     const mapping = {
       ...fakeMappings.common,
