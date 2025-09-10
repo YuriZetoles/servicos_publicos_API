@@ -1,7 +1,10 @@
+// src/routes/usuarioRoutes.js
+
 import express from "express";
 import UsuarioController from '../controllers/UsuarioController.js';
-import { asyncWrapper } from '../utils/helpers/index.js';
-import mongoose from 'mongoose';
+import {
+    asyncWrapper
+} from '../utils/helpers/index.js';
 import AuthMiddleware from "../middlewares/AuthMiddleware.js";
 import AuthPermission from '../middlewares/AuthPermission.js';
 
@@ -19,6 +22,6 @@ router
     .post("/usuarios/:id/foto", AuthMiddleware, AuthPermission, asyncWrapper(usuarioController.fotoUpload.bind(usuarioController)))
     .get("/usuarios/:id/foto", AuthMiddleware, AuthPermission, asyncWrapper(usuarioController.getFoto.bind(usuarioController)));
 
-    console.log("Rotas de usuário carregadas");
+console.log("Rotas de usuário carregadas");
 
 export default router;
