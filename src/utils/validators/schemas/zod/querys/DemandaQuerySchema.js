@@ -1,20 +1,26 @@
-import { z } from "zod";
+// src/utils/validators/schemas/zod/querys/DemandaQuerySchema.js
+
+import {
+    z
+} from "zod";
 import mongoose from 'mongoose';
-import { enderecoSchema } from "../DemandaSchema.js";
+import {
+    enderecoSchema
+} from "../DemandaSchema.js";
 
 export const TipoDemandaEnum = z.enum([
-  "Coleta",
-  "Iluminação",
-  "Saneamento",
-  "Árvores",
-  "Animais",
-  "Pavimentação"
+    "Coleta",
+    "Iluminação",
+    "Saneamento",
+    "Árvores",
+    "Animais",
+    "Pavimentação"
 ]);
 
 export const StatusDemandaEnum = z.enum([
-  "Em aberto",
-  "Em andamento",
-  "Concluída"
+    "Em aberto",
+    "Em andamento",
+    "Concluída"
 ]);
 
 export const DemandaIdSchema = z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {

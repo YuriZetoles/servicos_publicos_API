@@ -1,5 +1,8 @@
 // src/utils/validators/schemas/zod/GrupoSchema.js
-import { z } from 'zod';
+
+import {
+  z
+} from 'zod';
 
 // Schema de cada item da permissão
 const PermissaoSchema = z.object({
@@ -27,10 +30,13 @@ const PermissaoArraySchema = z
 const GrupoSchema = z.object({
   nome: z.string().nonempty('Campo nome é obrigatório.'),
   descricao: z.string().nonempty('Campo descrição é obrigatório.'),
-  ativo: z.boolean().optional(), 
-  permissoes: PermissaoArraySchema, 
+  ativo: z.boolean().optional(),
+  permissoes: PermissaoArraySchema,
 });
 
 const GrupoUpdateSchema = GrupoSchema.partial();
 
-export { GrupoSchema, GrupoUpdateSchema };
+export {
+  GrupoSchema,
+  GrupoUpdateSchema
+};

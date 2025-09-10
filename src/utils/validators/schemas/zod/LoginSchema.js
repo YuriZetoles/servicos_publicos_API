@@ -1,6 +1,8 @@
 // src/utils/validators/schemas/zod/LoginSchema.js
 
-import { z } from 'zod';
+import {
+    z
+} from 'zod';
 
 /** Definição da expressão regular para a senha
  * Padrão: 1 letra maiúscula, 1 letra minúscula, 1 número
@@ -21,4 +23,6 @@ const LoginSchema = z.object({
         }),
 });
 
-export { LoginSchema };
+export {
+    LoginSchema
+};

@@ -1,4 +1,8 @@
-import { z } from "zod";
+// src/utils/validators/schemas/zod/querys/RequestAuthorizationSchema.js
+
+import {
+  z
+} from "zod";
 
 /** Body esperado para a requisição de autorização
   {
@@ -14,14 +18,17 @@ import { z } from "zod";
 */
 
 const RequestAuthorizationSchema = z.object({
-    accesstoken: z.string()
-        .min(1, "Accesstoken não pode ser vazio")
-        .refine(val => val.trim().toLowerCase() !== "null", {
-            message: "Accesstoken inválido"
-        })
-        .transform((val) => val.trim()),
+  accesstoken: z.string()
+    .min(1, "Accesstoken não pode ser vazio")
+    .refine(val => val.trim().toLowerCase() !== "null", {
+      message: "Accesstoken inválido"
+    })
+    .transform((val) => val.trim()),
 }).passthrough();
 
 const RequestAuthorizationUpdateSchema = RequestAuthorizationSchema.partial();
 
-export { RequestAuthorizationSchema, RequestAuthorizationUpdateSchema };
+export {
+  RequestAuthorizationSchema,
+  RequestAuthorizationUpdateSchema
+};

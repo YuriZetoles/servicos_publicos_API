@@ -1,4 +1,8 @@
-import { z } from "zod";
+// src/utils/validators/schemas/zod/querys/GrupoQuerySchema.js
+
+import {
+    z
+} from "zod";
 import mongoose from 'mongoose';
 
 export const GrupoIDSchema = z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
