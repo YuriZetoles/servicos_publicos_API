@@ -1,4 +1,5 @@
 // utils/schemaUtils.js
+
 import mongoose from 'mongoose';
 import getGlobalFakeMapping from '../../seeds/globalFakeMapping.js';
 
@@ -65,9 +66,12 @@ export async function generateExample(schema, key = null, mongooseSchema = null)
   if (schema.type === "array" && schema.items) {
     // Se o campo for um array de referência, detectado automaticamente
     if (key && mongooseSchema && isRefField(key, mongooseSchema)) {
-      return [
-        { _id: new mongoose.Types.ObjectId().toString() },
-        { _id: new mongoose.Types.ObjectId().toString() }
+      return [{
+          _id: new mongoose.Types.ObjectId().toString()
+        },
+        {
+          _id: new mongoose.Types.ObjectId().toString()
+        }
       ];
     }
     return [await await generateExample(schema.items, null, mongooseSchema)];
