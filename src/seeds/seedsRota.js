@@ -1,3 +1,5 @@
+// src/seeds/seed_rota.js
+
 import "dotenv/config";
 import Rota from "../models/Rota.js";
 import DbConnect from "../config/dbConnect.js";
@@ -7,8 +9,7 @@ await DbConnect.conectar();
 async function seedRotas() {
   await Rota.deleteMany();
 
-  const rotasFixas = [
-    {
+  const rotasFixas = [{
       rota: "demandas",
       dominio: "localhost",
       ativo: true,

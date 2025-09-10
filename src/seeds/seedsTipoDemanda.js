@@ -1,5 +1,9 @@
+// src/seeds/seed_tipoDemanda.js
+
 import "dotenv/config";
-import { randomBytes as _randomBytes } from "crypto";
+import {
+  randomBytes as _randomBytes
+} from "crypto";
 import TipoDemanda from '../models/TipoDemanda.js'
 import Usuario from "../models/Usuario.js";
 import getGlobalFakeMapping from "./globalFakeMapping.js";
@@ -23,7 +27,7 @@ async function seedTipoDemanda() {
   const tipoDemanda = [];
 
   for (let i = 0; i <= 10; i++) {
-    const usuarioAleatorio = usuarios[Math.floor(Math.random() * usuarios.length )];
+    const usuarioAleatorio = usuarios[Math.floor(Math.random() * usuarios.length)];
 
     tipoDemanda.push({
       titulo: globalFakeMapping.titulo(),

@@ -2,10 +2,13 @@
 
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import {
+    fileURLToPath
+} from 'url';
 
 // Obtém o diretório atual do arquivo
-const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(
+    import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
@@ -24,7 +27,10 @@ async function loadModels() {
                 const module = await import(modelPath);
                 const model = module.default || module;
                 const modelName = path.basename(file, '.js');
-                models.push({ model, name: modelName });
+                models.push({
+                    model,
+                    name: modelName
+                });
             } catch (error) {
                 console.error(`Erro ao carregar model ${file}:`, error);
             }

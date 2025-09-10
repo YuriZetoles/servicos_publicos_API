@@ -1,4 +1,5 @@
-// ... seus imports existentes
+// src/seeds/seed_usuario.js
+
 import "dotenv/config";
 import { randomBytes as _randomBytes } from "crypto";
 import bcrypt from "bcryptjs";

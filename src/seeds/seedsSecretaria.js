@@ -1,3 +1,5 @@
+// src/seeds/seed_secretaria.js
+
 import "dotenv/config";
 import Secretaria from '../models/Secretaria.js';
 import DbConnect from "../config/dbConnect.js";
@@ -8,8 +10,7 @@ await DbConnect.conectar();
 async function seedSecretaria() {
   await Secretaria.deleteMany();
 
-  const secretariasFixas = [
-    {
+  const secretariasFixas = [{
       nome: "Secretaria Municipal de Limpeza Urbana",
       sigla: "SEMLIMP",
       email: "coleta@prefeitura.gov.br",
