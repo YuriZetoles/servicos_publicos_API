@@ -17,7 +17,14 @@ await DbConnect.conectar();
 
 app.use(express.json()); // importante para ler JSON
 app.use(expressFileUpload());
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            imgSrc: ["'self'", "data:", "blob:"],
+        }
+    }
+}));
 app.use(cors());
 app.use(compression());
 app.use(express.urlencoded({ extended: true }));
