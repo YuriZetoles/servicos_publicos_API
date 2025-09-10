@@ -1,25 +1,46 @@
-import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
+// /src/controllers/DemandaController.js
+
+import {
+    CommonResponse,
+    CustomError,
+    HttpStatusCodes,
+    errorHandler,
+    messages,
+    StatusService,
+    asyncWrapper
+} from '../utils/helpers/index.js';
 import DemandaService from '../service/DemandaService.js';
-import { DemandaIdSchema, DemandaQuerySchema } from '../utils/validators/schemas/zod/querys/DemandaQuerySchema.js';
-import { DemandaSchema, DemandaUpdateSchema } from '../utils/validators/schemas/zod/DemandaSchema.js';
+import {
+    DemandaIdSchema,
+    DemandaQuerySchema
+} from '../utils/validators/schemas/zod/querys/DemandaQuerySchema.js';
+import {
+    DemandaSchema,
+    DemandaUpdateSchema
+} from '../utils/validators/schemas/zod/DemandaSchema.js';
 
 // Importações necessárias para o upload de arquivos
 import path from 'path';
-import { fileURLToPath } from 'url';
+import {
+    fileURLToPath
+} from 'url';
 // Helper para __dirname em módulo ES
-const getDirname = () => path.dirname(fileURLToPath(import.meta.url));
+const getDirname = () => path.dirname(fileURLToPath(
+    import.meta.url));
 
-class DemandaController{
-    constructor(){
+class DemandaController {
+    constructor() {
         this.service = new DemandaService();
     }
 
-    async listar(req,res) {
+    async listar(req, res) {
         console.log('Estou no listar em Demanda');
 
-        const { id } = req.params || {};
+        const {
+            id
+        } = req.params || {};
 
-        if(id) {
+        if (id) {
             DemandaIdSchema.parse(id);
         }
 
@@ -34,7 +55,7 @@ class DemandaController{
         return CommonResponse.success(res, data);
     }
 
-    async criar(req, res){
+    async criar(req, res) {
         console.log('Estou no criar em DemandaController');
 
         const parsedData = DemandaSchema.parse(req.body)
@@ -48,7 +69,9 @@ class DemandaController{
     async atualizar(req, res) {
         console.log('Estou no atualizar em DemandaController');
 
-        const { id } = req.params;
+        const {
+            id
+        } = req.params;
         DemandaIdSchema.parse(id)
 
         const parsedData = DemandaUpdateSchema.parse(req.body);
@@ -59,14 +82,16 @@ class DemandaController{
 
         delete demandaLimpa.tipo;
         delete demandaLimpa.data;
-        
+
         return CommonResponse.success(res, demandaLimpa, 200, "Demanda atualizada com sucesso!")
     }
 
     async atribuir(req, res) {
         console.log('Estou no atribuir em DemandaController');
 
-        const { id } = req.params;
+        const {
+            id
+        } = req.params;
         DemandaIdSchema.parse(id)
 
         const parsedData = DemandaUpdateSchema.parse(req.body);
@@ -74,14 +99,16 @@ class DemandaController{
         const data = await this.service.atribuir(id, parsedData, req)
 
         let demandaLimpa = data.toObject();
-        
+
         return CommonResponse.success(res, demandaLimpa, 200, "Demanda atribuída com sucesso!")
     }
 
     async devolver(req, res) {
         console.log('Estou no devolver em DemandaController');
 
-        const { id } = req.params;
+        const {
+            id
+        } = req.params;
         DemandaIdSchema.parse(id)
 
         const parsedData = DemandaUpdateSchema.parse(req.body);
@@ -89,14 +116,16 @@ class DemandaController{
         const data = await this.service.devolver(id, parsedData, req)
 
         let demandaLimpa = data.toObject();
-        
+
         return CommonResponse.success(res, demandaLimpa, 200, "Demanda devolvida com sucesso!")
     }
 
     async resolver(req, res) {
         console.log('Estou no resolver em DemandaController');
 
-        const { id } = req.params;
+        const {
+            id
+        } = req.params;
         DemandaIdSchema.parse(id)
 
         const parsedData = DemandaUpdateSchema.parse(req.body);
@@ -104,7 +133,7 @@ class DemandaController{
         const data = await this.service.resolver(id, parsedData, req)
 
         let demandaLimpa = data.toObject();
-        
+
         return CommonResponse.success(res, demandaLimpa, 200, "Demanda resolvida com sucesso!")
     }
 
@@ -114,7 +143,7 @@ class DemandaController{
         const id = req?.params?.id;
         DemandaIdSchema.parse(id)
 
-        if(!id) {
+        if (!id) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'validationError',
@@ -133,7 +162,10 @@ class DemandaController{
      */
     async fotoUpload(req, res, next) {
         try {
-            const { id, tipo } = req.params;
+            const {
+                id,
+                tipo
+            } = req.params;
             DemandaIdSchema.parse(id);
 
             const file = req.files?.file;
@@ -146,11 +178,16 @@ class DemandaController{
                 });
             }
 
-            const { fileName, metadata } = await this.service.processarFoto(id, file, tipo, req);
+            const {
+                fileName,
+                metadata
+            } = await this.service.processarFoto(id, file, tipo, req);
 
             return CommonResponse.success(res, {
                 message: 'Arquivo enviado e salvo com sucesso.',
-                dados: { [`link_imagem${tipo === "resolucao" ? "_resolucao" : ""}`]: fileName },
+                dados: {
+                    [`link_imagem${tipo === "resolucao" ? "_resolucao" : ""}`]: fileName
+                },
                 metadados: metadata
             });
         } catch (error) {
@@ -164,10 +201,18 @@ class DemandaController{
      */
     async getFoto(req, res, next) {
         try {
-            const { id, tipo } = req.params;
+            const {
+                id,
+                tipo
+            } = req.params;
             DemandaIdSchema.parse(id);
 
-            const demanda = await this.service.listar({ params: { id }, user_id: req.user_id });
+            const demanda = await this.service.listar({
+                params: {
+                    id
+                },
+                user_id: req.user_id
+            });
             const campo = tipo === "resolucao" ? "link_imagem_resolucao" : "link_imagem";
             const fileName = demanda[campo];
 

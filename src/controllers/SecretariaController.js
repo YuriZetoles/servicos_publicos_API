@@ -1,8 +1,14 @@
-//recebe a requisicao de fato e da a resposta
+// /src/controllers/SecretariaController.js
+
 import SecretariaService from "../service/SecretariaService.js";
-import { SecretariaUpdateSchema, SecretariaSchema } from '../utils/validators/schemas/zod/SecretariaSchema.js';
-import mongoose from 'mongoose';
-import { SecretariaQuerySchema, SecretariaIDSchema } from '../utils/validators/schemas/zod/querys/SecretariaQuerySchema.js';
+import {
+    SecretariaUpdateSchema,
+    SecretariaSchema
+} from '../utils/validators/schemas/zod/SecretariaSchema.js';
+import {
+    SecretariaQuerySchema,
+    SecretariaIDSchema
+} from '../utils/validators/schemas/zod/querys/SecretariaQuerySchema.js';
 import {
     CommonResponse,
     CustomError,
@@ -18,18 +24,20 @@ class SecretariaController {
     constructor() {
         this.service = new SecretariaService();
     }
-    async listar(req, res){
+    async listar(req, res) {
         console.log('Estou no listar em SecretariaController');
 
-        const { id } = req.params || {}
-        if(id) {
+        const {
+            id
+        } = req.params || {}
+        if (id) {
             SecretariaIDSchema.parse(id);
         }
 
         // Validação das queries (se existirem)
         const query = req.query || {};
         if (Object.keys(query).length !== 0) {
-        // Deve apenas validar o objeto query, tendo erro o zod será responsável por lançar o erro
+            // Deve apenas validar o objeto query, tendo erro o zod será responsável por lançar o erro
             await SecretariaQuerySchema.parseAsync(query);
         }
 
@@ -39,19 +47,21 @@ class SecretariaController {
 
     async criar(req, res) {
         console.log('Estou no criar em SecretariaController');
-    
+
         const parsedData = SecretariaSchema.parse(req.body);
         let data = await this.service.criar(parsedData);
-    
+
         let secretariaLimpo = data.toObject();
-    
+
         return CommonResponse.created(res, secretariaLimpo);
     }
 
     async atualizar(req, res) {
         console.log('Estou no atualizar em SecretariaController');
 
-        const { id } = req.params;
+        const {
+            id
+        } = req.params;
         SecretariaIDSchema.parse(id);
 
         const parsedData = SecretariaUpdateSchema.parse(req.body);
@@ -66,10 +76,12 @@ class SecretariaController {
 
     async deletar(req, res) {
         console.log('Estou no deletar em SecretariaController');
-    
-        const { id } = req.params || {};
+
+        const {
+            id
+        } = req.params || {};
         SecretariaIDSchema.parse(id);
-    
+
         if (!id) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -79,7 +91,7 @@ class SecretariaController {
                 customMessage: 'ID da secretaria é obrigatório para deletar.'
             });
         }
-    
+
         const data = await this.service.deletar(id);
         return CommonResponse.success(res, data, 200, 'Secretaria excluída com sucesso.');
     }

@@ -1,7 +1,14 @@
+// /src/controllers/TipoDemandaController.js
+
 import TipoDemandaService from "../service/TipoDemandaService.js";
-import { TipoDemandaUpdateSchema, TipoDemandaSchema } from '../utils/validators/schemas/zod/TipoDemandaSchema.js';
-import mongoose from 'mongoose';
-import { TipoDemandaQuerySchema, TipoDemandaIDSchema } from '../utils/validators/schemas/zod/querys/TipoDemandaQuerySchema.js';
+import {
+    TipoDemandaUpdateSchema,
+    TipoDemandaSchema
+} from '../utils/validators/schemas/zod/TipoDemandaSchema.js';
+import {
+    TipoDemandaQuerySchema,
+    TipoDemandaIDSchema
+} from '../utils/validators/schemas/zod/querys/TipoDemandaQuerySchema.js';
 import {
     CommonResponse,
     CustomError,
@@ -13,32 +20,33 @@ import {
 } from '../utils/helpers/index.js';
 
 // Importações necessárias para o upload de arquivos
-import fileUpload from "express-fileupload";
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { v4 as uuidv4 } from "uuid";
-import fs from 'fs';
-import sharp from "sharp";
+import {
+    fileURLToPath
+} from 'url';
 // Helper para __dirname em módulo ES
-const getDirname = () => path.dirname(fileURLToPath(import.meta.url));
+const getDirname = () => path.dirname(fileURLToPath(
+    import.meta.url));
 
 
 class TipoDemandaController {
     constructor() {
         this.service = new TipoDemandaService();
     }
-    async listar(req, res){
+    async listar(req, res) {
         console.log('Estou no listar em TipoDemandaController');
 
-        const { id } = req.params || {}
-        if(id) {
+        const {
+            id
+        } = req.params || {}
+        if (id) {
             TipoDemandaIDSchema.parse(id);
         }
 
         //Validação das queries (se existirem)
         const query = req.query || {};
         if (Object.keys(query).length !== 0) {
-        // deve apenas validar o objeto query, tendo erro o zod será responsável por lançar o erro
+            // deve apenas validar o objeto query, tendo erro o zod será responsável por lançar o erro
             await TipoDemandaQuerySchema.parseAsync(query);
         }
 
@@ -48,19 +56,21 @@ class TipoDemandaController {
 
     async criar(req, res) {
         console.log('Estou no criar em TipoDemandaController');
-    
+
         const parsedData = TipoDemandaSchema.parse(req.body);
         let data = await this.service.criar(parsedData, req);
-    
+
         let tipoDemandaLimpo = data.toObject();
-    
+
         return CommonResponse.created(res, tipoDemandaLimpo);
     }
 
     async atualizar(req, res) {
         console.log('Estou no atualizar em TipoDemandaController');
 
-        const { id } = req.params;
+        const {
+            id
+        } = req.params;
         TipoDemandaIDSchema.parse(id);
 
         const parsedData = TipoDemandaUpdateSchema.parse(req.body);
@@ -77,10 +87,12 @@ class TipoDemandaController {
 
     async deletar(req, res) {
         console.log('Estou no deletar em TipoDemandaController');
-    
-        const { id } = req.params || {};
+
+        const {
+            id
+        } = req.params || {};
         TipoDemandaIDSchema.parse(id);
-    
+
         if (!id) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -90,7 +102,7 @@ class TipoDemandaController {
                 customMessage: 'ID da TipoDemanda é obrigatório para deletar.'
             });
         }
-    
+
         const data = await this.service.deletar(id);
         return CommonResponse.success(res, data, 200, 'TipoDemanda excluída com sucesso.');
     }
@@ -100,7 +112,9 @@ class TipoDemandaController {
      */
     async fotoUpload(req, res, next) {
         try {
-            const { id } = req.params;
+            const {
+                id
+            } = req.params;
             TipoDemandaIDSchema.parse(id);
 
             const file = req.files?.file;
@@ -114,11 +128,16 @@ class TipoDemandaController {
                 });
             }
 
-            const { fileName, metadata } = await this.service.processarFoto(id, file, req);
+            const {
+                fileName,
+                metadata
+            } = await this.service.processarFoto(id, file, req);
 
             return CommonResponse.success(res, {
                 message: 'Arquivo recebido e Tipo Demanda atualizada com sucesso.',
-                dados: { link_imagem: fileName },
+                dados: {
+                    link_imagem: fileName
+                },
                 metadados: metadata
             });
         } catch (error) {
@@ -133,11 +152,19 @@ class TipoDemandaController {
      */
     async getFoto(req, res, next) {
         try {
-            const { id } = req?.params;
+            const {
+                id
+            } = req?.params;
             TipoDemandaIDSchema.parse(id);
 
-            const tipoDemanda = await this.service.listar({ params: { id }});
-            const { link_imagem } = tipoDemanda;
+            const tipoDemanda = await this.service.listar({
+                params: {
+                    id
+                }
+            });
+            const {
+                link_imagem
+            } = tipoDemanda;
 
             if (!link_imagem) {
                 throw new CustomError({

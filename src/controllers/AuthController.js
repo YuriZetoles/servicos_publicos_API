@@ -1,70 +1,91 @@
+// /src/controllers/AuthController.js
+
 import jwt from 'jsonwebtoken';
-import { promisify } from 'util';
-import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
-import { LoginSchema } from '../utils/validators/schemas/zod/LoginSchema.js';
-import { UsuarioSchema, UsuarioUpdateSchema } from '../utils/validators/schemas/zod/UsuarioSchema.js';
-import { RequestAuthorizationSchema } from '../utils/validators/schemas/zod/querys/RequestAuthorizationSchema.js';
+import {
+  promisify
+} from 'util';
+import {
+  CommonResponse,
+  CustomError,
+  HttpStatusCodes,
+  errorHandler,
+  messages,
+  StatusService,
+  asyncWrapper
+} from '../utils/helpers/index.js';
+import {
+  LoginSchema
+} from '../utils/validators/schemas/zod/LoginSchema.js';
+import {
+  UsuarioSchema,
+  UsuarioUpdateSchema
+} from '../utils/validators/schemas/zod/UsuarioSchema.js';
+import {
+  RequestAuthorizationSchema
+} from '../utils/validators/schemas/zod/querys/RequestAuthorizationSchema.js';
 
 import AuthService from '../service/AuthService.js';
-import { UsuarioIdSchema } from '../utils/validators/schemas/zod/querys/UsuarioQuerySchema.js';
+import {
+  UsuarioIdSchema
+} from '../utils/validators/schemas/zod/querys/UsuarioQuerySchema.js';
 
 class AuthController {
-    constructor() {
-        this.service = new AuthService();
+  constructor() {
+    this.service = new AuthService();
+  }
+
+  login = async (req, res) => {
+    const body = req.body || {};
+    const validatedBody = LoginSchema.parse(body);
+    const data = await this.service.login(validatedBody);
+    return CommonResponse.success(res, data)
+  }
+
+  logout = async (req, res) => {
+    const token = req.body.access_token || req.headers.authorization?.split(' ')[1];
+
+    if (!token || token === 'null' || token === 'undefined') {
+      console.log("Token recebido:", token);
+
+      throw new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'invalidLogout',
+        field: 'Logout',
+        details: [],
+        messages: HttpStatusCodes.BAD_REQUEST.message
+      })
     }
 
-    login = async(req, res) => {
-        const body = req.body || {};
-        const validatedBody = LoginSchema.parse(body);
-        const data = await this.service.login(validatedBody);
-        return CommonResponse.success(res, data)
+    //decodifica token
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET_ACCESS_TOKEN);
+
+    if (!decoded || !decoded.id) {
+      console.log("Token decodificado inválid:", decoded);
+
+      throw new CustomError({
+        statusCode: HttpStatusCodes.INVALID_TOKEN.code,
+        errorType: 'notAuthorized',
+        field: 'NotAuthorized',
+        details: [],
+        messages: HttpStatusCodes.INVALID_TOKEN.message
+      })
     }
 
-    logout = async(req, res) => {
-        const token = req.body.access_token || req.headers.authorization?.split(' ')[1];
+    //valida o id do usuário
+    const decodedId = UsuarioIdSchema.parse(decoded.id);
 
-        if(!token || token === 'null' || token === 'undefined'){
-            console.log("Token recebido:", token);
+    // encaminha o token para o serviço de logout
+    const data = await this.service.logout(decodedId, token);
 
-            throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                errorType: 'invalidLogout',
-                field: 'Logout',
-                details: [],
-                messages: HttpStatusCodes.BAD_REQUEST.message
-            })
-        }
+    return CommonResponse.success(res, null, messages.success.logout);
+  }
 
-        //decodifica token
-        const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET_ACCESS_TOKEN);
+  revoke = async (req, res) => {
+    const id = req.body.id;
+    const data = await this.service.revoke(id);
 
-        if(!decoded || !decoded.id){
-            console.log("Token decodificado inválid:",decoded);
-
-            throw new CustomError({
-                statusCode: HttpStatusCodes.INVALID_TOKEN.code,
-                errorType: 'notAuthorized',
-                field: 'NotAuthorized',
-                details: [],
-                messages: HttpStatusCodes.INVALID_TOKEN.message
-            })
-        }
-
-        //valida o id do usuário
-        const decodedId = UsuarioIdSchema.parse(decoded.id);
-
-        // encaminha o token para o serviço de logout
-        const data = await this.service.logout(decodedId, token);
-
-        return CommonResponse.success(res, null, messages.success.logout);
-    }
-
-    revoke = async(req, res) => {
-        const id = req.body.id;
-        const data = await this.service.revoke(id);
-
-        return CommonResponse.success(res);
-    }
+    return CommonResponse.success(res);
+  }
 
   /**
    * Método para fazer o refresh do token 
@@ -140,12 +161,12 @@ class AuthController {
      * 5. Prepara resposta de introspecção
      */
     const introspection = {
-      active,               // token ainda válido (não expirado)
-      client_id: clientId,  // ID do cliente OAuth
+      active, // token ainda válido (não expirado)
+      client_id: clientId, // ID do cliente OAuth
       token_type: 'Bearer', // conforme RFC 6749
-      exp,                  // timestamp UNIX de expiração
-      iat,                  // timestamp UNIX de emissão
-      nbf,                  // não válido antes deste timestamp
+      exp, // timestamp UNIX de expiração
+      iat, // timestamp UNIX de emissão
+      nbf, // não válido antes deste timestamp
       // …adicione aqui quaisquer campos de extensão necessários…
     };
 
