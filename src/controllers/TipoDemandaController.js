@@ -108,7 +108,7 @@ class TipoDemandaController {
     }
 
     /**
-     * Faz upload de uma foto para um usuário.
+     * Faz upload de uma foto para um Tipo Demanda.
      */
     async fotoUpload(req, res, next) {
         try {
@@ -148,7 +148,7 @@ class TipoDemandaController {
 
 
     /**
-     * Faz download da foto de um usuário.
+     * Faz download da foto de um Tipo Demanda.
      */
     async getFoto(req, res, next) {
         try {
