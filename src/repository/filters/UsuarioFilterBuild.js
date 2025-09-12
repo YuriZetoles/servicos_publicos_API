@@ -1,7 +1,7 @@
+// /src/repository/filters/UsuarioFilterBuild.js
+
 import Usuario from "../../models/Usuario.js";
 import Secretaria from "../../models/Secretaria.js";
-import mongoose from "mongoose";
-
 import UsuarioRepository from "../UsuarioRepository.js";
 import SecretariaRepository from "../SecretariaRepository.js";
 
@@ -16,14 +16,20 @@ class UsuarioFilterBuild {
 
   comNome(nome) {
     if (nome) {
-      this.filtros.nome = { $regex: nome, $options: "i" };
+      this.filtros.nome = {
+        $regex: nome,
+        $options: "i"
+      };
     }
     return this;
   }
 
   comEmail(email) {
     if (email) {
-      this.filtros.email = { $regex: email, $options: "i" };
+      this.filtros.email = {
+        $regex: email,
+        $options: "i"
+      };
     }
     return this;
   }
@@ -47,14 +53,20 @@ class UsuarioFilterBuild {
 
   comCargo(cargo) {
     if (cargo) {
-      this.filtros.cargo = { $regex: cargo, $options: "i" };
+      this.filtros.cargo = {
+        $regex: cargo,
+        $options: "i"
+      };
     }
     return this;
   }
 
   comFormacao(formacao) {
     if (formacao) {
-      this.filtros.formacao = { $regex: formacao, $options: "i" };
+      this.filtros.formacao = {
+        $regex: formacao,
+        $options: "i"
+      };
     }
     return this;
   }
@@ -62,17 +74,21 @@ class UsuarioFilterBuild {
   async comSecretaria(secretaria) {
     if (secretaria) {
       if (Array.isArray(secretaria)) {
-        this.filtros.secretarias = { $in: secretaria };
+        this.filtros.secretarias = {
+          $in: secretaria
+        };
       } else {
         const secretariaEncontrado = await this.secretariaRepository.buscarPorNome(secretaria);
 
-        const secretariasIDs = secretariaEncontrado
-          ? Array.isArray(secretariaEncontrado)
-            ? secretariaEncontrado.map((g) => g._id)
-            : [secretariaEncontrado._id]
-          : [];
+        const secretariasIDs = secretariaEncontrado ?
+          Array.isArray(secretariaEncontrado) ?
+          secretariaEncontrado.map((g) => g._id) :
+          [secretariaEncontrado._id] :
+          [];
 
-        this.filtros.secretarias = { $in: secretariasIDs };
+        this.filtros.secretarias = {
+          $in: secretariasIDs
+        };
       }
     }
 

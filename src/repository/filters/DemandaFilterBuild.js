@@ -1,8 +1,8 @@
+// /src/repository/filters/DemandaFilterBuild.js
+
 import Demanda from "../../models/Demanda.js";
 import Usuario from "../../models/Usuario.js";
 import Secretaria from "../../models/Secretaria.js";
-import mongoose from "mongoose";
-
 import DemandaRepository from "../DemandaRepository.js";
 import UsuarioRepository from "../UsuarioRepository.js";
 import SecretariaRepository from "../SecretariaRepository.js";
@@ -20,7 +20,10 @@ class DemandaFilterBuild {
 
   comTipo(tipo) {
     if (tipo) {
-      this.filtros.tipo = { $regex: tipo, $options: "i" };
+      this.filtros.tipo = {
+        $regex: tipo,
+        $options: "i"
+      };
     }
 
     return this;
@@ -28,7 +31,10 @@ class DemandaFilterBuild {
 
   comStatus(status) {
     if (status) {
-      this.filtros.status = { $regex: status, $options: "i" };
+      this.filtros.status = {
+        $regex: status,
+        $options: "i"
+      };
     }
 
     return this;
@@ -59,12 +65,36 @@ class DemandaFilterBuild {
   comEndereco(endereco) {
     if (endereco) {
       this.filtros.endereco = {
-        $or: [
-          { "endereco.logradouro": { $regex: endereco, $options: "i" } },
-          { "endereco.cep": { $regex: endereco, $options: "i" } },
-          { "endereco.bairro": { $regex: endereco, $options: "i" } },
-          { "endereco.numero": { $regex: endereco, $options: "i" } },
-          { "endereco.complemento": { $regex: endereco, $options: "i" } },
+        $or: [{
+            "endereco.logradouro": {
+              $regex: endereco,
+              $options: "i"
+            }
+          },
+          {
+            "endereco.cep": {
+              $regex: endereco,
+              $options: "i"
+            }
+          },
+          {
+            "endereco.bairro": {
+              $regex: endereco,
+              $options: "i"
+            }
+          },
+          {
+            "endereco.numero": {
+              $regex: endereco,
+              $options: "i"
+            }
+          },
+          {
+            "endereco.complemento": {
+              $regex: endereco,
+              $options: "i"
+            }
+          },
         ],
       };
     }
@@ -78,13 +108,15 @@ class DemandaFilterBuild {
         usuario
       );
 
-      const usuariosIDs = usuarioEncontrado
-        ? Array.isArray(usuarioEncontrado)
-          ? usuarioEncontrado.map((g) => g._id)
-          : [usuarioEncontrado._id]
-        : [];
+      const usuariosIDs = usuarioEncontrado ?
+        Array.isArray(usuarioEncontrado) ?
+        usuarioEncontrado.map((g) => g._id) :
+        [usuarioEncontrado._id] :
+        [];
 
-      this.filtros.usuarios = { $in: usuariosIDs };
+      this.filtros.usuarios = {
+        $in: usuariosIDs
+      };
     }
 
     return this;
@@ -95,13 +127,15 @@ class DemandaFilterBuild {
       const secretariaEncontrado =
         await this.secretariaRepository.buscarPorNome(secretaria);
 
-      const secretariasIDs = secretariaEncontrado
-        ? Array.isArray(secretariaEncontrado)
-          ? secretariaEncontrado.map((g) => g._id)
-          : [secretariaEncontrado._id]
-        : [];
+      const secretariasIDs = secretariaEncontrado ?
+        Array.isArray(secretariaEncontrado) ?
+        secretariaEncontrado.map((g) => g._id) :
+        [secretariaEncontrado._id] :
+        [];
 
-      this.filtros.secretarias = { $in: secretariasIDs };
+      this.filtros.secretarias = {
+        $in: secretariasIDs
+      };
     }
 
     return this;

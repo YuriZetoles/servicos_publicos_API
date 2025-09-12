@@ -10,7 +10,7 @@
     "dev": "nodemon server.js",
     "seed": "node src/seeds/seeds.js",
     "start": "node server.js",
-    "test": "jest --coverage --detectOpenHandles"
+    "test": "jest --coverage"
   },
   "dependencies": {
     "@faker-js/faker": "^9.9.0",

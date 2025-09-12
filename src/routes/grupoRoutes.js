@@ -1,9 +1,10 @@
+// src/routes/grupoRoutes.js
+
 import express from "express";
 import GrupoController from "../controllers/GrupoController.js";
 import {
   asyncWrapper
 } from "../utils/helpers/index.js";
-import mongoose from "mongoose";
 import AuthMiddleware from "../middlewares/AuthMiddleware.js";
 import AuthPermission from "../middlewares/AuthPermission.js";
 

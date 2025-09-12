@@ -1,14 +1,17 @@
 // src/utils/validators/schemas/zod/TipoDemandaSchema.js
 
-import { z } from 'zod';
+import {
+  z
+} from 'zod';
 import objectIdSchema from './ObjectIdSchema.js';
 
 // Validação de array de ObjectId sem duplicações
 const distinctObjectIdArray = z
   .array(objectIdSchema)
   .refine(
-    (arr) => new Set(arr.map((id) => id.toString())).size === arr.length,
-    { message: 'Não pode conter ids repetidos.' }
+    (arr) => new Set(arr.map((id) => id.toString())).size === arr.length, {
+      message: 'Não pode conter ids repetidos.'
+    }
   );
 
 const TipoDemandaSchema = z.object({
@@ -28,16 +31,19 @@ const TipoDemandaSchema = z.object({
   icone: z
     .string()
     .refine((val) => !val || /\.(jpg|jpeg|png|gif|svg)$/i.test(val), {
-        message: 'A URL deve apontar para uma imagem válida (jpg, png, etc).',
+      message: 'A URL deve apontar para uma imagem válida (jpg, png, etc).',
     }),
-   link_imagem: z
+  link_imagem: z
     .string()
     .refine((val) => !val || /\.(jpg|jpeg|png|gif|svg)$/i.test(val), {
-        message: 'A URL deve apontar para uma imagem válida (jpg, png, etc).',
+      message: 'A URL deve apontar para uma imagem válida (jpg, png, etc).',
     }),
-    tipo: z.string().min(3, 'Campo Tipo é obrigatório.'),
+  tipo: z.string().min(3, 'Campo Tipo é obrigatório.'),
 });
 
 const TipoDemandaUpdateSchema = TipoDemandaSchema.partial();
 
-export { TipoDemandaSchema, TipoDemandaUpdateSchema };
+export {
+  TipoDemandaSchema,
+  TipoDemandaUpdateSchema
+};

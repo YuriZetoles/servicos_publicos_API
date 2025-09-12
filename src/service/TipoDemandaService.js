@@ -1,18 +1,33 @@
 // /src/services/TipoDemandaService.js
 
-import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
+import {
+    CommonResponse,
+    CustomError,
+    HttpStatusCodes,
+    errorHandler,
+    messages,
+    StatusService,
+    asyncWrapper
+} from '../utils/helpers/index.js';
 import TipoDemandaRepository from '../repository/TipoDemandaRepository.js';
-import { TipoDemandaUpdateSchema } from '../utils/validators/schemas/zod/TipoDemandaSchema.js';
+import {
+    TipoDemandaUpdateSchema
+} from '../utils/validators/schemas/zod/TipoDemandaSchema.js';
 import UsuarioRepository from '../repository/UsuarioRepository.js';
 
 // Importações necessárias para o upload de arquivos
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { v4 as uuidv4 } from 'uuid';
+import {
+    fileURLToPath
+} from 'url';
+import {
+    v4 as uuidv4
+} from 'uuid';
 import fs from 'fs';
 import sharp from 'sharp';
 // Helper para __dirname em módulo ES
-const getDirname = () => path.dirname(fileURLToPath(import.meta.url));
+const getDirname = () => path.dirname(fileURLToPath(
+    import.meta.url));
 
 class TipoDemandaService {
     constructor() {
@@ -46,7 +61,7 @@ class TipoDemandaService {
         await this.ensureTipoDemandaExists(id);
 
         if (parsedData.titulo) {
-        await this.validarTitulo(parsedData.titulo, id);
+            await this.validarTitulo(parsedData.titulo, id);
         }
         if (parsedData.tipo) {
             await this.validarTipo(parsedData.tipo);
@@ -74,7 +89,7 @@ class TipoDemandaService {
 
         const tipoDemanda = await this.repository.buscarPorID(id);
         const usuariosTipoDemanda = (tipoDemanda?.usuarios).map(u => u._id.toString());
-       
+
         const isAdmin = nivel.administrador;
         const isSecretario = nivel.secretario;
 
@@ -87,14 +102,14 @@ class TipoDemandaService {
                 customMessage: "Você não tem permissão para atualizar a imagem dessa demanda."
             });
         }
-        
+
         await this.ensureTipoDemandaExists(id);
 
-        const data = await this.repository.atualizar(id,parsedData);
+        const data = await this.repository.atualizar(id, parsedData);
         return data;
     }
 
-    async ensureTipoDemandaExists(id){
+    async ensureTipoDemandaExists(id) {
         const TipoDemandaExistente = await this.repository.buscarPorID(id);
         if (!TipoDemandaExistente) {
             throw new CustomError({
@@ -109,23 +124,26 @@ class TipoDemandaService {
         return TipoDemandaExistente;
     }
 
-    async validarTitulo(titulo, id=null) {
+    async validarTitulo(titulo, id = null) {
         const TipoDemandaExistente = await this.repository.buscarPorTitulo(titulo, id);
         if (TipoDemandaExistente) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'validationError',
                 field: 'titulo',
-                details: [{ path: 'titulo', message: 'Titulo já está em uso.' }],
+                details: [{
+                    path: 'titulo',
+                    message: 'Titulo já está em uso.'
+                }],
                 customMessage: 'Titulo já cadastrado.',
             });
         }
     }
-    
+
     /**
      * Valida extensão, tamanho, redimensiona e salva a imagem,
      * atualiza o tipo demana e retorna nome do arquivo + metadados.
-    */
+     */
     async processarFoto(tipoDemandaId, file, req) {
         const ext = path.extname(file.name).slice(1).toLowerCase();
         const validExts = ['jpg', 'jpeg', 'png', 'svg'];
@@ -151,7 +169,9 @@ class TipoDemandaService {
         const fileName = `${uuidv4()}.${ext}`;
         const uploadsDir = path.join(getDirname(), '..', '..', 'uploads');
         if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
+            fs.mkdirSync(uploadsDir, {
+                recursive: true
+            });
         }
         const uploadPath = path.join(uploadsDir, fileName);
 
@@ -160,13 +180,17 @@ class TipoDemandaService {
             position: sharp.strategy.entropy
         });
         if (['jpg', 'jpeg'].includes(ext)) {
-            transformer.jpeg({ quality: 80 });
+            transformer.jpeg({
+                quality: 80
+            });
         }
 
         const buffer = await transformer.toBuffer();
         await fs.promises.writeFile(uploadPath, buffer);
 
-        const dados = { link_imagem: fileName };
+        const dados = {
+            link_imagem: fileName
+        };
         TipoDemandaUpdateSchema.parse(dados);
         await this.atualizarFoto(tipoDemandaId, dados, req);
 
@@ -181,25 +205,28 @@ class TipoDemandaService {
     }
 
     async validarTipo(tipo) {
-    const tiposPermitidos = [
-        'Coleta',
-        'Iluminação',
-        'Saneamento',
-        'Árvores',
-        'Animais',
-        'Pavimentação'
-    ];
+        const tiposPermitidos = [
+            'Coleta',
+            'Iluminação',
+            'Saneamento',
+            'Árvores',
+            'Animais',
+            'Pavimentação'
+        ];
 
-    if (!tiposPermitidos.includes(tipo)) {
-        throw new CustomError({
-            statusCode: HttpStatusCodes.BAD_REQUEST.code,
-            errorType: 'validationError',
-            field: 'tipo',
-            details: [{ path: 'tipo', message: 'Tipo inválido. Valores permitidos: Coleta, Iluminação, Saneamento, Árvores, Animais, Pavimentação.' }],
-            customMessage: 'Tipo de demanda não é válido.',
-        });
+        if (!tiposPermitidos.includes(tipo)) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'tipo',
+                details: [{
+                    path: 'tipo',
+                    message: 'Tipo inválido. Valores permitidos: Coleta, Iluminação, Saneamento, Árvores, Animais, Pavimentação.'
+                }],
+                customMessage: 'Tipo de demanda não é válido.',
+            });
+        }
     }
-}
 
 }
 

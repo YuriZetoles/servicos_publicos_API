@@ -1,10 +1,15 @@
+// src/docs/schemas/usuarioSchema.js
+
 import mongoose from 'mongoose';
 import mongooseSchemaJsonSchema from 'mongoose-schema-jsonschema';
 import removeFieldsRecursively from '../../utils/swagger_utils/removeFields.js';
 import Usuario from '../../models/Usuario.js';
 
 // Importa as funções utilitárias separadas
-import { deepCopy, generateExample } from '../utils/schemaGenerate.js';
+import {
+  deepCopy,
+  generateExample
+} from '../utils/schemaGenerate.js';
 
 // Registra o plugin para que o Mongoose ganhe o método jsonSchema()
 mongooseSchemaJsonSchema(mongoose);
@@ -15,7 +20,6 @@ const usuarioJsonSchema = Usuario.schema.jsonSchema();
 // Remove campos que não queremos na base original
 delete usuarioJsonSchema.properties.__v;
 
-// Componha os diferentes contratos da sua API utilizando cópias profundas dos schemas
 const usuarioSchemas = {
   UsuarioFiltro: {
     type: "object",
@@ -40,63 +44,61 @@ const usuarioSchemas = {
   UsuarioPost: {
     ...deepCopy(usuarioJsonSchema),
     required: [
-        'cpf',
-        'nome',
-        'cnh',
-        'email',
-        'celular',
-        'endereco'
+      'cpf',
+      'nome',
+      'cnh',
+      'email',
+      'celular',
+      'endereco'
     ],
     description: "Schema para criação de um usuário",
-    example: 
-      {
-        cpf: "31782537856",
-        email: "Adriana.Saraiva3@gmail.com",
-        celular: "35935198784",
-        cnh: "28525359763",
-        data_nomeacao: "2024-07-14T12:30:00.000Z",
-        cargo: "Planejador",
-        formacao: "Segurança",
-        link_imagem: "http://edivan.net/b4a264ac-c062-4a5d-afe4-62f6f8428515.jpg",
-        nivel_acesso: {
-          municipe: false,
-          operador: false,
-          secretario: true,
-          administrador: false
-        },
-        nome: "Adriana Saraiva",
-        ativo: true,
-        portaria_nomeacao: "PORTARIA/8871",
-        senha: "Senha@123",
-        endereco: {
-          logradouro: "Rua das Flores",
-          bairro: "Jardim Bom",
-          numero: 123,
-          cidade: "São Paulo",
-          estado: "SP",
-          cep: "01234567"
-        },
-        secretarias: ["687466f04c27d5dd5911bedb"]
+    example: {
+      cpf: "31782537856",
+      email: "Adriana.Saraiva3@gmail.com",
+      celular: "35935198784",
+      cnh: "28525359763",
+      data_nomeacao: "2024-07-14T12:30:00.000Z",
+      cargo: "Planejador",
+      formacao: "Segurança",
+      link_imagem: "http://edivan.net/b4a264ac-c062-4a5d-afe4-62f6f8428515.jpg",
+      nivel_acesso: {
+        municipe: false,
+        operador: false,
+        secretario: true,
+        administrador: false
+      },
+      nome: "Adriana Saraiva",
+      ativo: true,
+      portaria_nomeacao: "PORTARIA/8871",
+      senha: "Senha@123",
+      endereco: {
+        logradouro: "Rua das Flores",
+        bairro: "Jardim Bom",
+        numero: 123,
+        cidade: "São Paulo",
+        estado: "SP",
+        cep: "01234567"
+      },
+      secretarias: ["687466f04c27d5dd5911bedb"]
     }
   },
   UsuarioPatch: {
     ...deepCopy(usuarioJsonSchema),
     required: [],
     description: "Schema para atualização de um usuário",
-    example: 
-      {
-        celular: "35935198884",
-        cargo: "Planejador de Softwares",
-        formacao: "Segurança de dados",
-        nome: "Adriana Saraiva Pereira",
-        endereco: {
-          logradouro: "Rua das Ramas",
-          bairro: "Jardim Feris",
-          numero: 333,
-          cidade: "São Paulo",
-          estado: "SP",
-          cep: "91234567"
-        }
+    example: {
+      celular: "35935198884",
+      cargo: "Planejador de Softwares",
+      formacao: "Segurança de dados",
+      nome: "Adriana Saraiva Pereira",
+      endereco: {
+        logradouro: "Rua das Ramas",
+        bairro: "Jardim Feris",
+        numero: 333,
+        cidade: "São Paulo",
+        estado: "SP",
+        cep: "91234567"
+      }
     }
   },
   UsuarioLogin: {
@@ -112,22 +114,22 @@ const usuarioSchemas = {
     ...deepCopy(usuarioJsonSchema),
     required: ["nome", "cpf", "email", "senha", "cnh", "endereco"],
     description: "Schema para cadastro de usuário",
-      example: {
-        nome: "João Silva",
-        cpf: "12345687900",
-        email: "joao.silva@email.com",
-        senha: "Senha@123",
-        cnh: "13345678900",
-        celular: "12345678900",
-        endereco: {
-          logradouro: "Rua das Flores",
-          bairro: "Jardim Bom",
-          numero: 123,
-          cidade: "São Paulo",
-          estado: "SP",
-          cep: "01234567"
-        }
+    example: {
+      nome: "João Silva",
+      cpf: "12345687900",
+      email: "joao.silva@email.com",
+      senha: "Senha@123",
+      cnh: "13345678900",
+      celular: "12345678900",
+      endereco: {
+        logradouro: "Rua das Flores",
+        bairro: "Jardim Bom",
+        numero: 123,
+        cidade: "São Paulo",
+        estado: "SP",
+        cep: "01234567"
       }
+    }
   },
   signupPostDestalhes: {
     ...deepCopy(usuarioJsonSchema),

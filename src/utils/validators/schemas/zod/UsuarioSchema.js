@@ -1,7 +1,11 @@
 // src/utils/validators/schemas/zod/UsuarioSchema.js
 
-import { z } from "zod";
-import { estadosBrasil } from "../../../../models/Usuario.js";
+import {
+  z
+} from "zod";
+import {
+  estadosBrasil
+} from "../../../../models/Usuario.js";
 import mongoose from 'mongoose';
 
 /** Definição da expressão regular para a senha
@@ -31,18 +35,16 @@ const UsuarioSchema = z.object({
         // Senha é opcional
         if (!senha) return true;
         return senhaRegex.test(senha);
-      },
-      {
-        message:
-          "A senha deve conter pelo menos 1 letra maiúscula, 1 letra minúscula, 1 número e 1 caractere especial.",
+      }, {
+        message: "A senha deve conter pelo menos 1 letra maiúscula, 1 letra minúscula, 1 número e 1 caractere especial.",
       }
     ),
   link_imagem: z
-      .string()
-      .regex(/\.(jpg|jpeg|png|webp|svg|gif)$/i, {
+    .string()
+    .regex(/\.(jpg|jpeg|png|webp|svg|gif)$/i, {
       message: "Deve ser um link de imagem com extensão válida (jpg, png, etc)."
-  })
-  .optional(),
+    })
+    .optional(),
   ativo: z.boolean().optional(),
   nome_social: z
     .string()
@@ -99,4 +101,7 @@ const UsuarioSchema = z.object({
 
 const UsuarioUpdateSchema = UsuarioSchema.partial();
 
-export { UsuarioSchema, UsuarioUpdateSchema };
+export {
+  UsuarioSchema,
+  UsuarioUpdateSchema
+};

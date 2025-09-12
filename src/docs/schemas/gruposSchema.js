@@ -1,4 +1,5 @@
 // schemas/gruposSchemas.js
+
 import mongoose from 'mongoose';
 import mongooseSchemaJsonSchema from 'mongoose-schema-jsonschema';
 import removeFieldsRecursively from '../../utils/swagger_utils/removeFields.js';
@@ -6,7 +7,10 @@ import Grupo from '../../models/Grupo.js';
 
 
 // Importa as funções utilitárias separadas
-import { deepCopy, generateExample } from '../utils/schemaGenerate.js';
+import {
+  deepCopy,
+  generateExample
+} from '../utils/schemaGenerate.js';
 
 // Registra o plugin para que o Mongoose ganhe o método jsonSchema()
 mongooseSchemaJsonSchema(mongoose);
@@ -17,7 +21,6 @@ const grupoJsonSchema = Grupo.schema.jsonSchema();
 // Remove campos que não queremos na base original
 delete grupoJsonSchema.properties.__v;
 
-// Componha os diferentes contratos da sua API utilizando cópias profundas dos schemas
 const gruposSchemas = {
   GrupoFiltro: {
     type: "object",

@@ -40,9 +40,9 @@ const routes = (app) => {
         res.send("API rodando.");
     });
 
-    app.use(express.json(), 
-    usuarioRoutes, secretariaRoutes, demandaRoutes, tipoDemandaRoutes, authRoutes, grupoRoutes)
-    
+    app.use(express.json(),
+        usuarioRoutes, secretariaRoutes, demandaRoutes, tipoDemandaRoutes, authRoutes, grupoRoutes)
+
 };
 
 export default routes;

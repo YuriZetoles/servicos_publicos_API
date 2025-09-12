@@ -1,4 +1,8 @@
-import { z } from "zod";
+// src/utils/validators/schemas/zod/querys/TipoDemandaQuerySchema.js
+
+import {
+    z
+} from "zod";
 import mongoose from 'mongoose';
 
 export const TipoDemandaIDSchema = z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
@@ -25,9 +29,8 @@ export const TipoDemandaQuerySchema = z.object({
         .optional()
         .transform((val) => val?.trim())
         .refine(
-            (val) => !val || /\.(jpg|jpeg|png|gif|svg)$/i.test(val),
-            {
-            message: 'A URL deve apontar para uma imagem válida (jpg, png, etc).',
+            (val) => !val || /\.(jpg|jpeg|png|gif|svg)$/i.test(val), {
+                message: 'A URL deve apontar para uma imagem válida (jpg, png, etc).',
             }
         ),
     subdescricao: z
@@ -42,9 +45,8 @@ export const TipoDemandaQuerySchema = z.object({
         .optional()
         .transform((val) => val?.trim())
         .refine(
-            (val) => !val || /\.(jpg|jpeg|png|gif|svg)$/i.test(val),
-            {
-            message: 'A URL deve apontar para uma imagem válida (jpg, png, etc).',
+            (val) => !val || /\.(jpg|jpeg|png|gif|svg)$/i.test(val), {
+                message: 'A URL deve apontar para uma imagem válida (jpg, png, etc).',
             }
         ),
     tipo: z

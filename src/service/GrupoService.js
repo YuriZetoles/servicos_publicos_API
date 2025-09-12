@@ -1,5 +1,14 @@
-import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
-import mongoose from 'mongoose';
+// /src/services/GrupoService.js
+
+import {
+    CommonResponse,
+    CustomError,
+    HttpStatusCodes,
+    errorHandler,
+    messages,
+    StatusService,
+    asyncWrapper
+} from '../utils/helpers/index.js';
 import GrupoRepository from '../repository/GrupoRepository.js';
 
 class GrupoService {
@@ -45,7 +54,7 @@ class GrupoService {
         return data;
     }
 
-    async ensureGrupoExists(id){
+    async ensureGrupoExists(id) {
         const grupoExistente = await this.repository.buscarPorID(id);
         if (!grupoExistente) {
             throw new CustomError({
@@ -60,14 +69,17 @@ class GrupoService {
         return grupoExistente;
     }
 
-    async validarNome(nome, id=null) {
+    async validarNome(nome, id = null) {
         const grupoExistente = await this.repository.buscarPorNome(nome, id);
         if (grupoExistente) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'validationError',
                 field: 'nome',
-                details: [{ path: 'nome', message: 'Nome já está em uso.' }],
+                details: [{
+                    path: 'nome',
+                    message: 'Nome já está em uso.'
+                }],
                 customMessage: 'Nome já cadastrado.',
             });
         }
