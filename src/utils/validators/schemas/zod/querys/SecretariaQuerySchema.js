@@ -1,4 +1,8 @@
-import { z } from "zod";
+// src/utils/validators/schemas/zod/querys/SecretariaQuerySchema.js
+
+import {
+    z
+} from "zod";
 import mongoose from 'mongoose';
 
 export const SecretariaIDSchema = z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
@@ -14,8 +18,8 @@ export const SecretariaQuerySchema = z.object({
         })
         .transform((val) => val?.trim()),
     email: z
-            .union([z.string().email("Formato de email inválido"), z.undefined()])
-            .optional(),
+        .union([z.string().email("Formato de email inválido"), z.undefined()])
+        .optional(),
     sigla: z
         .string()
         .optional()

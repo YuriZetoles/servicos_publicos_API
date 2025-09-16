@@ -82,8 +82,8 @@ describe("Modelo TipoDemanda", () => {
     const demanda = new TipoDemanda({
       titulo: "Demanda",
       descricao: "desc",
-      link_imagem: "arquivo.txt",
-      icone: "https://exemplo.com/imagem.png",
+      link_imagem: "https",
+      icone: "arquivo.txt",
       subdescricao: "subdesc",
       tipo: "geral"
     });
@@ -95,7 +95,9 @@ describe("Modelo TipoDemanda", () => {
       error = err;
     }
 
-    expect(error.link_imagem.message).toBe("arquivo.txt não é um nome de imagem válido!");
+    expect(error).toBeDefined();
+    expect(error.name).toBe("ValidationError");
+    expect(error.errors.icone.message).toBe("arquivo.txt não é um nome de imagem válido!");
   });
 
   it("Deve aceitar demanda com link_imagem vazio", async () => {

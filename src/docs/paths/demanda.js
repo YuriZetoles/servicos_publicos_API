@@ -1,7 +1,6 @@
-import demandaSchema from "../schemas/demandaSchema.js";
-//import authSchemas from "../schemas/authSchema.js";
+// src/docs/paths/demanda.js
+
 import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js"; // ajuste o caminho conforme necessário
 
 const demandaRoutes = {
     "/demandas": {
@@ -28,19 +27,24 @@ const demandaRoutes = {
             - 200 OK com corpo conforme schema **DemandaListagem**, contendo:
                 • **items**: array de demandas. 
       `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
                     name: "tipo",
                     in: "query",
-                    schema: { type: "string" },
+                    schema: {
+                        type: "string"
+                    },
                     required: false,
                     description: "Filtra por tipo"
                 },
                 {
                     name: "status",
                     in: "query",
-                    schema: { type: "string" },
+                    schema: {
+                        type: "string"
+                    },
                     required: false,
                     description: "Filtra por status"
                 },
@@ -48,42 +52,55 @@ const demandaRoutes = {
                     //todo: revisar endereco
                     name: "endereco",
                     in: "query",
-                    schema: { type: "string" },
+                    schema: {
+                        type: "string"
+                    },
                     required: false,
                     description: "Filtra por status endereco"
                 },
                 {
                     name: "secretaria",
                     in: "query",
-                    schema: { type: "string" },
+                    schema: {
+                        type: "string"
+                    },
                     required: false,
                     description: "Filtra por secretaria"
                 },
                 {
                     name: "usuario",
                     in: "query",
-                    schema: { type: "string" },
+                    schema: {
+                        type: "string"
+                    },
                     required: false,
                     description: "Filtra por usuario"
                 },
                 {
                     name: "data",
                     in: "query",
-                    schema: { type: "string", format: "date" },
+                    schema: {
+                        type: "string",
+                        format: "date"
+                    },
                     required: false,
                     description: "Filtra por data"
                 },
                 {
                     name: "limite",
                     in: "query",
-                    schema: { type: "number" },
+                    schema: {
+                        type: "number"
+                    },
                     required: false,
                     description: "Filtra por limite"
                 },
                 {
                     name: "page",
                     in: "query",
-                    schema: { type: "number" },
+                    schema: {
+                        type: "number"
+                    },
                     required: false,
                     description: "Filtra por página"
                 },
@@ -118,8 +135,10 @@ const demandaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK retornando a mensagem de demanda criada com sucesso e retorna os dados do registro recém-criado, incluindo seu ID.
         `,
-            security: [{ bearerAuth: [] }],
-             requestBody: {
+            security: [{
+                bearerAuth: []
+            }],
+            requestBody: {
                 content: {
                     "application/json": {
                         schema: {
@@ -160,17 +179,17 @@ const demandaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **DemandaDetalhes**, contendo dados completos da demanda.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string",
                 }
-            ],
+            }],
             responses: {
                 200: commonResponses[200]("#/components/schemas/DemandaDetalhes"),
                 400: commonResponses[400](),
@@ -201,16 +220,18 @@ const demandaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK e os dados da demanda são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
                 }
-            ],
-             requestBody: {
+            }],
+            requestBody: {
                 content: {
                     "application/json": {
                         schema: {
@@ -248,17 +269,17 @@ const demandaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK e a demanda é removido com sucesso do banco de dados e o sistema retorna uma mensagem de sucesso e os dados da demanda excluída.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string",
                 }
-            ],
+            }],
             responses: {
                 200: commonResponses[200](),
                 400: commonResponses[400](),
@@ -291,16 +312,18 @@ const demandaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK e os dados da demanda são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
                 }
-            ],
-             requestBody: {
+            }],
+            requestBody: {
                 content: {
                     "application/json": {
                         schema: {
@@ -341,16 +364,18 @@ const demandaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK e os dados da demanda são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
                 }
-            ],
-             requestBody: {
+            }],
+            requestBody: {
                 content: {
                     "application/json": {
                         schema: {
@@ -390,16 +415,18 @@ const demandaRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK e os dados da demanda são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
                 }
-            ],
-             requestBody: {
+            }],
+            requestBody: {
                 content: {
                     "application/json": {
                         schema: {
@@ -436,19 +463,24 @@ const demandaRoutes = {
             + Resultado Esperado:
                 - 200 OK com mensagem de sucesso, link_imagem atualizado e metadados do arquivo.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
                     name: "id",
                     in: "path",
                     required: true,
-                    schema: { type: "string" }
+                    schema: {
+                        type: "string"
+                    }
                 },
                 {
                     name: "tipo",
                     in: "path",
                     required: true,
-                    schema: { type: "string" }
+                    schema: {
+                        type: "string"
+                    }
                 }
             ],
             requestBody: {
@@ -491,27 +523,45 @@ const demandaRoutes = {
             + Resultado Esperado:
                 - 200 OK com o arquivo de imagem.
         `,
-            parameters: [
-                {
+            parameters: [{
                     name: "id",
                     in: "path",
                     required: true,
-                    schema: { type: "string" }
+                    schema: {
+                        type: "string"
+                    }
                 },
                 {
                     name: "tipo",
                     in: "path",
                     required: true,
-                    schema: { type: "string" }
+                    schema: {
+                        type: "string"
+                    }
                 }
             ],
             responses: {
                 200: {
                     description: "Arquivo de imagem retornado",
                     content: {
-                        "image/jpeg": { schema: { type: "string", format: "binary" } },
-                        "image/png": { schema: { type: "string", format: "binary" } },
-                        "image/svg+xml": { schema: { type: "string", format: "binary" } }
+                        "image/jpeg": {
+                            schema: {
+                                type: "string",
+                                format: "binary"
+                            }
+                        },
+                        "image/png": {
+                            schema: {
+                                type: "string",
+                                format: "binary"
+                            }
+                        },
+                        "image/svg+xml": {
+                            schema: {
+                                type: "string",
+                                format: "binary"
+                            }
+                        }
                     }
                 },
                 400: commonResponses[400](),

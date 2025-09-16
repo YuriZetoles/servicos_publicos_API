@@ -1,8 +1,17 @@
+// /src/services/AuthService.js
+
 import jwt from 'jsonwebtoken';
-import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
+import {
+    CommonResponse,
+    CustomError,
+    HttpStatusCodes,
+    errorHandler,
+    messages,
+    StatusService,
+    asyncWrapper
+} from '../utils/helpers/index.js';
 import tokenUtil from '../utils/TokenUtil.js';
-import bcrypt from 'bcrypt'; 
-import AuthHelper from '../utils/AuthHelper.js';
+import bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
 //import fetch from 'node-fetch'; // importacao de biblioteca para utilizar api externa
 
@@ -10,35 +19,41 @@ import UsuarioRepository from "../repository/UsuarioRepository.js";
 
 class AuthService {
     constructor(params = {}) {
-        const { tokenUtil: injectedToken } = params;
+        const {
+            tokenUtil: injectedToken
+        } = params;
         this.TokenUtil = injectedToken || tokenUtil;
         this.repository = new UsuarioRepository();
     }
 
     async carregatokens(id, token) {
-        const data = await this.repository.buscarPorID(id, { includeTokens: true })
-        return { data };
+        const data = await this.repository.buscarPorID(id, {
+            includeTokens: true
+        })
+        return {
+            data
+        };
     }
 
-    async login(body){
+    async login(body) {
         const userEncontrado = await this.repository.buscarPorEmail(body.email);
-        if(!userEncontrado) {
+        if (!userEncontrado) {
             throw new CustomError({
                 statusCode: 401,
                 errorType: 'notFound',
-                field:"Email",
-                details:[],
-                customMessage: messages.error.unauthorized("Credenciais inválidas") 
+                field: "Email",
+                details: [],
+                customMessage: messages.error.unauthorized("Credenciais inválidas")
             })
         }
 
         const senhaValida = await bcrypt.compare(body.senha, userEncontrado.senha);
-        if(!senhaValida) {
+        if (!senhaValida) {
             throw new CustomError({
                 statusCode: 401,
-                errorType:'notFound',
-                field:'Senha',
-                details:[],
+                errorType: 'notFound',
+                field: 'Senha',
+                details: [],
                 customMessage: messages.error.unauthorized('Credenciais inválidas')
             })
         }
@@ -51,15 +66,15 @@ class AuthService {
         let refreshtoken = userComToken.refreshtoken;
         console.log("refresh token no banco", refreshtoken);
 
-        if(refreshtoken) {
-            try{
+        if (refreshtoken) {
+            try {
                 jwt.verify(refreshtoken, process.env.JWT_SECRET_REFRESH_TOKEN);
-            } catch(error) {
-                if(error.name === "TokenExpiredError" || error.name === "JsonWebTokenError"){
+            } catch (error) {
+                if (error.name === "TokenExpiredError" || error.name === "JsonWebTokenError") {
                     refreshtoken = await this.TokenUtil.generateRefreshToken(userEncontrado._id);
                 } else {
                     throw new CustomError({
-                        statusCode: 500, 
+                        statusCode: 500,
                         errorType: "ServerError",
                         field: "Token",
                         details: [],
@@ -80,22 +95,34 @@ class AuthService {
 
         const userObject = userLogado.toObject();
 
-        return { user: { accessToken, refreshtoken, ...userObject } }
+        return {
+            user: {
+                accessToken,
+                refreshtoken,
+                ...userObject
+            }
+        }
 
     }
 
     async logout(id) {
         const data = await this.repository.removerTokens(id);
-        return { data };
+        return {
+            data
+        };
     }
 
     async revoke(id) {
         const data = await this.repository.removerTokens(id);
-        return { data };
+        return {
+            data
+        };
     }
 
     async refresh(id, token) {
-        const userEncontrado = await this.repository.buscarPorID(id, { includeTokens: true });
+        const userEncontrado = await this.repository.buscarPorID(id, {
+            includeTokens: true
+        });
 
         if (!userEncontrado) {
             throw new CustomError({
@@ -136,7 +163,9 @@ class AuthService {
         await this.repository.armazenarTokens(id, accesstoken, refreshtoken);
 
         // Monta o objeto de usuário com os tokens para resposta
-        const userLogado = await this.repository.buscarPorID(id, { includeTokens: true });
+        const userLogado = await this.repository.buscarPorID(id, {
+            includeTokens: true
+        });
         delete userLogado.senha;
         const userObjeto = userLogado.toObject();
 
@@ -146,7 +175,9 @@ class AuthService {
             ...userObjeto
         };
 
-        return { user: userComTokens };
+        return {
+            user: userComTokens
+        };
     }
 
     // RecuperaSenhaService.js
@@ -175,10 +206,10 @@ class AuthService {
         // Passo 2 – Gerar código de verificação (4 carac.)
         // ───────────────────────────────────────────────
         const generateCode = () => Math.random()
-            .toString(36)              // ex: “0.f5g9hk3j”
+            .toString(36) // ex: “0.f5g9hk3j”
             .replace(/[^a-z0-9]/gi, '') // mantém só letras/números
-            .slice(0, 4)               // pega os 4 primeiros
-            .toUpperCase();            // converte p/ maiúsculas
+            .slice(0, 4) // pega os 4 primeiros
+            .toUpperCase(); // converte p/ maiúsculas
 
         let codigoRecuperaSenha = generateCode();
 
@@ -190,7 +221,7 @@ class AuthService {
         console.log('Código existente:', codigoExistente);
 
         console.log(codigoExistente)
-        
+
         while (codigoExistente) {
             console.log('Código já existe, gerando um novo código');
             codigoRecuperaSenha = generateCode();
@@ -317,8 +348,7 @@ class AuthService {
         // Passo 7 – Retornar resposta ao cliente
         // ───────────────────────────────────────────────
         return {
-            message:
-                'Solicitação de recuperação de senha recebida. Um e-mail foi enviado com instruções.'
+            message: 'Solicitação de recuperação de senha recebida. Um e-mail foi enviado com instruções.'
         };
     }
 

@@ -1,7 +1,5 @@
 import authSchemas from "../schemas/authSchema.js";
 import commonResponses from "../schemas/swaggerCommonResponses.js";
-import usuarioSchema from "../schemas/usuarioSchema.js";
-import mongoose from "mongoose";
 
 const authRoutes = {
     "/login": {
@@ -32,15 +30,17 @@ const authRoutes = {
                 required: true,
                 content: {
                     "application/json": {
-                        schema: { "$ref": "#/components/schemas/loginPost" }
+                        schema: {
+                            "$ref": "#/components/schemas/loginPost"
+                        }
                     }
                 }
             },
             responses: {
                 200: commonResponses[200]("#/components/schemas/UsuarioRespostaLogin"),
-                400: commonResponses[400](),    // Requisição malformada
-                422: commonResponses[422](),    // Erro de validação de dados
-                500: commonResponses[500]()     // Erro interno
+                400: commonResponses[400](), // Requisição malformada
+                422: commonResponses[422](), // Erro de validação de dados
+                500: commonResponses[500]() // Erro interno
             }
         }
     },
@@ -172,11 +172,11 @@ const authRoutes = {
                 }
             },
             responses: {
-                200: commonResponses[200](),    // Logout bem-sucedido
-                400: commonResponses[400](),    // Token ausente ou formato inválido
-                401: commonResponses[401](),    // Token inválido ou já expirado
-                498: commonResponses[498](),    // Token expirado
-                500: commonResponses[500]()     // Erro interno
+                200: commonResponses[200](), // Logout bem-sucedido
+                400: commonResponses[400](), // Token ausente ou formato inválido
+                401: commonResponses[401](), // Token inválido ou já expirado
+                498: commonResponses[498](), // Token expirado
+                500: commonResponses[500]() // Erro interno
             }
         }
     },

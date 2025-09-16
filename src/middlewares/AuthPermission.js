@@ -3,7 +3,11 @@
 import jwt from 'jsonwebtoken';
 import PermissionService from '../service/PermissionService.js';
 import Rota from '../models/Rota.js';
-import { CustomError, errorHandler, messages } from '../utils/helpers/index.js';
+import {
+  CustomError,
+  errorHandler,
+  messages
+} from '../utils/helpers/index.js';
 
 // Certifique-se de que as variáveis de ambiente estejam carregadas
 const JWT_SECRET_ACCESS_TOKEN = process.env.JWT_SECRET_ACCESS_TOKEN;
@@ -61,7 +65,10 @@ class AuthPermission {
       const dominioReq = `localhost`; // domínio foi colocado como localhost para fins de teste
 
       // 4. Busca a rota atual no banco de dados
-      const rotaDB = await this.Rota.findOne({ rota: rotaReq, dominio: dominioReq });
+      const rotaDB = await this.Rota.findOne({
+        rota: rotaReq,
+        dominio: dominioReq
+      });
       console.log(rotaDB)
       if (!rotaDB) {
         throw new CustomError({
@@ -123,7 +130,9 @@ class AuthPermission {
       }
 
       // 8. Anexa o usuário ao objeto de requisição para uso posterior
-      req.user = { id: userId };
+      req.user = {
+        id: userId
+      };
 
       // 9. Permite a continuação da requisição
       next();

@@ -1,7 +1,10 @@
+// src/docs/paths/grupos.js
+
 import grupoSchemas from "../schemas/gruposSchema.js";
-// import authSchemas from "../schemas/authSchema.js";
 import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js"; // ajuste o caminho conforme necessário
+import {
+    generateParameters
+} from "./utils/generateParameters.js";
 
 const gruposRoutes = {
     "/grupos": {
@@ -25,8 +28,9 @@ const gruposRoutes = {
             - 200 OK com corpo conforme schema **GrupoListagem**, contendo:
                 • **items**: array de grupos. 
       `,
-            security: [{ bearerAuth: [] }],
-            // Gerando os parâmetros a partir do JSON Schema recursivamente
+            security: [{
+                bearerAuth: []
+            }],
             parameters: generateParameters(grupoSchemas.GrupoFiltro),
             responses: {
                 200: commonResponses[200]("#/components/schemas/GrupoListagem"),
@@ -59,7 +63,9 @@ const gruposRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK retornando a mensagem de grupo criado com sucesso e retorna os dados do registro recém-criado, incluindo seu ID.
         `,
-            security: [{ bearerAuth: [] }],
+            security: [{
+                bearerAuth: []
+            }],
             requestBody: {
                 content: {
                     "application/json": {
@@ -78,7 +84,7 @@ const gruposRoutes = {
             }
         }
     },
-    "/grupos/{id}": { // endpoint ajustado para manter o padrão plural
+    "/grupos/{id}": { 
         get: {
             tags: ["Grupos"],
             summary: "Obtém detalhes de um grupo",
@@ -96,17 +102,17 @@ const gruposRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **GrupoDetalhes**, contendo dados completos do grupo.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string"
-                    }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
                 }
-            ],
+            }],
             responses: {
                 200: commonResponses[200]("#/components/schemas/GrupoDetalhes"),
                 400: commonResponses[400](),
@@ -134,17 +140,17 @@ const gruposRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK e os dados do grupo são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string"
-                    }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
                 }
-            ],
+            }],
             requestBody: {
                 content: {
                     "application/json": {
@@ -181,17 +187,17 @@ const gruposRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK e o grupo é removido com sucesso do banco de dados e o sistema retorna uma mensagem de sucesso e os dados da secretaria excluída.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string"
-                    }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
                 }
-            ],
+            }],
             responses: {
                 200: commonResponses[200](),
                 400: commonResponses[400](),

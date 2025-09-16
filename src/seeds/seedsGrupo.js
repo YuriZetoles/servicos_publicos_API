@@ -1,4 +1,5 @@
 // seeds/seedGrupo.js
+
 import "dotenv/config";
 import Grupo from "../models/Grupo.js";
 import DbConnect from "../config/dbConnect.js";
@@ -8,13 +9,11 @@ await DbConnect.conectar();
 async function seedGrupo() {
   await Grupo.deleteMany();
 
-  const gruposFixos = [
-    {
+  const gruposFixos = [{
       nome: "Secretário",
       descricao: "Grupo com acesso de secretário",
       ativo: true,
-      permissoes: [
-        {
+      permissoes: [{
           rota: "demandas",
           dominio: "localhost",
           ativo: true,
@@ -70,8 +69,7 @@ async function seedGrupo() {
       nome: "Operador",
       descricao: "Grupo com acesso de operador",
       ativo: true,
-      permissoes: [
-        {
+      permissoes: [{
           rota: "demandas",
           dominio: "localhost",
           ativo: true,
@@ -127,8 +125,7 @@ async function seedGrupo() {
       nome: "Administrador",
       descricao: "Grupo com acesso de administrador",
       ativo: true,
-      permissoes: [
-        {
+      permissoes: [{
           rota: "demandas",
           dominio: "localhost",
           ativo: true,
@@ -184,8 +181,7 @@ async function seedGrupo() {
       nome: "Municipe",
       descricao: "Grupo com acesso de munícipe",
       ativo: true,
-      permissoes: [
-        {
+      permissoes: [{
           rota: "demandas",
           dominio: "localhost",
           ativo: true,

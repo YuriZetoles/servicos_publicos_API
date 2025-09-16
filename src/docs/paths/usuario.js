@@ -1,7 +1,6 @@
-import usuarioSchema from "../schemas/usuarioSchema.js";
-//import authSchemas from "../schemas/authSchema.js";
+// src/docs/paths/usuario.js
+
 import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js"; // ajuste o caminho conforme necessário
 
 const usuarioRoutes = {
     "/usuarios": {
@@ -27,61 +26,79 @@ const usuarioRoutes = {
             - 200 OK com corpo conforme schema **UsuarioListagem**, contendo:
                 • **items**: array de usuários. 
       `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
                     name: "nome",
                     in: "query",
-                    schema: { type: "string" },
+                    schema: {
+                        type: "string"
+                    },
                     required: false,
                     description: "Filtra por nome"
                 },
                 {
                     name: "email",
                     in: "query",
-                    schema: { type: "string", format: "email" },
+                    schema: {
+                        type: "string",
+                        format: "email"
+                    },
                     required: false,
                     description: "Filtra por email"
                 },
                 {
                     name: "ativo",
                     in: "query",
-                    schema: { type: "boolean" },
+                    schema: {
+                        type: "boolean"
+                    },
                     required: false,
                     description: "Filtra por status ativo"
                 },
                 {
                     name: "secretaria",
                     in: "query",
-                    schema: { type: "string" },
+                    schema: {
+                        type: "string"
+                    },
                     required: false,
                     description: "Filtra por secretaria"
                 },
                 {
                     name: "cargo",
                     in: "query",
-                    schema: { type: "string" },
+                    schema: {
+                        type: "string"
+                    },
                     required: false,
                     description: "Filtra por cargo"
                 },
                 {
                     name: "formação",
                     in: "query",
-                    schema: { type: "string" },
+                    schema: {
+                        type: "string"
+                    },
                     required: false,
                     description: "Filtra por formação"
                 },
                 {
                     name: "limite",
                     in: "query",
-                    schema: { type: "number" },
+                    schema: {
+                        type: "number"
+                    },
                     required: false,
                     description: "Filtra por limite"
                 },
                 {
                     name: "page",
                     in: "query",
-                    schema: { type: "number" },
+                    schema: {
+                        type: "number"
+                    },
                     required: false,
                     description: "Filtra por página"
                 },
@@ -120,8 +137,10 @@ const usuarioRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK retornando a mensagem de usuário criada com sucesso e retorna os dados do registro recém-criado, incluindo seu ID.
         `,
-            security: [{ bearerAuth: [] }],
-             requestBody: {
+            security: [{
+                bearerAuth: []
+            }],
+            requestBody: {
                 content: {
                     "application/json": {
                         schema: {
@@ -161,17 +180,17 @@ const usuarioRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **UsuarioDetalhes**, contendo dados completos da usuario.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string",
                 }
-            ],
+            }],
             responses: {
                 200: commonResponses[200]("#/components/schemas/UsuarioDetalhes"),
                 400: commonResponses[400](),
@@ -200,16 +219,18 @@ const usuarioRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK e os dados da usuario são atualizados com sucesso e o sistema retorna os novos dados com uma mensagem de confirmação.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
                 }
-            ],
-             requestBody: {
+            }],
+            requestBody: {
                 content: {
                     "application/json": {
                         schema: {
@@ -247,17 +268,17 @@ const usuarioRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK e a usuario é removido com sucesso do banco de dados e o sistema retorna uma mensagem de sucesso e os dados da usuario excluída.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string",
                 }
-            ],
+            }],
             responses: {
                 200: commonResponses[200](),
                 400: commonResponses[400](),
@@ -287,15 +308,17 @@ const usuarioRoutes = {
             + Resultado Esperado:
                 - 200 OK com mensagem de sucesso, link_imagem atualizado e metadados do arquivo.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
                 }
-            ],
+            }],
             requestBody: {
                 content: {
                     "multipart/form-data": {
@@ -336,21 +359,36 @@ const usuarioRoutes = {
             + Resultado Esperado:
                 - 200 OK com o arquivo de imagem.
         `,
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: { type: "string" }
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
                 }
-            ],
+            }],
             responses: {
                 200: {
                     description: "Arquivo de imagem retornado",
                     content: {
-                        "image/jpeg": { schema: { type: "string", format: "binary" } },
-                        "image/png": { schema: { type: "string", format: "binary" } },
-                        "image/svg+xml": { schema: { type: "string", format: "binary" } }
+                        "image/jpeg": {
+                            schema: {
+                                type: "string",
+                                format: "binary"
+                            }
+                        },
+                        "image/png": {
+                            schema: {
+                                type: "string",
+                                format: "binary"
+                            }
+                        },
+                        "image/svg+xml": {
+                            schema: {
+                                type: "string",
+                                format: "binary"
+                            }
+                        }
                     }
                 },
                 400: commonResponses[400](),

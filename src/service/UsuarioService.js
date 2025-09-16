@@ -1,23 +1,36 @@
 // /src/services/UsuarioService.js
-// import { PermissoesArraySchema } from '../utils/validators/schemas/zod/PermissaoValidation.js';
-import { UsuarioSchema, UsuarioUpdateSchema } from '../utils/validators/schemas/zod/UsuarioSchema.js';
-import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
+
+import {
+    UsuarioSchema,
+    UsuarioUpdateSchema
+} from '../utils/validators/schemas/zod/UsuarioSchema.js';
+import {
+    CommonResponse,
+    CustomError,
+    HttpStatusCodes,
+    errorHandler,
+    messages,
+    StatusService,
+    asyncWrapper
+} from '../utils/helpers/index.js';
 import AuthHelper from '../utils/AuthHelper.js';
-import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
 import UsuarioRepository from '../repository/UsuarioRepository.js';
-import { parse } from 'dotenv';
 import GrupoRepository from '../repository/GrupoRepository.js'
 import SecretariaRepository from '../repository/SecretariaRepository.js'
 
 // Importações necessárias para o upload de arquivos
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { v4 as uuidv4 } from 'uuid';
+import {
+    fileURLToPath
+} from 'url';
+import {
+    v4 as uuidv4
+} from 'uuid';
 import fs from 'fs';
 import sharp from 'sharp';
 // Helper para __dirname em módulo ES
-const getDirname = () => path.dirname(fileURLToPath(import.meta.url));
+const getDirname = () => path.dirname(fileURLToPath(
+    import.meta.url));
 
 class UsuarioService {
     constructor() {
@@ -36,16 +49,16 @@ class UsuarioService {
         const id = req?.params?.id ?? String(usuarioID);
 
         if (nivel.municipe || nivel.operador) {
-                if (String(usuarioID) !== String(id)) {
-                    throw new CustomError({
-                        statusCode: HttpStatusCodes.FORBIDDEN.code,
-                        errorType: 'permissionError',
-                        customMessage: 'Munícipes e operadores só podem acessar seus próprios dados.'
-                    });
-                }
+            if (String(usuarioID) !== String(id)) {
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.FORBIDDEN.code,
+                    errorType: 'permissionError',
+                    customMessage: 'Munícipes e operadores só podem acessar seus próprios dados.'
+                });
+            }
 
-                const data = await this.repository.buscarPorID(id);
-                return data;
+            const data = await this.repository.buscarPorID(id);
+            return data;
         }
 
         if (nivel.secretario) {
@@ -53,7 +66,7 @@ class UsuarioService {
                 const usuarioPesquisado = await this.repository.buscarPorID(id);
 
                 const secretariasUsuarioLogado = (usuarioLogado?.secretarias).map(s => s.toString());
-                const secretariasUsuarioPesquisado = (usuarioPesquisado?.secretarias ).map(s => s.toString());
+                const secretariasUsuarioPesquisado = (usuarioPesquisado?.secretarias).map(s => s.toString());
 
                 const temAcesso = secretariasUsuarioPesquisado.some(sec => secretariasUsuarioLogado.includes(sec));
 
@@ -97,8 +110,10 @@ class UsuarioService {
         await this.validateEmail(parsedData.email);
 
         //gerar senha hash
-        if(parsedData.senha) {
-            const { senha: senhaValidada } = await AuthHelper.hashPassword(parsedData.senha);
+        if (parsedData.senha) {
+            const {
+                senha: senhaValidada
+            } = await AuthHelper.hashPassword(parsedData.senha);
             parsedData.senha = senhaValidada;
         }
 
@@ -116,7 +131,9 @@ class UsuarioService {
         await this.validateEmail(parsedData.email);
 
         if (parsedData.senha) {
-            const { senha: senhaValidada } = await AuthHelper.hashPassword(parsedData.senha);
+            const {
+                senha: senhaValidada
+            } = await AuthHelper.hashPassword(parsedData.senha);
             parsedData.senha = senhaValidada;
         }
 
@@ -148,7 +165,7 @@ class UsuarioService {
         await this.ensureUserExists(id);
 
         const usuario = await this.repository.buscarPorID(req.user_id);
-        const nivel = usuario?.nivel_acesso ;
+        const nivel = usuario?.nivel_acesso;
         const isAdmin = nivel.administrador;
 
         const atualizarOutroUser = String(usuario._id) !== String(id);
@@ -177,7 +194,7 @@ class UsuarioService {
         console.log('Estou no atualizar em UsuarioService');
 
         const usuario = await this.repository.buscarPorID(req.user_id);
-        const nivel = usuario?.nivel_acesso ;
+        const nivel = usuario?.nivel_acesso;
         const usuarioID = usuario._id;
 
         await this.ensureUserExists(id);
@@ -221,20 +238,23 @@ class UsuarioService {
     }
 
     //metodos auxiliares
-    async validateEmail(email, id=null) {
+    async validateEmail(email, id = null) {
         const usuarioExistente = await this.repository.buscarPorEmail(email, id);
         if (usuarioExistente) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'validationError',
                 field: 'email',
-                details: [{ path: 'email', message: 'Email já está em uso.' }],
+                details: [{
+                    path: 'email',
+                    message: 'Email já está em uso.'
+                }],
                 customMessage: 'Email já cadastrado.',
             });
         }
     }
 
-    async ensureUserExists(id){
+    async ensureUserExists(id) {
         const usuarioExistente = await this.repository.buscarPorID(id);
 
         if (!usuarioExistente) {
@@ -250,69 +270,78 @@ class UsuarioService {
         return usuarioExistente;
     }
 
-      /**
-   * Valida extensão, tamanho, redimensiona e salva a imagem,
-   * atualiza o usuário e retorna nome do arquivo + metadados.
-   */
+    /**
+     * Valida extensão, tamanho, redimensiona e salva a imagem,
+     * atualiza o usuário e retorna nome do arquivo + metadados.
+     */
     async processarFoto(userId, file, req) {
         // 1) valida extensão
         const ext = path.extname(file.name).slice(1).toLowerCase();
         const validExts = ['jpg', 'jpeg', 'png', 'svg'];
         if (!validExts.includes(ext)) {
-        throw new CustomError({
-            statusCode: HttpStatusCodes.BAD_REQUEST.code,
-            errorType: 'validationError',
-            field: 'file',
-            details: [],
-            customMessage: 'Extensão de arquivo inválida. Permitido: jpg, jpeg, png, svg.',
-        });
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'file',
+                details: [],
+                customMessage: 'Extensão de arquivo inválida. Permitido: jpg, jpeg, png, svg.',
+            });
         }
 
         // 2) valida tamanho (max 50MB)
         const MAX_BYTES = 50 * 1024 * 1024;
         if (file.size > MAX_BYTES) {
-        throw new CustomError({
-            statusCode: HttpStatusCodes.BAD_REQUEST.code,
-            errorType: 'validationError',
-            field: 'file',
-            details: [],
-            customMessage: `Arquivo não pode exceder ${MAX_BYTES / (1024 * 1024)} MB.`,
-        });
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'file',
+                details: [],
+                customMessage: `Arquivo não pode exceder ${MAX_BYTES / (1024 * 1024)} MB.`,
+            });
         }
 
         // 3) prepara paths
         const fileName = `${uuidv4()}.${ext}`;
         const uploadsDir = path.join(getDirname(), '..', '..', 'uploads');
         if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
+            fs.mkdirSync(uploadsDir, {
+                recursive: true
+            });
         }
         const uploadPath = path.join(uploadsDir, fileName);
 
         // 4) redimensiona/comprime
         const transformer = sharp(file.data)
-        .resize(400, 400, { fit: sharp.fit.cover, position: sharp.strategy.entropy });
+            .resize(400, 400, {
+                fit: sharp.fit.cover,
+                position: sharp.strategy.entropy
+            });
         if (['jpg', 'jpeg'].includes(ext)) {
-        transformer.jpeg({ quality: 80 });
+            transformer.jpeg({
+                quality: 80
+            });
         }
         const buffer = await transformer.toBuffer();
         await fs.promises.writeFile(uploadPath, buffer);
 
         // 5) atualiza usuário no banco
-        const dados = { link_imagem: fileName };
+        const dados = {
+            link_imagem: fileName
+        };
         UsuarioUpdateSchema.parse(dados);
         await this.atualizarFoto(userId, dados, req);
 
         // 6) retorna metadados adicionais
         return {
-        fileName,
-        metadata: {
-            fileExtension: ext,
-            fileSize: file.size,
-            md5: file.md5, // vem do express-fileupload
-        },
+            fileName,
+            metadata: {
+                fileExtension: ext,
+                fileSize: file.size,
+                md5: file.md5, // vem do express-fileupload
+            },
         };
     }
-    
+
 }
 
 export default UsuarioService;

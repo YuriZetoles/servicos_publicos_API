@@ -1,10 +1,15 @@
 // /src/services/SecretariaService.js
-//import bcrypt from 'bcrypt';
-import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
-//import AuthHelper from '../utils/AuthHelper.js';
-import mongoose from 'mongoose';
+
+import {
+    CommonResponse,
+    CustomError,
+    HttpStatusCodes,
+    errorHandler,
+    messages,
+    StatusService,
+    asyncWrapper
+} from '../utils/helpers/index.js';
 import SecretariaRepository from '../repository/SecretariaRepository.js';
-import { parse } from 'dotenv';
 
 class SecretariaService {
     constructor() {
@@ -51,7 +56,7 @@ class SecretariaService {
         return data;
     }
 
-    async ensureSecretariaExists(id){
+    async ensureSecretariaExists(id) {
         const secretariaExistente = await this.repository.buscarPorID(id);
         if (!secretariaExistente) {
             throw new CustomError({
@@ -66,14 +71,17 @@ class SecretariaService {
         return secretariaExistente;
     }
 
-    async validarNome(nome, id=null) {
+    async validarNome(nome, id = null) {
         const secretariaExistente = await this.repository.buscarPorNome(nome, id);
         if (secretariaExistente) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'validationError',
                 field: 'nome',
-                details: [{ path: 'nome', message: 'Nome já está em uso.' }],
+                details: [{
+                    path: 'nome',
+                    message: 'Nome já está em uso.'
+                }],
                 customMessage: 'Nome já cadastrado.',
             });
         }

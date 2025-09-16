@@ -1,5 +1,9 @@
+// src/seeds/seed_demanda.js
+
 import "dotenv/config";
-import { randomBytes as _randomBytes } from "crypto";
+import {
+  randomBytes as _randomBytes
+} from "crypto";
 import Demanda from "../models/Demanda.js";
 import getGlobalFakeMapping from "./globalFakeMapping.js";
 import Usuario from "../models/Usuario.js";
@@ -23,9 +27,15 @@ async function seedDemanda() {
 
   const demandas = [];
 
-  const secretarioFixo = await Usuario.findOne({ email: "secretariofixo@exemplo.com" });
-  const operadorFixo = await Usuario.findOne({ email: "operadorfixo@exemplo.com" });
-  const municipeFixo = await Usuario.findOne({ email: "municipefixo@exemplo.com" });
+  const secretarioFixo = await Usuario.findOne({
+    email: "secretariofixo@exemplo.com"
+  });
+  const operadorFixo = await Usuario.findOne({
+    email: "operadorfixo@exemplo.com"
+  });
+  const municipeFixo = await Usuario.findOne({
+    email: "municipefixo@exemplo.com"
+  });
 
   const secretariaFixa = secretarioFixo.secretarias[0];
 
@@ -59,15 +69,15 @@ async function seedDemanda() {
       numero: "250",
       complemento: "Em frente ao mercado"
     },
-    usuarios: [municipeFixo._id, operadorFixo._id], 
+    usuarios: [municipeFixo._id, operadorFixo._id],
     secretarias: [secretariaFixa]
   });
 
   for (let i = 0; i <= 10; i++) {
-    const usuarioAleatorio = usuarios[Math.floor(Math.random() * usuarios.length )];
+    const usuarioAleatorio = usuarios[Math.floor(Math.random() * usuarios.length)];
 
     const secretarias = await Secretaria.find();
-    
+
     if (secretarias.length === 0) {
       throw new Error("Nenhum usuário encontrado. Rode o seed de usuários primeiro.");
     }

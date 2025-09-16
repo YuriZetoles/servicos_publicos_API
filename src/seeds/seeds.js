@@ -1,12 +1,14 @@
+// src/seeds/seeds.js
+
 import "dotenv/config";
 import mongoose from "mongoose";
-import seedDemanda from "./seed_demanda.js";
-import seedUsuario from "./seed_usuario.js";
-import seedSecretaria from "./seed_secretaria.js";
-import seedTipoDemanda from "./seed_tipoDemanda.js";
-import seedGrupo from "./seed_grupo.js";
-import seedRotas from "./seed_rota.js";
- 
+import seedDemanda from "./seedsDemanda.js";
+import seedUsuario from "./seedsUsuario.js";
+import seedSecretaria from "./seedsSecretaria.js";
+import seedTipoDemanda from "./seedsTipoDemanda.js";
+import seedGrupo from "./seedsGrupo.js";
+import seedRotas from "./seedsRota.js";
+
 async function main() {
   try {
     await seedRotas();
@@ -24,5 +26,5 @@ async function main() {
     process.exit(0);
   }
 }
-  
+
 main();

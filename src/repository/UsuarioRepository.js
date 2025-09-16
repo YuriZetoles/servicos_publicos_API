@@ -1,6 +1,15 @@
+// /src/repository/UsuarioRepository.js
+
 import Usuario from '../models/Usuario.js';
-import mongoose from 'mongoose';
-import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
+import {
+    CommonResponse,
+    CustomError,
+    HttpStatusCodes,
+    errorHandler,
+    messages,
+    StatusService,
+    asyncWrapper
+} from '../utils/helpers/index.js';
 import UsuarioFilterBuild from './filters/UsuarioFilterBuild.js';
 
 class UsuarioRepository {
@@ -12,7 +21,7 @@ class UsuarioRepository {
 
     async armazenarTokens(id, accesstoken, refreshtoken) {
         const document = await this.modelUsuario.findById(id);
-        if(!document) {
+        if (!document) {
             throw new CustomError({
                 statusCode: 401,
                 errorType: "resourceNotFound",
@@ -33,7 +42,9 @@ class UsuarioRepository {
             accesstoken: null
         };
 
-        const usuario = await this.modelUsuario.findByIdAndUpdate(id, parsedData, { new: true }).exec();
+        const usuario = await this.modelUsuario.findByIdAndUpdate(id, parsedData, {
+            new: true
+        }).exec();
 
         if (!usuario) {
             throw new CustomError({
@@ -58,7 +69,7 @@ class UsuarioRepository {
         }
 
         const user = await query;
-        
+
         if (!user) {
             throw new CustomError({
                 statusCode: 404,
@@ -73,18 +84,27 @@ class UsuarioRepository {
     }
 
     async buscarPorIDs(ids) {
-        return await this.modelUsuario.find({ _id: { $in: ids } })
+        return await this.modelUsuario.find({
+                _id: {
+                    $in: ids
+                }
+            })
             .populate('secretarias')
             .populate('grupo')
     }
 
     async buscarPorNome(nome, idIgnorado = null) {
         const filtro = {
-            nome: { $regex: nome, $options: 'i' }
+            nome: {
+                $regex: nome,
+                $options: 'i'
+            }
         };
 
         if (idIgnorado) {
-            filtro._id = { $ne: idIgnorado };
+            filtro._id = {
+                $ne: idIgnorado
+            };
         }
 
         const documentos = await this.modelUsuario.findOne(filtro);
@@ -92,10 +112,14 @@ class UsuarioRepository {
     }
 
     async buscarPorEmail(email, idIgnorado = null) {
-        const filtro = { email };
+        const filtro = {
+            email
+        };
 
         if (idIgnorado) {
-            filtro._id = { $ne: idIgnorado };
+            filtro._id = {
+                $ne: idIgnorado
+            };
         }
 
         // const documento = await this.modelUsuario.findOne(filtro, '+senha')
@@ -105,9 +129,11 @@ class UsuarioRepository {
     }
 
     async listar(req) {
-        const { id } = req.params;
+        const {
+            id
+        } = req.params;
 
-        if(id) {
+        if (id) {
             const data = await this.modelUsuario.findById(id)
                 .populate('secretarias')
                 .populate('grupo')
@@ -125,9 +151,18 @@ class UsuarioRepository {
             return data;
         }
 
-        const { nome, email, nivel_acesso, cargo, formacao, secretaria, ativo, page = 1 } = req.query;
+        const {
+            nome,
+            email,
+            nivel_acesso,
+            cargo,
+            formacao,
+            secretaria,
+            ativo,
+            page = 1
+        } = req.query;
         const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100)
-        
+
         const filterBuilder = new UsuarioFilterBuild()
             .comEmail(email || '')
             .comNome(nome || '')
@@ -136,9 +171,9 @@ class UsuarioRepository {
             .comFormacao(formacao || '')
             .comAtivo(ativo)
 
-            await filterBuilder.comSecretaria(secretaria || '');
+        await filterBuilder.comSecretaria(secretaria || '');
 
-        if(typeof filterBuilder.build !== 'function') {
+        if (typeof filterBuilder.build !== 'function') {
             throw new CustomError({
                 statusCode: 500,
                 errorType: 'internalServerError',
@@ -153,11 +188,16 @@ class UsuarioRepository {
         const options = {
             page: parseInt(page, 10),
             limit: parseInt(limite, 10),
-            populate: [
-                { path: 'secretarias' },
-                { path: 'grupo' }
+            populate: [{
+                    path: 'secretarias'
+                },
+                {
+                    path: 'grupo'
+                }
             ],
-            sort: { nome: 1 },
+            sort: {
+                nome: 1
+            },
         };
 
         const resultado = await this.modelUsuario.paginate(filtros, options);
@@ -166,17 +206,19 @@ class UsuarioRepository {
             const usuarioObj = typeof doc.toObject === 'function' ? doc.toObject() : doc;
             return usuarioObj;
         });
-        
+
         return resultado;
     }
 
-    async criar(dadosUsuario){
+    async criar(dadosUsuario) {
         const usuario = new this.modelUsuario(dadosUsuario);
         return await usuario.save()
     }
 
     async atualizar(id, parsedData) {
-        const usuario = await this.modelUsuario.findByIdAndUpdate(id, parsedData, { new: true })
+        const usuario = await this.modelUsuario.findByIdAndUpdate(id, parsedData, {
+                new: true
+            })
             .populate('secretarias')
             .populate('grupo')
 
@@ -193,7 +235,7 @@ class UsuarioRepository {
         return usuario;
     }
 
-    async deletar(id){
+    async deletar(id) {
         const usuario = await this.modelUsuario.findByIdAndDelete(id)
             .populate('secretarias')
             .populate('grupo')
@@ -202,7 +244,9 @@ class UsuarioRepository {
 
     async buscarPorPorCodigoRecuperacao(codigo) {
         console.log('Estou no buscarPorPorCodigoRecuperacao em UsuarioRepository');
-        const filtro = { codigo_recupera_senha: codigo };
+        const filtro = {
+            codigo_recupera_senha: codigo
+        };
         const documento = await this.modelUsuario.findOne(filtro, ['+senha', '+codigo_recupera_senha', '+exp_codigo_recupera_senha'])
         return documento;
     }

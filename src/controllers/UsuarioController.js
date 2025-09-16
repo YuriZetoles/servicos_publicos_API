@@ -1,9 +1,14 @@
-//recebe a requisicao de fato e da a resposta
-// import { UsuarioSchema, UsuarioUpdateSchema } from '../utils/validators/schemas/zod/UsuarioSchema.js';
+// /src/controllers/UsuarioController.js
+
 import UsuarioService from "../service/UsuarioService.js";
-import { UsuarioSchema, UsuarioUpdateSchema } from '../utils/validators/schemas/zod/UsuarioSchema.js';
-import mongoose from 'mongoose';
-import { UsuarioQuerySchema, UsuarioIdSchema } from '../utils/validators/schemas/zod/querys/UsuarioQuerySchema.js';
+import {
+    UsuarioSchema,
+    UsuarioUpdateSchema
+} from '../utils/validators/schemas/zod/UsuarioSchema.js';
+import {
+    UsuarioQuerySchema,
+    UsuarioIdSchema
+} from '../utils/validators/schemas/zod/querys/UsuarioQuerySchema.js';
 import {
     CommonResponse,
     CustomError,
@@ -16,14 +21,14 @@ import {
 import TokenUtil from '../utils/TokenUtil.js';
 
 // Importações necessárias para o upload de arquivos
-import fileUpload from 'express-fileupload';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
-import sharp from 'sharp';
+import {
+    fileURLToPath
+} from 'url';
+
 // Helper para __dirname em módulo ES
-const getDirname = () => path.dirname(fileURLToPath(import.meta.url));
+const getDirname = () => path.dirname(fileURLToPath(
+    import.meta.url));
 
 
 class UsuarioController {
@@ -31,12 +36,12 @@ class UsuarioController {
         this.service = new UsuarioService();
         this.TokenUtil = TokenUtil;
     }
-    
-    async listar(req, res){
+
+    async listar(req, res) {
         console.log('Estou no listar em UsuarioController');
 
         const id = req?.params?.id;
-        if(id) {
+        if (id) {
             UsuarioIdSchema.parse(id);
         }
 
@@ -73,7 +78,7 @@ class UsuarioController {
 
         // valida os dados
         const parsedData = UsuarioSchema.parse(req.body);
-        
+
         if (!req.user_id) {
             parsedData.nivel_acesso = {
                 municipe: true,
@@ -138,7 +143,9 @@ class UsuarioController {
         try {
             console.log('Estou no fotoUpload em UsuarioController');
 
-            const { id } = req.params;
+            const {
+                id
+            } = req.params;
             UsuarioIdSchema.parse(id);
 
             const file = req.files?.file;
@@ -154,11 +161,16 @@ class UsuarioController {
             }
 
             // Delega toda a lógica de validação e processamento ao service
-            const { fileName, metadata } = await this.service.processarFoto(id, file, req);
+            const {
+                fileName,
+                metadata
+            } = await this.service.processarFoto(id, file, req);
 
             return CommonResponse.success(res, {
                 message: 'Arquivo recebido e usuário atualizado com sucesso.',
-                dados: { link_imagem: fileName },
+                dados: {
+                    link_imagem: fileName
+                },
                 metadados: metadata
             });
         } catch (error) {
@@ -178,7 +190,9 @@ class UsuarioController {
             UsuarioIdSchema.parse(id);
 
             const usuario = await this.service.listar(req);
-            const { link_imagem } = usuario;
+            const {
+                link_imagem
+            } = usuario;
 
             if (!link_imagem) {
                 throw new CustomError({

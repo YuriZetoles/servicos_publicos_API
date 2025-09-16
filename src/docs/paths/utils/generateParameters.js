@@ -1,5 +1,5 @@
-// /src/docs/routes/utils/routeGenerateparameters.js 
- 
+// /src/docs/routes/utils/routeGenerateparameters.js
+
 export function generateParameters(schema, baseRef = '', parentKey = '') {
   const params = [];
   const properties = schema.properties || {};
@@ -17,9 +17,7 @@ export function generateParameters(schema, baseRef = '', parentKey = '') {
         name: paramName,
         in: 'query',
         required: false,
-        schema: {
-          $ref: `${baseRef}/properties/${paramName}`
-        },
+        schema: value, // Use o schema diretamente em vez de $ref
         description: `Filtro por ${paramName}`
       });
     }

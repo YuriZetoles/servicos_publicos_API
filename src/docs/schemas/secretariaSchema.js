@@ -1,4 +1,5 @@
 // schemas/TipoDemandasSchemas.js
+
 import mongoose from 'mongoose';
 import mongooseSchemaJsonSchema from 'mongoose-schema-jsonschema';
 import removeFieldsRecursively from '../../utils/swagger_utils/removeFields.js';
@@ -6,7 +7,10 @@ import Secretaria from '../../models/Secretaria.js';
 
 
 // Importa as funções utilitárias separadas
-import { deepCopy, generateExample } from '../utils/schemaGenerate.js';
+import {
+  deepCopy,
+  generateExample
+} from '../utils/schemaGenerate.js';
 
 // Registra o plugin para que o Mongoose ganhe o método jsonSchema()
 mongooseSchemaJsonSchema(mongoose);
@@ -17,7 +21,6 @@ const secretariaJsonSchema = Secretaria.schema.jsonSchema();
 // Remove campos que não queremos na base original
 delete secretariaJsonSchema.properties.__v;
 
-// Componha os diferentes contratos da sua API utilizando cópias profundas dos schemas
 const secretariaSchemas = {
   SecretariaFiltro: {
     type: "object",
@@ -37,10 +40,10 @@ const secretariaSchemas = {
   SecretariaPost: {
     ...deepCopy(secretariaJsonSchema),
     required: [
-        'nome',
-        'sigla',
-        'email',
-        'telefone'
+      'nome',
+      'sigla',
+      'email',
+      'telefone'
     ],
     description: "Schema para criação de um tipo Demanda"
   },

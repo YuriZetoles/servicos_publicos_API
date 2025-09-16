@@ -1,3 +1,5 @@
+// src/config/dbConnect.js
+
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { URL } from 'url';
