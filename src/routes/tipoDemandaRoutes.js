@@ -19,9 +19,7 @@ router
     .patch("/tipoDemanda/:id", AuthMiddleware, AuthPermission, asyncWrapper(tipoDemandaController.atualizar.bind(tipoDemandaController)))
     .delete("/tipoDemanda/:id", AuthMiddleware, AuthPermission, asyncWrapper(tipoDemandaController.deletar.bind(tipoDemandaController)))
 
-    .post("/tipodemanda/:id/foto", AuthMiddleware, AuthPermission, asyncWrapper(tipoDemandaController.fotoUpload.bind(tipoDemandaController)))
-    .get("/tipodemanda/:id/foto", AuthMiddleware, AuthPermission, asyncWrapper(tipoDemandaController.getFoto.bind(tipoDemandaController)));
-
-console.log("Rotas de TipoDemanda carregadas");
+    .post("/tipoDemanda/:id/foto", AuthMiddleware, AuthPermission, asyncWrapper(tipoDemandaController.fotoUpload.bind(tipoDemandaController)))
+    .get("/tipoDemanda/:id/foto", AuthMiddleware, AuthPermission, asyncWrapper(tipoDemandaController.getFoto.bind(tipoDemandaController)));
 
 export default router;
