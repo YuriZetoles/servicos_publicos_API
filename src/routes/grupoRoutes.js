@@ -13,37 +13,10 @@ const router = express.Router();
 const gruposController = new GrupoController();
 
 router
-  .get(
-    "/grupos",
-    AuthMiddleware,
-    AuthPermission,
-    asyncWrapper(gruposController.listar.bind(gruposController))
-  )
-  .get(
-    "/grupos/:id",
-    AuthMiddleware,
-    AuthPermission,
-    asyncWrapper(gruposController.listar.bind(gruposController))
-  )
-  .post(
-    "/grupos",
-    AuthMiddleware,
-    AuthPermission,
-    asyncWrapper(gruposController.criar.bind(gruposController))
-  )
-  .patch(
-    "/grupos/:id",
-    AuthMiddleware,
-    AuthPermission,
-    asyncWrapper(gruposController.atualizar.bind(gruposController))
-  )
-  .delete(
-    "/grupos/:id",
-    AuthMiddleware,
-    AuthPermission,
-    asyncWrapper(gruposController.deletar.bind(gruposController))
-  );
-
-console.log("Rotas do grupo carregadas");
+  .get("/grupos", AuthMiddleware, AuthPermission, asyncWrapper(gruposController.listar.bind(gruposController)))
+  .get("/grupos/:id", AuthMiddleware, AuthPermission, asyncWrapper(gruposController.listar.bind(gruposController)))
+  .post("/grupos", AuthMiddleware, AuthPermission, asyncWrapper(gruposController.criar.bind(gruposController)))
+  .patch("/grupos/:id", AuthMiddleware, AuthPermission, asyncWrapper(gruposController.atualizar.bind(gruposController)))
+  .delete("/grupos/:id", AuthMiddleware, AuthPermission, asyncWrapper(gruposController.deletar.bind(gruposController)))
 
 export default router;

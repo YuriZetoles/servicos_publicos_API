@@ -22,6 +22,4 @@ router
     .post("/usuarios/:id/foto", AuthMiddleware, AuthPermission, asyncWrapper(usuarioController.fotoUpload.bind(usuarioController)))
     .get("/usuarios/:id/foto", AuthMiddleware, AuthPermission, asyncWrapper(usuarioController.getFoto.bind(usuarioController)));
 
-console.log("Rotas de usuário carregadas");
-
 export default router;
