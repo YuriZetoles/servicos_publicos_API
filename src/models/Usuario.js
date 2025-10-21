@@ -14,7 +14,18 @@ class Usuario {
     const usuarioSchema = new mongoose.Schema({
       cpf: {
         type: String,
-        unique: true
+        unique: true,
+        sparse: true
+      },
+      cnpj: {
+        type: String,
+        unique: true,
+        sparse: true
+      },
+      username: {
+        type: String,
+        unique: true,
+        sparse: true
       },
       email: {
         type: String,
