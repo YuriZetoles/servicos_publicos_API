@@ -36,12 +36,13 @@ class AuthService {
     }
 
     async login(body) {
-        const userEncontrado = await this.repository.buscarPorEmail(body.email);
+        // Busca por email, username, CPF ou CNPJ
+        const userEncontrado = await this.repository.buscarPorIdentificador(body.identificador);
         if (!userEncontrado) {
             throw new CustomError({
                 statusCode: 401,
                 errorType: 'notFound',
-                field: "Email",
+                field: "Identificador",
                 details: [],
                 customMessage: messages.error.unauthorized("Credenciais inválidas")
             })
@@ -90,7 +91,8 @@ class AuthService {
 
         await this.repository.armazenarTokens(userEncontrado._id, accessToken, refreshtoken);
 
-        const userLogado = await this.repository.buscarPorEmail(body.email);
+        // Busca o usuário atualizado por ID em vez de email
+        const userLogado = await this.repository.buscarPorID(userEncontrado._id, false);
         delete userLogado.senha;
 
         const userObject = userLogado.toObject();

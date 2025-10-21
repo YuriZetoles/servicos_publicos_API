@@ -11,7 +11,8 @@ const authRoutes = {
 
             + Função de Negócio
                 - Permitir que os usuários (ou sistemas externos) entrem no sistema e obtenham acesso às funcionalidades internas.
-                + Recebe credenciais (email e senha) no corpo da requisição.
+                + Recebe credenciais (identificador e senha) no corpo da requisição.
+                    - O identificador pode ser: **email**, **username**, **CPF** ou **CNPJ**
                     - Se as credenciais estiverem corretas e o usuário for ativo:
                     - Gera um **accessToken** (expiração: 15 minutos; algoritmo: HS256).
                     - Gera um **refreshToken** (expiração: 7 dias) e o armazena em lista de tokens válidos.

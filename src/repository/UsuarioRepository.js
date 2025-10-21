@@ -128,6 +128,68 @@ class UsuarioRepository {
         return documento;
     }
 
+    async buscarPorCpf(cpf, idIgnorado = null) {
+        const filtro = {
+            cpf
+        };
+
+        if (idIgnorado) {
+            filtro._id = {
+                $ne: idIgnorado
+            };
+        }
+
+        const documento = await this.modelUsuario.findOne(filtro).select('+senha');
+
+        return documento;
+    }
+
+    async buscarPorCnpj(cnpj, idIgnorado = null) {
+        const filtro = {
+            cnpj
+        };
+
+        if (idIgnorado) {
+            filtro._id = {
+                $ne: idIgnorado
+            };
+        }
+
+        const documento = await this.modelUsuario.findOne(filtro).select('+senha');
+
+        return documento;
+    }
+
+    async buscarPorUsername(username, idIgnorado = null) {
+        const filtro = {
+            username
+        };
+
+        if (idIgnorado) {
+            filtro._id = {
+                $ne: idIgnorado
+            };
+        }
+
+        const documento = await this.modelUsuario.findOne(filtro).select('+senha');
+
+        return documento;
+    }
+
+    async buscarPorIdentificador(identificador) {
+        // Tenta buscar por email, username, CPF ou CNPJ
+        const documento = await this.modelUsuario.findOne({
+            $or: [
+                { email: identificador },
+                { username: identificador },
+                { cpf: identificador },
+                { cnpj: identificador }
+            ]
+        }).select('+senha');
+
+        return documento;
+    }
+
     async listar(req) {
         const {
             id
