@@ -32,18 +32,18 @@ const authSchemas = {
   loginPost: {
     type: "object",
     properties: {
-      email: {
+      identificador: {
         type: "string",
-        description: "Email do usuário"
+        description: "Identificador do usuário (email, username, CPF ou CNPJ)"
       },
       senha: {
         type: "string",
         description: "Senha do usuário"
       }
     },
-    required: ["email", "senha"],
+    required: ["identificador", "senha"],
     example: {
-      email: "admin@exemplo.com",
+      identificador: "admin@exemplo.com",
       senha: "Senha@123"
     }
   },
