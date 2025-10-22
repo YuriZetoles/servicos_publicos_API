@@ -17,7 +17,7 @@ const fakeMappings = {
   common: {
     nome: () => fakebr.name.firstName() + " " + fakebr.name.lastName(),
     descricao: () => fakebr.lorem.sentence(),
-    link_imagem: () => fakebr.internet.url() + "/" + uuid() + ".jpg",
+    link_imagem: () => faker.image.urlPicsumPhotos(),
     tipo: () => {
       const values = [
         "Coleta",
@@ -95,7 +95,7 @@ const fakeMappings = {
 
   TipoDemanda: {
     titulo: () => fakebr.lorem.word(),
-    icone: () => fakebr.internet.url() + "/" + uuid() + ".jpg",
+    icone: () => faker.image.urlPicsumPhotos(),
     subdescricao: () => fakebr.lorem.sentence(),
     usuarios: () => [{
       _id: new mongoose.Types.ObjectId().toString()
@@ -123,7 +123,7 @@ const fakeMappings = {
     feedback: () => parseFloat(Math.floor(Math.random() * 5)) + 1,
     avaliacao_resolucao: () => fakebr.lorem.sentence(),
     motivo_devolucao: () => fakebr.lorem.sentence(),
-    link_imagem_resolucao: () => fakebr.internet.url() + "/" + uuid() + ".jpg",
+    link_imagem_resolucao: () => faker.image.urlPicsumPhotos(),
     usuarios: () => [{
       _id: new mongoose.Types.ObjectId().toString()
     }],
