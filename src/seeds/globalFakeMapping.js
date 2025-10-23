@@ -249,7 +249,7 @@ function getSchemaFieldNames(schema) {
  */
 function validateModelMapping(model, modelName, mapping) {
   if (!model || !model.schema || !model.schema.paths) {
-    console.warn(`⚠️  Model ${modelName} é inválido ou sem schema.paths.`);
+    console.warn(`Model ${modelName} é inválido ou sem schema.paths.`);
     return [];
   }
 

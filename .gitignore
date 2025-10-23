@@ -1,8 +1,9 @@
 # Node modules
 /node_modules/
 
-# Uloads
-/uploads/
+# Uloads (mas mantém a estrutura da pasta)
+/uploads/*
+!/uploads/.gitkeep
 
 # Build
 /dist/
