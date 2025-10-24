@@ -117,7 +117,7 @@ const fakeMappings = {
 
   Demanda: {
     status: () => {
-      const values = ["Em aberto", "Em andamento", "Concluída"];
+      const values = ["Em aberto", "Em andamento", "Concluída", "Recusada"];
       return values[Math.floor(Math.random() * values.length)];
     },
     data: () => fakebr.date.past(),

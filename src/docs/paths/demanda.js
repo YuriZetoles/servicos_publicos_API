@@ -43,7 +43,8 @@ const demandaRoutes = {
                     name: "status",
                     in: "query",
                     schema: {
-                        type: "string"
+                        type: "string",
+                        enum: ["Em aberto", "Em andamento", "Concluída", "Recusada"]
                     },
                     required: false,
                     description: "Filtra por status"
