@@ -12,7 +12,7 @@ class Demanda {
             },
             status: {
                 type: String,
-                enum: ["Em aberto", "Em andamento", "Concluída"],
+                enum: ["Em aberto", "Em andamento", "Concluída", "Recusada"],
                 default: "Em aberto"
             },
             data: {
