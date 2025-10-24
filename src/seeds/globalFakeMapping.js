@@ -38,6 +38,8 @@ const fakeMappings = {
   Usuario: {
     ativo: () => Math.random() < 0.8,
     cpf: () => fakebr.br.cpf(),
+    cnpj: () => Math.random() < 0.3 ? fakebr.br.cnpj() : undefined,
+    username: () => faker.internet.userName().toLowerCase(),
     email: () => fakebr.internet.email(),
     celular: () => faker.phone.number("(##) 9####-####"),
     cnh: () => fakebr.helpers.replaceSymbols("###########"),
