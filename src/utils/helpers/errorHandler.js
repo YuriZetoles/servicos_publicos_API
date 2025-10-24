@@ -87,6 +87,19 @@ const errorHandler = (err, req, res, next) => {
     );
   }
 
+  // Tratamento para erros de parsing JSON do body-parser
+  if (err.name === 'SyntaxError' || err.type === 'entity.parse.failed' || err.message?.includes('Unexpected token') || err.message?.includes('is not valid JSON')) {
+    logger.warn('Erro de parsing JSON', { message: err.message, path: req.path, requestId });
+    return CommonResponse.error(
+      res,
+      400,
+      'validationError',
+      'body',
+      [{ path: 'body', message: 'JSON inválido. Verifique a sintaxe do corpo da requisição.' }],
+      'Formato JSON inválido.'
+    );
+  }
+  
   // Tratamento para erros operacionais (erros esperados na aplicação)
   if (err.isOperational) {
     logger.warn('Erro operacional', { message: err.message, path: req.path, requestId });

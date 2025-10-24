@@ -10,6 +10,26 @@ class TipoDemandaFilterBuild {
         this.TipoDemandaModel = new TipoDemanda()
     }
 
+    /**
+     * Normaliza o nome do tipo para corresponder aos valores do banco
+     */
+    normalizarTipo(tipo) {
+        const tipoLower = tipo.toLowerCase();
+        const mapeamento = {
+            'arvores': 'Árvores',
+            'árvores': 'Árvores',
+            'coleta': 'Coleta',
+            'iluminacao': 'Iluminação',
+            'iluminação': 'Iluminação',
+            'pavimentacao': 'Pavimentação',
+            'pavimentação': 'Pavimentação',
+            'saneamento': 'Saneamento',
+            'animais': 'Animais'
+        };
+        
+        return mapeamento[tipoLower] || tipo;
+    }
+
     comTitulo(titulo) {
         if (titulo) {
             this.filtros.titulo = {
@@ -22,8 +42,11 @@ class TipoDemandaFilterBuild {
 
     comTipo(tipo) {
         if (tipo) {
+            // Normaliza o tipo para corresponder ao valor no banco
+            const tipoNormalizado = this.normalizarTipo(tipo);
+            // Busca exata case-insensitive para tipos de demanda
             this.filtros.tipo = {
-                $regex: tipo,
+                $regex: `^${tipoNormalizado}$`,
                 $options: 'i'
             };
         }
