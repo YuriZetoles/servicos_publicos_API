@@ -20,7 +20,8 @@ export const TipoDemandaEnum = z.enum([
 export const StatusDemandaEnum = z.enum([
     "Em aberto",
     "Em andamento",
-    "Concluída"
+    "Concluída",
+    "Recusada"
 ]);
 
 export const DemandaIdSchema = z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
