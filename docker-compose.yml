@@ -7,13 +7,33 @@ services:
       - vol-mongodb-servicos:/data/db
     ports:
       - 27017:27017
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - servicos-network
+  
   api:
-    container_name: api
+    container_name: api-servicos
     build: ./
     environment:
       - DB_URL=mongodb://mongodb-servicos:27017/exemplo
+      - NODE_ENV=production
     ports:
       - 5011:5011
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - servicos-network
+    restart: unless-stopped
 
 volumes:
-  vol-mongodb-servicos: 
+  vol-mongodb-servicos:
+
+networks:
+  servicos-network:
+    name: servicos-network
+    driver: bridge
