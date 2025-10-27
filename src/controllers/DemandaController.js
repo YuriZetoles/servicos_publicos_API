@@ -40,7 +40,11 @@ class DemandaController {
             id
         } = req.params || {};
 
-        if (id) {
+        // Verificar se é a rota /meus
+        if (req.path.includes('/meus')) {
+            console.log('🔍 Rota /meus detectada - aplicando filtro para usuário logado');
+            // Para a rota /meus, não validamos ID
+        } else if (id) {
             DemandaIdSchema.parse(id);
         }
 
