@@ -104,6 +104,13 @@ class DemandaFilterBuild {
 
   async comUsuario(usuario) {
     if (usuario) {
+      const isObjectIdString = typeof usuario === 'string' && /^[0-9a-fA-F]{24}$/.test(usuario);
+
+      if (isObjectIdString) {
+        this.filtros.usuarios = { $in: [usuario] };
+        return this;
+      }
+
       const usuarioEncontrado = await this.usuarioRepository.buscarPorNome(
         usuario
       );

@@ -36,15 +36,121 @@ class DemandaService {
             id
         } = req.params;
 
-        if (id) {
-            const data = await this.repository.buscarPorID(id);
-            return data;
-        }
-
         const usuario = await this.userRepository.buscarPorID(req.user_id);
         const nivel = usuario?.nivel_acesso;
 
-        const data = await this.repository.listar(req);
+        // Verificar se é a rota /meus
+        if (req.path.includes('/meus')) {
+            console.log('🔍 Rota /meus - aplicando filtro específico para usuário logado');
+            const repoReqMeus = { params: req.params };
+            repoReqMeus.query = {
+                ...(req.query || {}),
+                ...(nivel?.municipe ? { usuario: usuario._id.toString() } : {})
+            };
+
+            const data = await this.repository.listar(repoReqMeus);
+            
+            // Aplicar filtro específico para "meus pedidos"
+            if (nivel.municipe) {
+                const userId = usuario._id.toString();
+                console.log('👤 Filtrando demandas do munícipe:', userId);
+                
+                data.docs = data.docs.filter(demanda => {
+                    const demandaUsuarios = (demanda.usuarios || []).map(user => user._id.toString());
+                    return demandaUsuarios.includes(userId);
+                });
+                
+                console.log('📊 Total demandas do munícipe:', data.docs.length);
+            } else if (nivel.secretario) {
+                const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
+                data.docs = data.docs.filter(demanda => {
+                    const secretariasDemanda = (demanda.secretarias || []).map(s => s._id.toString());
+                    return secretariasDemanda.some(id => secretariasUsuario.includes(id));
+                });
+            } else if (nivel.operador) {
+                const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
+                const userId = usuario._id.toString();
+                data.docs = data.docs.filter(demanda => {
+                    const secretariasDemanda = (demanda.secretarias || []).map(s => s._id.toString());
+                    const demandaUsuarios = (demanda.usuarios || []).map(user => user._id.toString());
+                    return secretariasDemanda.some(id => secretariasUsuario.includes(id)) && demandaUsuarios.includes(userId);
+                });
+            }
+            
+            return data;
+        }
+
+        if (id) {
+            const data = await this.repository.buscarPorID(id);
+            
+            // Aplicar filtros de permissão também para busca por ID
+            if (nivel.secretario) {
+                const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
+                const secretariasDemanda = (data.secretarias || []).map(s => s._id.toString());
+                const temPermissao = secretariasDemanda.some(id => secretariasUsuario.includes(id));
+                
+                if (!temPermissao) {
+                    throw new CustomError({
+                        statusCode: HttpStatusCodes.FORBIDDEN.code,
+                        errorType: 'permissionError',
+                        field: 'Demanda',
+                        details: [],
+                        customMessage: "Você não tem permissão para acessar essa demanda."
+                    });
+                }
+            }
+
+            if (nivel.operador) {
+                const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
+                const userId = usuario._id.toString();
+                const secretariasDemanda = (data.secretarias || []).map(s => s._id.toString());
+                const demandaUsuarios = (data.usuarios || []).map(user => user._id.toString());
+                const temPermissao = secretariasDemanda.some(id => secretariasUsuario.includes(id)) && demandaUsuarios.includes(userId);
+                
+                if (!temPermissao) {
+                    throw new CustomError({
+                        statusCode: HttpStatusCodes.FORBIDDEN.code,
+                        errorType: 'permissionError',
+                        field: 'Demanda',
+                        details: [],
+                        customMessage: "Você não tem permissão para acessar essa demanda."
+                    });
+                }
+            }
+
+            if (nivel.municipe) {
+                const userId = usuario._id.toString();
+                const demandaUsuarios = (data.usuarios || []).map(user => user._id.toString());
+                const temPermissao = demandaUsuarios.includes(userId);
+                
+                if (!temPermissao) {
+                    throw new CustomError({
+                        statusCode: HttpStatusCodes.FORBIDDEN.code,
+                        errorType: 'permissionError',
+                        field: 'Demanda',
+                        details: [],
+                        customMessage: "Você não tem permissão para acessar essa demanda."
+                    });
+                }
+            }
+
+            if (!nivel.secretario && !nivel.operador && !nivel.municipe) {
+                data = await this.filtrarDemandaPorUser(data, usuario);
+            }
+
+            return data;
+        }
+
+        // If the caller is a munícipe, ask repository to filter by user id so pagination
+        // is calculated correctly on the DB side. Do not mutate the original req
+        // (Express's req.query can be getter-only) — pass a plain object instead.
+        const repoReq = { params: req.params };
+        repoReq.query = {
+            ...(req.query || {}),
+            ...(nivel?.municipe ? { usuario: usuario._id.toString() } : {})
+        };
+
+        const data = await this.repository.listar(repoReq);
 
         if (nivel.secretario) {
             const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
