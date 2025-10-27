@@ -37,6 +37,9 @@ class Demanda {
             motivo_devolucao: {
                 type: String
             },
+            motivo_rejeicao: {
+                type: String
+            },
             link_imagem_resolucao: {
                 type: String
             },

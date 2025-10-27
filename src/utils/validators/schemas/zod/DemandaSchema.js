@@ -17,7 +17,7 @@ export const tiposDemanda = [
   "Pavimentação"
 ];
 
-export const statusDemanda = ["Em aberto", "Em andamento", "Concluída"];
+export const statusDemanda = ["Em aberto", "Em andamento", "Concluída", "Recusada"];
 
 export const enderecoSchema = z.object({
   logradouro: z.string().min(2, "O logradouro não pode ser vazio."),
@@ -61,6 +61,9 @@ const DemandaSchema = z.object({
     })
     .optional(),
   motivo_devolucao: z
+    .string()
+    .optional(),
+  motivo_rejeicao: z
     .string()
     .optional(),
   link_imagem_resolucao: z

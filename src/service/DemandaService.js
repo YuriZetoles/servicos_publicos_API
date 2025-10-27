@@ -341,29 +341,71 @@ class DemandaService {
         const nivel = usuario?.nivel_acesso;
         const userId = usuario._id.toString();
 
-        if (!nivel.operador && !nivel.admin) {
+        // Permitir operadores, administradores e secretários (com regras distintas)
+        if (!nivel.operador && !nivel.administrador && !nivel.secretario) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.FORBIDDEN.code,
                 errorType: 'permissionError',
                 field: 'Usuário',
-                customMessage: "Apenas operadores podem devolver uma demanda."
+                customMessage: "Você não tem permissão para devolver uma demanda."
             });
         }
 
         const demanda = await this.repository.buscarPorID(id);
-        const usuariosDemanda = demanda?.usuarios;
 
-        const novaListaUsuarios = usuariosDemanda.filter(u => u._id.toString() !== userId);
+        // Se for secretário: ele pode devolver (recusar) a demanda da sua secretaria
+        if (nivel.secretario) {
+            const secretariasUsuario = (usuario?.secretarias).map(s => s._id?.toString?.() || s.toString());
+            const secretariasDemanda = (demanda?.secretarias || []).map(s => s._id?.toString?.() || s.toString());
 
-        this.manterCampos(parsedData, ['motivo_devolucao']);
+            const permited = secretariasDemanda.some(sec => secretariasUsuario.includes(sec));
+            if (!permited) {
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.FORBIDDEN.code,
+                    errorType: 'permissionError',
+                    field: 'Usuário',
+                    details: [],
+                    customMessage: "Você não tem permissão para devolver/recusar essa demanda."
+                });
+            }
 
-        const data = await this.repository.devolver(id, {
-            motivo_devolucao: parsedData.motivo_devolucao,
-            usuarios: novaListaUsuarios,
-            status: "Em aberto"
-        });
+            // Motivo de rejeição é obrigatório quando secretário recusa
+            if (!parsedData.motivo_rejeicao || String(parsedData.motivo_rejeicao).trim() === '') {
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                    errorType: 'validationError',
+                    field: 'motivo_rejeicao',
+                    details: [],
+                    customMessage: 'Motivo da rejeição é obrigatório quando a devolução é feita por um secretário.'
+                });
+            }
 
-        return data;
+            this.manterCampos(parsedData, ['motivo_rejeicao']);
+
+            const data = await this.repository.devolver(id, {
+                motivo_rejeicao: parsedData.motivo_rejeicao,
+                status: 'Recusada'
+            });
+
+            return data;
+        }
+
+        // Se for operador (ou admin usando mesma rota): comportamento anterior para operador
+        if (nivel.operador || nivel.administrador) {
+            const usuariosDemanda = demanda?.usuarios || [];
+
+            const novaListaUsuarios = usuariosDemanda.filter(u => u._id.toString() !== userId);
+
+            this.manterCampos(parsedData, ['motivo_devolucao']);
+
+            const data = await this.repository.devolver(id, {
+                motivo_devolucao: parsedData.motivo_devolucao,
+                usuarios: novaListaUsuarios,
+                status: "Em aberto"
+            });
+
+            return data;
+        }
     }
 
     async resolver(id, parsedData, req) {

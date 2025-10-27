@@ -125,6 +125,7 @@ const fakeMappings = {
     feedback: () => parseFloat(Math.floor(Math.random() * 5)) + 1,
     avaliacao_resolucao: () => fakebr.lorem.sentence(),
     motivo_devolucao: () => fakebr.lorem.sentence(),
+  motivo_rejeicao: () => fakebr.lorem.sentence(),
     link_imagem_resolucao: () => faker.image.urlPicsumPhotos(),
     usuarios: () => [{
       _id: new mongoose.Types.ObjectId().toString()

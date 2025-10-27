@@ -45,25 +45,27 @@ class UsuarioService {
         const usuarioLogado = await this.repository.buscarPorID(req.user_id);
         const nivel = usuarioLogado?.nivel_acesso;
         const usuarioID = usuarioLogado._id;
+        // Se foi passado id como param, trata como busca por um usuário específico
+        const idParam = req?.params?.id;
 
-        const id = req?.params?.id ?? String(usuarioID);
+        if (idParam) {
+            // Munícipe e Operador só podem acessar seu próprio registro
+            if (nivel.municipe || nivel.operador) {
+                if (String(usuarioID) !== String(idParam)) {
+                    throw new CustomError({
+                        statusCode: HttpStatusCodes.FORBIDDEN.code,
+                        errorType: 'permissionError',
+                        customMessage: 'Munícipes e operadores só podem acessar seus próprios dados.'
+                    });
+                }
 
-        if (nivel.municipe || nivel.operador) {
-            if (String(usuarioID) !== String(id)) {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.FORBIDDEN.code,
-                    errorType: 'permissionError',
-                    customMessage: 'Munícipes e operadores só podem acessar seus próprios dados.'
-                });
+                const data = await this.repository.buscarPorID(idParam);
+                return data;
             }
 
-            const data = await this.repository.buscarPorID(id);
-            return data;
-        }
-
-        if (nivel.secretario) {
-            if (id) {
-                const usuarioPesquisado = await this.repository.buscarPorID(id);
+            // Secretário pode acessar outro usuário somente se compartilhar alguma secretaria
+            if (nivel.secretario) {
+                const usuarioPesquisado = await this.repository.buscarPorID(idParam);
 
                 const secretariasUsuarioLogado = (usuarioLogado?.secretarias).map(s => s.toString());
                 const secretariasUsuarioPesquisado = (usuarioPesquisado?.secretarias).map(s => s.toString());
@@ -78,11 +80,74 @@ class UsuarioService {
                     });
                 }
                 return usuarioPesquisado;
-
-            } else {
-                const secretariasDoLogado = (usuarioLogado?.secretarias).map(s => s._id?.toString?.() || s.toString());
-                req.query.secretaria = secretariasDoLogado;
             }
+
+            // Administrador ou outros perfis podem buscar por id livremente
+            const dataById = await this.repository.buscarPorID(idParam);
+            return dataById;
+        }
+
+        // Sem id: listagem
+        // Munícipe e Operador só podem listar (no caso) seus próprios dados
+        if (nivel.municipe || nivel.operador) {
+            const data = await this.repository.buscarPorID(usuarioID);
+            return data;
+        }
+
+        // Secretário: limita a listagem às secretarias do usuário logado
+        if (nivel.secretario) {
+            const secretariasDoLogado = (usuarioLogado?.secretarias).map(s => s._id?.toString?.() || s.toString());
+            req.query.secretaria = secretariasDoLogado;
+
+            const requestedNivel = req.query.nivel_acesso;
+
+            // Se pediu especificamente por secretarios, retorna apenas o próprio usuário
+            if (requestedNivel === 'secretario') {
+                const unico = await this.repository.buscarPorID(usuarioID);
+                // Monta estrutura paginada compatível com o retorno padrão
+                const paginated = {
+                    docs: [typeof unico.toObject === 'function' ? unico.toObject() : unico],
+                    totalDocs: 1,
+                    limit: 1,
+                    page: 1,
+                    totalPages: 1,
+                    pagingCounter: 1,
+                    hasPrevPage: false,
+                    hasNextPage: false,
+                    prevPage: null,
+                    nextPage: null
+                };
+                return paginated;
+            }
+
+            // Por padrão ou se pediu por 'operador', traz apenas operadores das secretarias do logado
+            if (!requestedNivel) {
+                req.query.nivel_acesso = 'operador';
+            }
+
+            const resultado = await this.repository.listar(req);
+
+            // Filtra qualquer secretário que não seja o próprio usuário (evita vazamento de outros secretários)
+            if (resultado && Array.isArray(resultado.docs)) {
+                const docsFiltered = resultado.docs.filter(doc => {
+                    const isSecretario = !!(doc.nivel_acesso && doc.nivel_acesso.secretario);
+                    const isSelf = String(doc._id) === String(usuarioID);
+                    return !(isSecretario && !isSelf);
+                });
+
+                // Se o próprio usuário não estiver presente, adiciona-o no topo
+                const containsSelf = docsFiltered.some(d => String(d._id) === String(usuarioID));
+                if (!containsSelf) {
+                    const self = await this.repository.buscarPorID(usuarioID);
+                    const selfObj = typeof self.toObject === 'function' ? self.toObject() : self;
+                    docsFiltered.unshift(selfObj);
+                    resultado.totalDocs = (resultado.totalDocs || 0) + 1;
+                }
+
+                resultado.docs = docsFiltered;
+            }
+
+            return resultado;
         }
 
         const data = await this.repository.listar(req);
