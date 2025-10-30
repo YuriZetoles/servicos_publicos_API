@@ -747,7 +747,7 @@ describe("UsuarioService", () => {
       const userId = "usuario-001";
 
       await expect(service.processarFoto(userId, file, req)).rejects.toThrow(
-        /Arquivo não pode exceder 50 MB/
+        /Arquivo excede 50MB/
       );
     });
 
@@ -761,7 +761,7 @@ describe("UsuarioService", () => {
       const userId = "usuario-001";
 
       await expect(service.processarFoto(userId, file, req)).rejects.toThrow(
-        /Extensão de arquivo inválida/
+        /Extensão inválida\. Permitido: jpg, jpeg, png, svg\./
       );
     });
   });

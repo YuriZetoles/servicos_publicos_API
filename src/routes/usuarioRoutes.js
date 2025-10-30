@@ -20,6 +20,6 @@ router
     .delete("/usuarios/:id", AuthMiddleware, AuthPermission, asyncWrapper(usuarioController.deletar.bind(usuarioController)))
 
     .post("/usuarios/:id/foto", AuthMiddleware, AuthPermission, asyncWrapper(usuarioController.fotoUpload.bind(usuarioController)))
-    .get("/usuarios/:id/foto", AuthMiddleware, AuthPermission, asyncWrapper(usuarioController.getFoto.bind(usuarioController)));
+    .delete("/usuarios/:id/foto", AuthMiddleware, AuthPermission, asyncWrapper(usuarioController.fotoDelete.bind(usuarioController)));
 
 export default router;

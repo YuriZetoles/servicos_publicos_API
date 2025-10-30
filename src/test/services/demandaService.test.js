@@ -65,7 +65,7 @@ describe("DemandaService", () => {
         Promise.resolve({ ...d, filtrado: true })
       );
 
-      const res = await service.listar({ params: {}, user_id: "u1" });
+      const res = await service.listar({ params: {}, user_id: "u1", path: "/demandas" });
 
       expect(repoMock.listar).toHaveBeenCalled();
       expect(service.filtrarDemandaPorUser).toHaveBeenCalledTimes(2);
@@ -86,7 +86,7 @@ describe("DemandaService", () => {
         secretarias: [{ _id: "s1" }],
       });
 
-      const res = await service.listar({ params: {}, user_id: "u1" });
+      const res = await service.listar({ params: {}, user_id: "u1", path: "/demandas" });
 
       expect(res.docs).toHaveLength(1);
       expect(res.docs[0].tipo).toBe("A");
@@ -120,7 +120,7 @@ describe("DemandaService", () => {
         secretarias: [{ _id: "s1" }],
       });
 
-      const res = await service.listar({ params: {}, user_id: "u1" });
+      const res = await service.listar({ params: {}, user_id: "u1", path: "/demandas" });
 
       expect(res.docs).toHaveLength(1);
       expect(res.docs[0].tipo).toBe("A");
@@ -140,7 +140,7 @@ describe("DemandaService", () => {
         nivel_acesso: { municipe: true },
       });
 
-      const res = await service.listar({ params: {}, user_id: "u1" });
+      const res = await service.listar({ params: {}, user_id: "u1", path: "/demandas" });
 
       expect(res.docs).toHaveLength(1);
       expect(res.docs[0].tipo).toBe("X");
@@ -150,7 +150,7 @@ describe("DemandaService", () => {
       const demanda = { _id: "d1", tipo: "X" };
       repoMock.buscarPorID.mockResolvedValue(demanda);
 
-      const res = await service.listar({ params: { id: "d1" }, user_id: "u1" });
+      const res = await service.listar({ params: { id: "d1" }, user_id: "u1", path: "/demandas" });
 
       expect(repoMock.buscarPorID).toHaveBeenCalledWith("d1");
       expect(res).toEqual(demanda);

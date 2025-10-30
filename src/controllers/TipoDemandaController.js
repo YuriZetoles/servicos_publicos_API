@@ -34,7 +34,6 @@ class TipoDemandaController {
         this.service = new TipoDemandaService();
     }
     async listar(req, res) {
-        console.log('Estou no listar em TipoDemandaController');
 
         const {
             id
@@ -55,7 +54,6 @@ class TipoDemandaController {
     }
 
     async criar(req, res) {
-        console.log('Estou no criar em TipoDemandaController');
 
         const parsedData = TipoDemandaSchema.parse(req.body);
         let data = await this.service.criar(parsedData, req);
@@ -66,7 +64,6 @@ class TipoDemandaController {
     }
 
     async atualizar(req, res) {
-        console.log('Estou no atualizar em TipoDemandaController');
 
         const {
             id
@@ -86,7 +83,6 @@ class TipoDemandaController {
 
 
     async deletar(req, res) {
-        console.log('Estou no deletar em TipoDemandaController');
 
         const {
             id
@@ -146,56 +142,20 @@ class TipoDemandaController {
         }
     }
 
-
     /**
-     * Faz download da foto de um Tipo Demanda.
+     * Deleta a foto de um Tipo Demanda.
      */
-    async getFoto(req, res, next) {
-        try {
-            const {
-                id
-            } = req?.params;
-            TipoDemandaIDSchema.parse(id);
+    async fotoDelete(req, res) {
+        const { id } = req.params;
+        TipoDemandaIDSchema.parse(id);
 
-            const tipoDemanda = await this.service.listar({
-                params: {
-                    id
-                }
-            });
-            const {
-                link_imagem
-            } = tipoDemanda;
+        await this.service.deletarFoto(id, req);
 
-            if (!link_imagem) {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.NOT_FOUND.code,
-                    errorType: 'notFound',
-                    field: 'link_imagem',
-                    details: [],
-                    customMessage: "Tipo Demanda não possui foto cadastrada."
-                });
-            }
-
-            const filename = link_imagem;
-            const uploadDir = path.join(getDirname(), '..', '../uploads');
-            const filePath = path.join(uploadDir, filename);
-
-            const extensao = path.extname(filename).slice(1).toLowerCase();
-            const mimeTypes = {
-                jpg: 'image/jpeg',
-                jpeg: 'image/jpeg',
-                png: 'image/png',
-                svg: 'image/svg+xml'
-            };
-            const contentType = mimeTypes[extensao] || 'application/octet-stream';
-
-            res.setHeader('Content-Type', contentType);
-            return res.sendFile(filePath);
-        } catch (error) {
-            console.error('Erro no getFoto:', error);
-            return next(error);
-        }
+        return CommonResponse.success(res, {
+            message: 'Foto deletada com sucesso.'
+        });
     }
+
 }
 
 export default TipoDemandaController;

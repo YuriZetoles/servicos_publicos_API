@@ -452,14 +452,14 @@ const demandaRoutes = {
             tags: ["Demandas"],
             summary: "Faz upload da foto do demanda",
             description: `
-            + Caso de uso: Recebe um arquivo de imagem e atualiza o link_imagem do demanda.
+            + Caso de uso: Recebe um arquivo de imagem e faz upload para MinIO, atualizando o link_imagem do demanda.
             + Função de Negócio:
                 - Validar extensão (jpg, jpeg, png, svg).
                 - Redimensionar para 400×400.
-                - Salvar no servidor e atualizar o campo link_imagem.
+                - Fazer upload para MinIO e atualizar o campo link_imagem com a URL.
             + Regras de Negócio:
                 - Verificar se o demanda existe.
-                - demanda pode apenas atualizar sua própria foto, exceto o administrador.
+                - Munícipe pode apenas atualizar foto de sua própria demanda, exceto o administrador.
                 - Garantir que o arquivo seja uma imagem válida.
             + Resultado Esperado:
                 - 200 OK com mensagem de sucesso, link_imagem atualizado e metadados do arquivo.
@@ -480,7 +480,8 @@ const demandaRoutes = {
                     in: "path",
                     required: true,
                     schema: {
-                        type: "string"
+                        type: "string",
+                        enum: ["normal", "resolucao"]
                     }
                 }
             ],
@@ -510,20 +511,24 @@ const demandaRoutes = {
                 500: commonResponses[500]()
             }
         },
-        get: {
+        delete: {
             tags: ["Demandas"],
-            summary: "Faz download da foto do demanda",
+            summary: "Deleta a foto do demanda",
             description: `
-            + Caso de uso: Retorna o arquivo de imagem associado ao demanda.
+            + Caso de uso: Remove a imagem associada ao demanda do MinIO e limpa o campo link_imagem.
             + Função de Negócio:
-                - Buscar link_imagem no banco.
-                - Retornar o binário da imagem com o Content-Type apropriado.
+                - Verificar permissões.
+                - Deletar arquivo do MinIO.
+                - Atualizar link_imagem para null.
             + Regras de Negócio:
-                - Verificar se o demanda existe.
-                - Garantir que o arquivo seja uma imagem válida.
+                - Munícipe pode deletar foto de sua própria demanda.
+                - Administrador pode sempre.
             + Resultado Esperado:
-                - 200 OK com o arquivo de imagem.
+                - 200 OK com mensagem de sucesso.
         `,
+            security: [{
+                bearerAuth: []
+            }],
             parameters: [{
                     name: "id",
                     in: "path",
@@ -537,34 +542,13 @@ const demandaRoutes = {
                     in: "path",
                     required: true,
                     schema: {
-                        type: "string"
+                        type: "string",
+                        enum: ["normal", "resolucao"]
                     }
                 }
             ],
             responses: {
-                200: {
-                    description: "Arquivo de imagem retornado",
-                    content: {
-                        "image/jpeg": {
-                            schema: {
-                                type: "string",
-                                format: "binary"
-                            }
-                        },
-                        "image/png": {
-                            schema: {
-                                type: "string",
-                                format: "binary"
-                            }
-                        },
-                        "image/svg+xml": {
-                            schema: {
-                                type: "string",
-                                format: "binary"
-                            }
-                        }
-                    }
-                },
+                200: commonResponses[200](),
                 400: commonResponses[400](),
                 401: commonResponses[401](),
                 404: commonResponses[404](),

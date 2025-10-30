@@ -28,7 +28,7 @@ describe("DemandaController", ()=> {
     };
     controller.service = serviceStub;
 
-    req = { params: {}, query: {}, body: {}, files: {} };
+    req = { params: {}, query: {}, body: {}, files: {}, path: "/demandas" };
     res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
@@ -383,54 +383,6 @@ describe("DemandaController", ()=> {
         statusCode: 400,
         field: 'file',
         customMessage: 'Nenhum arquivo foi enviado.'
-      }));
-    });
-  });
-
-  describe('getFoto', () => {
-    it('deve fazer download da imagem da denúncia', async () => {
-      const req = {
-        params: { id: '123', tipo: 'denuncia' },
-        user_id: 'user_1'
-      };
-      const res = { setHeader: jest.fn(), sendFile: jest.fn() };
-      const next = jest.fn();
-
-      const fileName = 'imagem_123.png';
-      const fullPath = path.join(__dirname, '..', '..', 'uploads', fileName);
-
-      jest.spyOn(DemandaIdSchema, 'parse').mockReturnValue('123');
-      controller.service.listar = jest.fn().mockResolvedValue({
-        link_imagem: fileName
-      });
-
-      await controller.getFoto(req, res, next);
-
-      expect(DemandaIdSchema.parse).toHaveBeenCalledWith('123');
-      expect(controller.service.listar).toHaveBeenCalledWith({
-        params: { id: '123' },
-        user_id: 'user_1'
-      });
-      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'image/png');
-      expect(res.sendFile).toHaveBeenCalledWith(expect.stringContaining('uploads/imagem_123.png'));
-    });
-
-    it('deve retornar erro se imagem não for encontrada', async () => {
-      const req = { params: { id: '123', tipo: 'resolucao' }, user_id: 'user_1' };
-      const res = {};
-      const next = jest.fn();
-
-      jest.spyOn(DemandaIdSchema, 'parse').mockReturnValue('123');
-      controller.service.listar = jest.fn().mockResolvedValue({
-        link_imagem_resolucao: null
-      });
-
-      await controller.getFoto(req, res, next);
-
-      expect(next).toHaveBeenCalledWith(expect.objectContaining({
-        statusCode: 404,
-        field: 'link_imagem_resolucao',
-        customMessage: expect.stringContaining('Imagem de resolucao não encontrada.')
       }));
     });
   });

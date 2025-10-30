@@ -34,15 +34,12 @@ class DemandaController {
     }
 
     async listar(req, res) {
-        console.log('Estou no listar em Demanda');
-
         const {
             id
         } = req.params || {};
 
         // Verificar se é a rota /meus
         if (req.path.includes('/meus')) {
-            console.log('🔍 Rota /meus detectada - aplicando filtro para usuário logado');
             // Para a rota /meus, não validamos ID
         } else if (id) {
             DemandaIdSchema.parse(id);
@@ -60,7 +57,6 @@ class DemandaController {
     }
 
     async criar(req, res) {
-        console.log('Estou no criar em DemandaController');
 
         const parsedData = DemandaSchema.parse(req.body)
         let data = await this.service.criar(parsedData, req);
@@ -71,7 +67,6 @@ class DemandaController {
     }
 
     async atualizar(req, res) {
-        console.log('Estou no atualizar em DemandaController');
 
         const {
             id
@@ -91,7 +86,6 @@ class DemandaController {
     }
 
     async atribuir(req, res) {
-        console.log('Estou no atribuir em DemandaController');
 
         const {
             id
@@ -108,7 +102,6 @@ class DemandaController {
     }
 
     async devolver(req, res) {
-        console.log('Estou no devolver em DemandaController');
 
         const {
             id
@@ -125,7 +118,6 @@ class DemandaController {
     }
 
     async resolver(req, res) {
-        console.log('Estou no resolver em DemandaController');
 
         const {
             id
@@ -142,7 +134,6 @@ class DemandaController {
     }
 
     async deletar(req, res) {
-        console.log('Estou no deletar em DemandaController');
 
         const id = req?.params?.id;
         DemandaIdSchema.parse(id)
@@ -201,47 +192,20 @@ class DemandaController {
     }
 
     /**
-     * Faz download da foto de um usuário.
+     * Deleta a foto de uma demanda.
      */
-    async getFoto(req, res, next) {
+    async fotoDelete(req, res, next) {
         try {
-            const {
-                id,
-                tipo
-            } = req.params;
+            const { id, tipo } = req.params;
             DemandaIdSchema.parse(id);
 
-            const demanda = await this.service.listar({
-                params: {
-                    id
-                },
-                user_id: req.user_id
+            await this.service.deletarFoto(id, tipo, req);
+
+            return CommonResponse.success(res, {
+                message: 'Foto deletada com sucesso.'
             });
-            const campo = tipo === "resolucao" ? "link_imagem_resolucao" : "link_imagem";
-            const fileName = demanda[campo];
-
-            if (!fileName) {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.NOT_FOUND.code,
-                    errorType: 'notFound',
-                    field: campo,
-                    customMessage: `Imagem de ${tipo} não encontrada.`
-                });
-            }
-
-            const filePath = path.join(getDirname(), '..', '..', 'uploads', fileName);
-            const extensao = path.extname(fileName).slice(1).toLowerCase();
-            const mimeTypes = {
-                jpg: 'image/jpeg',
-                jpeg: 'image/jpeg',
-                png: 'image/png',
-                svg: 'image/svg+xml'
-            };
-
-            res.setHeader('Content-Type', mimeTypes[extensao] || 'application/octet-stream');
-            return res.sendFile(filePath);
         } catch (error) {
-            console.error('Erro no getFoto:', error);
+            console.error('Erro no fotoDelete:', error);
             return next(error);
         }
     }

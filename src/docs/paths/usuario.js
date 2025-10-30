@@ -398,6 +398,95 @@ const usuarioRoutes = {
                 500: commonResponses[500]()
             }
         }
+    },
+    "/usuarios/{id}/foto": {
+        post: {
+            tags: ["Usuários"],
+            summary: "Faz upload da foto do usuário",
+            description: `
+            + Caso de uso: Recebe um arquivo de imagem e faz upload para MinIO, atualizando o link_imagem do usuário.
+            + Função de Negócio:
+                - Validar extensão (jpg, jpeg, png, svg).
+                - Redimensionar para 400×400.
+                - Fazer upload para MinIO e atualizar o campo link_imagem com a URL.
+            + Regras de Negócio:
+                - Usuário pode apenas atualizar sua própria foto, exceto o administrador.
+                - Garantir que o arquivo seja uma imagem válida.
+            + Resultado Esperado:
+                - 200 OK com mensagem de sucesso, link_imagem atualizado e metadados do arquivo.
+        `,
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
+                }
+            }],
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        schema: {
+                            type: "object",
+                            properties: {
+                                file: {
+                                    type: "string",
+                                    format: "binary",
+                                    description: "Arquivo de imagem a ser enviado"
+                                }
+                            },
+                            required: ["file"]
+                        }
+                    }
+                }
+            },
+            responses: {
+                200: commonResponses[200]('#/components/schemas/UsuarioFotoPayload'),
+                400: commonResponses[400](),
+                401: commonResponses[401](),
+                404: commonResponses[404](),
+                498: commonResponses[498](),
+                500: commonResponses[500]()
+            }
+        },
+        delete: {
+            tags: ["Usuários"],
+            summary: "Deleta a foto do usuário",
+            description: `
+            + Caso de uso: Remove a imagem associada ao usuário do MinIO e limpa o campo link_imagem.
+            + Função de Negócio:
+                - Verificar permissões.
+                - Deletar arquivo do MinIO.
+                - Atualizar link_imagem para null.
+            + Regras de Negócio:
+                - Usuário pode deletar apenas sua própria foto.
+                - Administrador pode sempre.
+            + Resultado Esperado:
+                - 200 OK com mensagem de sucesso.
+        `,
+            security: [{
+                bearerAuth: []
+            }],
+            parameters: [{
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "string"
+                }
+            }],
+            responses: {
+                200: commonResponses[200](),
+                400: commonResponses[400](),
+                401: commonResponses[401](),
+                404: commonResponses[404](),
+                498: commonResponses[498](),
+                500: commonResponses[500]()
+            }
+        }
     }
 };
 

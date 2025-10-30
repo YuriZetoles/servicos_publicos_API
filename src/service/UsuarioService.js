@@ -17,30 +17,17 @@ import AuthHelper from '../utils/AuthHelper.js';
 import UsuarioRepository from '../repository/UsuarioRepository.js';
 import GrupoRepository from '../repository/GrupoRepository.js'
 import SecretariaRepository from '../repository/SecretariaRepository.js'
-
-// Importações necessárias para o upload de arquivos
-import path from 'path';
-import {
-    fileURLToPath
-} from 'url';
-import {
-    v4 as uuidv4
-} from 'uuid';
-import fs from 'fs';
-import sharp from 'sharp';
-// Helper para __dirname em módulo ES
-const getDirname = () => path.dirname(fileURLToPath(
-    import.meta.url));
+import UploadService from './UploadService.js';
 
 class UsuarioService {
     constructor() {
         this.repository = new UsuarioRepository();
         this.grupoRepository = new GrupoRepository;
         this.secretariaRepository = new SecretariaRepository();
+        this.uploadService = new UploadService();
     }
 
     async listar(req) {
-        console.log("Estou no UsuarioService");
 
         const usuarioLogado = await this.repository.buscarPorID(req.user_id);
         const nivel = usuarioLogado?.nivel_acesso;
@@ -151,12 +138,10 @@ class UsuarioService {
         }
 
         const data = await this.repository.listar(req);
-        console.log('Estou retornando os dados em UsuarioService para o controller');
         return data;
     }
 
     async criar(parsedData, req) {
-        console.log("Estou em criar no UsuarioService");
 
         const usuarioLogado = await this.repository.buscarPorID(req.user_id);
         const nivel = usuarioLogado.nivel_acesso;
@@ -188,7 +173,6 @@ class UsuarioService {
     }
 
     async criarComSenha(parsedData) {
-        console.log("Estou em signUp no UsuarioService");
 
         delete parsedData.grupo;
         delete parsedData.nivel_acesso;
@@ -222,7 +206,6 @@ class UsuarioService {
     }
 
     async atualizar(id, parsedData, req) {
-        console.log('Estou no atualizar em UsuarioService');
 
         delete parsedData.email;
         delete parsedData.senha;
@@ -256,7 +239,6 @@ class UsuarioService {
     }
 
     async deletar(id, req) {
-        console.log('Estou no atualizar em UsuarioService');
 
         const usuario = await this.repository.buscarPorID(req.user_id);
         const nivel = usuario?.nivel_acesso;
@@ -281,7 +263,6 @@ class UsuarioService {
     }
 
     async atualizarFoto(id, parsedData, req) {
-        console.log('Estou no atualizarFoto em UsuarioService');
 
         await this.ensureUserExists(id);
 
@@ -336,75 +317,61 @@ class UsuarioService {
     }
 
     /**
-     * Valida extensão, tamanho, redimensiona e salva a imagem,
-     * atualiza o usuário e retorna nome do arquivo + metadados.
+     * Processa e faz upload da foto para MinIO, atualiza o usuário e retorna metadados.
      */
     async processarFoto(userId, file, req) {
-        // 1) valida extensão
-        const ext = path.extname(file.name).slice(1).toLowerCase();
-        const validExts = ['jpg', 'jpeg', 'png', 'svg'];
-        if (!validExts.includes(ext)) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                errorType: 'validationError',
-                field: 'file',
-                details: [],
-                customMessage: 'Extensão de arquivo inválida. Permitido: jpg, jpeg, png, svg.',
-            });
-        }
+        const { url, metadata } = await this.uploadService.processarFoto(file);
 
-        // 2) valida tamanho (max 50MB)
-        const MAX_BYTES = 50 * 1024 * 1024;
-        if (file.size > MAX_BYTES) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                errorType: 'validationError',
-                field: 'file',
-                details: [],
-                customMessage: `Arquivo não pode exceder ${MAX_BYTES / (1024 * 1024)} MB.`,
-            });
-        }
-
-        // 3) prepara paths
-        const fileName = `${uuidv4()}.${ext}`;
-        const uploadsDir = path.join(getDirname(), '..', '..', 'uploads');
-        if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, {
-                recursive: true
-            });
-        }
-        const uploadPath = path.join(uploadsDir, fileName);
-
-        // 4) redimensiona/comprime
-        const transformer = sharp(file.data)
-            .resize(400, 400, {
-                fit: sharp.fit.cover,
-                position: sharp.strategy.entropy
-            });
-        if (['jpg', 'jpeg'].includes(ext)) {
-            transformer.jpeg({
-                quality: 80
-            });
-        }
-        const buffer = await transformer.toBuffer();
-        await fs.promises.writeFile(uploadPath, buffer);
-
-        // 5) atualiza usuário no banco
         const dados = {
-            link_imagem: fileName
+            link_imagem: url
         };
         UsuarioUpdateSchema.parse(dados);
         await this.atualizarFoto(userId, dados, req);
 
-        // 6) retorna metadados adicionais
         return {
-            fileName,
-            metadata: {
-                fileExtension: ext,
-                fileSize: file.size,
-                md5: file.md5, // vem do express-fileupload
-            },
+            fileName: url,
+            metadata
         };
+    }
+
+    /**
+     * Deleta a foto de um usuário.
+     */
+    async deletarFoto(userId, req) {
+        await this.ensureUserExists(userId);
+
+        const usuarioLogado = await this.repository.buscarPorID(req.user_id);
+        const nivel = usuarioLogado.nivel_acesso;
+
+        if (nivel.admin && String(usuarioLogado._id) !== String(userId)) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.FORBIDDEN.code,
+                errorType: 'permissionError',
+                field: 'Usuário',
+                details: [],
+                customMessage: "Você só pode deletar a sua própria foto."
+            });
+        }
+
+        const usuario = await this.repository.buscarPorID(userId);
+        const fileName = usuario.link_imagem;
+
+        if (!fileName) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
+                errorType: 'notFound',
+                field: 'link_imagem',
+                customMessage: 'Foto do usuário não encontrada.'
+            });
+        }
+
+        // Deletar do MinIO
+        await this.uploadService.deleteFoto(fileName);
+
+        // Atualizar no banco
+        const dados = { link_imagem: null };
+        UsuarioUpdateSchema.parse(dados);
+        await this.repository.atualizar(userId, dados);
     }
 
 }

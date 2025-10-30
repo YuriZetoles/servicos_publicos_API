@@ -25,6 +25,7 @@
     "fs": "^0.0.1-security",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
+    "minio": "^8.0.6",
     "mongodb": "^6.15.0",
     "mongoose": "^8.13.2",
     "mongoose-paginate-v2": "^1.9.0",
@@ -80,6 +81,10 @@
     "transformIgnorePatterns": [
       "/node_modules/(?!node-fetch)/"
     ],
+    "roots": ["<rootDir>"],
+    "moduleNameMapper": {
+      "^utils/(.*)$": "<rootDir>/src/utils/$1"
+    },
     "setupFilesAfterEnv": [
       "<rootDir>/jest.setup.js"
     ],
@@ -100,7 +105,6 @@
       "/utils/helpers/messages.js",
       "/utils/helpers/CommonResponse.js",
       "/middlewares/asyncWrapper.js",
-      "utils/helpers/CustomError.js",
       "utils/helpers/HttpStatusCodes.js",
       "utils/validators/schemas/zod/querys/GrupoQuerySchema.js",
       "utils/validators/schemas/zod/querys/RequestAuthorizationSchema.js",

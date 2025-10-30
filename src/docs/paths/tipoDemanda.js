@@ -217,14 +217,13 @@ const tipoDemandaRoutes = {
             tags: ["TipoDemanda"],
             summary: "Faz upload da foto do tipo demanda",
             description: `
-            + Caso de uso: Recebe um arquivo de imagem e atualiza o link_imagem do tipo demanda.
+            + Caso de uso: Recebe um arquivo de imagem e faz upload para MinIO, atualizando o link_imagem do tipo demanda.
             + Função de Negócio:
                 - Validar extensão (jpg, jpeg, png, svg).
                 - Redimensionar para 400×400.
-                - Salvar no servidor e atualizar o campo link_imagem.
+                - Fazer upload para MinIO e atualizar o campo link_imagem com a URL.
             + Regras de Negócio:
-                - Verificar se o tipo demanda existe.
-                - Em tipo demanda, pode apenas atualizar a foto o administrador ou secretário.
+                - Apenas administradores podem fazer upload.
                 - Garantir que o arquivo seja uma imagem válida.
             + Resultado Esperado:
                 - 200 OK com mensagem de sucesso, link_imagem atualizado e metadados do arquivo.
@@ -266,20 +265,23 @@ const tipoDemandaRoutes = {
                 500: commonResponses[500]()
             }
         },
-        get: {
+        delete: {
             tags: ["TipoDemanda"],
-            summary: "Faz download da foto do tipo demanda",
+            summary: "Deleta a foto do tipo demanda",
             description: `
-            + Caso de uso: Retorna o arquivo de imagem associado ao tipo demanda.
+            + Caso de uso: Remove a imagem associada ao tipo demanda do MinIO e limpa o campo link_imagem.
             + Função de Negócio:
-                - Buscar link_imagem no banco.
-                - Retornar o binário da imagem com o Content-Type apropriado.
+                - Verificar permissões (apenas admin).
+                - Deletar arquivo do MinIO.
+                - Atualizar link_imagem para null.
             + Regras de Negócio:
-                - Verificar se o tipo demanda existe.
-                - Garantir que o arquivo seja uma imagem válida.
+                - Apenas administradores podem deletar.
             + Resultado Esperado:
-                - 200 OK com o arquivo de imagem.
+                - 200 OK com mensagem de sucesso.
         `,
+            security: [{
+                bearerAuth: []
+            }],
             parameters: [{
                 name: "id",
                 in: "path",
@@ -287,31 +289,9 @@ const tipoDemandaRoutes = {
                 schema: {
                     type: "string"
                 }
-            }, ],
+            }],
             responses: {
-                200: {
-                    description: "Arquivo de imagem retornado",
-                    content: {
-                        "image/jpeg": {
-                            schema: {
-                                type: "string",
-                                format: "binary"
-                            }
-                        },
-                        "image/png": {
-                            schema: {
-                                type: "string",
-                                format: "binary"
-                            }
-                        },
-                        "image/svg+xml": {
-                            schema: {
-                                type: "string",
-                                format: "binary"
-                            }
-                        }
-                    }
-                },
+                200: commonResponses[200](),
                 400: commonResponses[400](),
                 401: commonResponses[401](),
                 404: commonResponses[404](),

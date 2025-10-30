@@ -69,7 +69,6 @@ class AuthPermission {
         rota: rotaReq,
         dominio: dominioReq
       });
-      console.log(rotaDB)
       if (!rotaDB) {
         throw new CustomError({
           statusCode: 404,

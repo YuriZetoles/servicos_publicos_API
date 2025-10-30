@@ -14,36 +14,22 @@ import {
     TipoDemandaUpdateSchema
 } from '../utils/validators/schemas/zod/TipoDemandaSchema.js';
 import UsuarioRepository from '../repository/UsuarioRepository.js';
+import UploadService from './UploadService.js';
 
-// Importações necessárias para o upload de arquivos
-import path from 'path';
-import {
-    fileURLToPath
-} from 'url';
-import {
-    v4 as uuidv4
-} from 'uuid';
-import fs from 'fs';
-import sharp from 'sharp';
-// Helper para __dirname em módulo ES
-const getDirname = () => path.dirname(fileURLToPath(
-    import.meta.url));
 
 class TipoDemandaService {
     constructor() {
         this.repository = new TipoDemandaRepository();
         this.userRepository = new UsuarioRepository();
+        this.uploadService = new UploadService();
     }
 
     async listar(req) {
-        console.log("Estou no TipoDemandaService");
         const data = await this.repository.listar(req);
-        console.log('Estou retornando os dados em TipoDemandaService para o controller');
         return data;
     }
 
     async criar(parsedData, req) {
-        console.log("Estou no criar em TipoDemandaService")
 
         parsedData.usuarios = [req.user_id]
         //validar nome unico e tipo
@@ -56,7 +42,6 @@ class TipoDemandaService {
     }
 
     async atualizar(id, parsedData) {
-        console.log('Estou no atualizar em TipoDemandaService');
 
         await this.ensureTipoDemandaExists(id);
 
@@ -72,7 +57,6 @@ class TipoDemandaService {
 
 
     async deletar(id) {
-        console.log('Estou no deletar em TipoDemandaService');
 
         await this.ensureTipoDemandaExists(id);
 
@@ -80,6 +64,9 @@ class TipoDemandaService {
         return data;
     }
 
+    // ================================
+    // MÉTODOS UTILITÁRIOS
+    // ================================
     async atualizarFoto(id, parsedData, req) {
         await this.ensureTipoDemandaExists(id);
 
@@ -107,6 +94,48 @@ class TipoDemandaService {
 
         const data = await this.repository.atualizar(id, parsedData);
         return data;
+    }
+
+    /**
+     * Processa e faz upload da foto para MinIO, atualiza o tipo demanda e retorna metadados.
+    */
+    async processarFoto(tipoDemandaId, file, req) {
+        const { url, metadata } = await this.uploadService.processarFoto(file);
+
+        const dados = {
+            link_imagem: url
+        };
+        TipoDemandaUpdateSchema.parse(dados);
+        await this.atualizarFoto(tipoDemandaId, dados, req);
+
+        return {
+            fileName: url,
+            metadata
+        };
+    }
+
+    async validarTipo(tipo) {
+        const tiposPermitidos = [
+            'Coleta',
+            'Iluminação',
+            'Saneamento',
+            'Árvores',
+            'Animais',
+            'Pavimentação'
+        ];
+        
+        if (!tiposPermitidos.includes(tipo)) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'tipo',
+                details: [{
+                    path: 'tipo',
+                    message: 'Tipo inválido. Valores permitidos: Coleta, Iluminação, Saneamento, Árvores, Animais, Pavimentação.'
+                }],
+                customMessage: 'Tipo de demanda não é válido.',
+            });
+        }
     }
 
     async ensureTipoDemandaExists(id) {
@@ -141,91 +170,43 @@ class TipoDemandaService {
     }
 
     /**
-     * Valida extensão, tamanho, redimensiona e salva a imagem,
-     * atualiza o tipo demana e retorna nome do arquivo + metadados.
+     * Deleta a foto de um Tipo Demanda.
      */
-    async processarFoto(tipoDemandaId, file, req) {
-        const ext = path.extname(file.name).slice(1).toLowerCase();
-        const validExts = ['jpg', 'jpeg', 'png', 'svg'];
-        if (!validExts.includes(ext)) {
+    async deletarFoto(tipoDemandaId, req) {
+        await this.ensureTipoDemandaExists(tipoDemandaId);
+
+        const usuario = await this.userRepository.buscarPorID(req.user_id);
+        const nivel = usuario?.nivel_acesso;
+
+        if (!nivel.administrador) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                errorType: 'validationError',
-                field: 'file',
-                customMessage: 'Extensão inválida. Permitido: jpg, jpeg, png, svg.'
+                statusCode: HttpStatusCodes.FORBIDDEN.code,
+                errorType: 'permissionError',
+                field: 'Usuário',
+                details: [],
+                customMessage: "Apenas administradores podem deletar fotos de tipos de demanda."
             });
         }
 
-        const MAX_BYTES = 50 * 1024 * 1024;
-        if (file.size > MAX_BYTES) {
+        const tipoDemanda = await this.repository.buscarPorID(tipoDemandaId);
+        const fileName = tipoDemanda.link_imagem;
+
+        if (!fileName) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                errorType: 'validationError',
-                field: 'file',
-                customMessage: 'Arquivo excede 50MB.'
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
+                errorType: 'notFound',
+                field: 'link_imagem',
+                customMessage: 'Foto do tipo demanda não encontrada.'
             });
         }
 
-        const fileName = `${uuidv4()}.${ext}`;
-        const uploadsDir = path.join(getDirname(), '..', '..', 'uploads');
-        if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, {
-                recursive: true
-            });
-        }
-        const uploadPath = path.join(uploadsDir, fileName);
+        // Deletar do MinIO
+        await this.uploadService.deleteFoto(fileName);
 
-        const transformer = sharp(file.data).resize(400, 400, {
-            fit: sharp.fit.cover,
-            position: sharp.strategy.entropy
-        });
-        if (['jpg', 'jpeg'].includes(ext)) {
-            transformer.jpeg({
-                quality: 80
-            });
-        }
-
-        const buffer = await transformer.toBuffer();
-        await fs.promises.writeFile(uploadPath, buffer);
-
-        const dados = {
-            link_imagem: fileName
-        };
+        // Atualizar no banco
+        const dados = { link_imagem: null };
         TipoDemandaUpdateSchema.parse(dados);
-        await this.atualizarFoto(tipoDemandaId, dados, req);
-
-        return {
-            fileName,
-            metadata: {
-                fileExtension: ext,
-                fileSize: file.size,
-                md5: file.md5,
-            },
-        };
-    }
-
-    async validarTipo(tipo) {
-        const tiposPermitidos = [
-            'Coleta',
-            'Iluminação',
-            'Saneamento',
-            'Árvores',
-            'Animais',
-            'Pavimentação'
-        ];
-
-        if (!tiposPermitidos.includes(tipo)) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                errorType: 'validationError',
-                field: 'tipo',
-                details: [{
-                    path: 'tipo',
-                    message: 'Tipo inválido. Valores permitidos: Coleta, Iluminação, Saneamento, Árvores, Animais, Pavimentação.'
-                }],
-                customMessage: 'Tipo de demanda não é válido.',
-            });
-        }
+        await this.repository.atualizar(tipoDemandaId, dados);
     }
 
 }

@@ -26,11 +26,6 @@ import {
     fileURLToPath
 } from 'url';
 
-// Helper para __dirname em módulo ES
-const getDirname = () => path.dirname(fileURLToPath(
-    import.meta.url));
-
-
 class UsuarioController {
     constructor() {
         this.service = new UsuarioService();
@@ -38,7 +33,6 @@ class UsuarioController {
     }
 
     async listar(req, res) {
-        console.log('Estou no listar em UsuarioController');
 
         const id = req?.params?.id;
         if (id) {
@@ -57,7 +51,6 @@ class UsuarioController {
     }
 
     async criar(req, res) {
-        console.log('Estou no criar em UsuarioController');
 
         // valida os dados - criar ajustes na biblioteca zod
         const parsedData = UsuarioSchema.parse(req.body);
@@ -74,7 +67,6 @@ class UsuarioController {
      * Cria um novo usuário.
      */
     async criarComSenha(req, res) {
-        console.log('Estou no criar em UsuarioController');
 
         // valida os dados
         const parsedData = UsuarioSchema.parse(req.body);
@@ -99,7 +91,6 @@ class UsuarioController {
     }
 
     async atualizar(req, res) {
-        console.log('Estou no atualizar em UsuarioController');
 
         const id = req?.params?.id;
         UsuarioIdSchema.parse(id);
@@ -117,7 +108,6 @@ class UsuarioController {
     }
 
     async deletar(req, res) {
-        console.log('Estou no atualizar em UsuarioController');
 
         const id = req?.params?.id;
         UsuarioIdSchema.parse(id);
@@ -141,15 +131,12 @@ class UsuarioController {
      */
     async fotoUpload(req, res, next) {
         try {
-            console.log('Estou no fotoUpload em UsuarioController');
-
             const {
                 id
             } = req.params;
             UsuarioIdSchema.parse(id);
 
             const file = req.files?.file;
-            console.log('req.files:', req.files);
             if (!file) {
                 throw new CustomError({
                     statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -180,47 +167,20 @@ class UsuarioController {
     }
 
     /**
-     * Faz download da foto de um usuário.
+     * Deleta a foto de um usuário.
      */
-    async getFoto(req, res, next) {
+    async fotoDelete(req, res, next) {
         try {
-            console.log('Estou no getFoto em UsuarioController');
-
-            const id = req?.params?.id;
+            const { id } = req.params;
             UsuarioIdSchema.parse(id);
 
-            const usuario = await this.service.listar(req);
-            const {
-                link_imagem
-            } = usuario;
+            await this.service.deletarFoto(id, req);
 
-            if (!link_imagem) {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.NOT_FOUND.code,
-                    errorType: 'notFound',
-                    field: 'link_imagem',
-                    details: [],
-                    customMessage: 'Foto do usuário não encontrada.'
-                });
-            }
-
-            const filename = link_imagem;
-            const uploadsDir = path.join(getDirname(), '..', '../uploads');
-            const filePath = path.join(uploadsDir, filename);
-
-            const extensao = path.extname(filename).slice(1).toLowerCase();
-            const mimeTypes = {
-                jpg: 'image/jpeg',
-                jpeg: 'image/jpeg',
-                png: 'image/png',
-                svg: 'image/svg+xml'
-            };
-            const contentType = mimeTypes[extensao] || 'application/octet-stream';
-
-            res.setHeader('Content-Type', contentType);
-            return res.sendFile(filePath);
+            return CommonResponse.success(res, {
+                message: 'Foto deletada com sucesso.'
+            });
         } catch (error) {
-            console.error('Erro no getFoto:', error);
+            console.error('Erro no fotoDelete:', error);
             return next(error);
         }
     }

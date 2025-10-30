@@ -27,6 +27,7 @@ O projeto **Serviços Públicos** tem como principal objetivo oferecer uma solu�
 * Bcrypt
 * Swagger
 * Docker
+* MinIO (Armazenamento de arquivos)
 * Jest
 * ESLint
 * Nodemon
@@ -62,6 +63,21 @@ Para executar o projeto localmente ou em ambiente de produção, siga as instru�
 
         # Reconstruir o container e subir
         docker-compose up --build
+
+## MinIO (Armazenamento de Arquivos)
+
+O projeto utiliza MinIO como serviço de armazenamento de arquivos compatível com S3. Quando executado via Docker Compose, o MinIO é automaticamente configurado com:
+
+- **Console Web**: Acessível em `http://localhost:9001`
+- **API**: Porta `9000`
+- **Credenciais**: `admin` / `admin123`
+- **Bucket**: `fotos-servicos-publicos` (criado automaticamente)
+
+### Acessando o Console MinIO
+1. Após subir os containers com `docker compose up --build --force-recreate ou docker compose -f docker-compose-dev.yml --build --force-recreate para dev com watch`
+2. Acesse `http://localhost:9001`
+3. Use as credenciais: `admin` / `admin123`
+4. Navegue até o bucket `fotos-servicos-publicos` para ver os arquivos enviados
 
 ## Execução dos testes
 

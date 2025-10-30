@@ -17,14 +17,11 @@ class GrupoService {
     }
 
     async listar(req) {
-        console.log("Estou no GrupoService");
         const data = await this.repository.listar(req);
-        console.log('Estou retornando os dados em GrupoService para o controller');
         return data;
     }
 
     async criar(parsedData) {
-        console.log("Estou no criar em GrupoService")
 
         await this.validarNome(parsedData.nome);
 
@@ -34,7 +31,6 @@ class GrupoService {
     }
 
     async atualizar(id, parsedData) {
-        console.log('Estou no atualizar em GrupoService');
 
         delete parsedData.email;
 
@@ -46,7 +42,6 @@ class GrupoService {
 
 
     async deletar(id) {
-        console.log('Estou no deletar em GrupoService');
 
         await this.ensureGrupoExists(id);
 
