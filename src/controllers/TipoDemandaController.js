@@ -107,39 +107,34 @@ class TipoDemandaController {
      * Faz upload de uma foto para um Tipo Demanda.
      */
     async fotoUpload(req, res, next) {
-        try {
-            const {
-                id
-            } = req.params;
-            TipoDemandaIDSchema.parse(id);
+        const {
+            id
+        } = req.params;
+        TipoDemandaIDSchema.parse(id);
 
-            const file = req.files?.file;
-            if (!file) {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                    errorType: 'validationError',
-                    field: 'file',
-                    details: [],
-                    customMessage: 'Nenhum arquivo enviado para upload.'
-                });
-            }
-
-            const {
-                fileName,
-                metadata
-            } = await this.service.processarFoto(id, file, req);
-
-            return CommonResponse.success(res, {
-                message: 'Arquivo recebido e Tipo Demanda atualizada com sucesso.',
-                dados: {
-                    link_imagem: fileName
-                },
-                metadados: metadata
+        const file = req.files?.file;
+        if (!file) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'file',
+                details: [],
+                customMessage: 'Nenhum arquivo foi enviado.'
             });
-        } catch (error) {
-            console.error('Erro no fotoUpload:', error);
-            return next(error);
         }
+
+        const {
+            fileName,
+            metadata
+        } = await this.service.processarFoto(id, file, req);
+
+        return CommonResponse.success(res, {
+            message: 'Arquivo recebido e Tipo Demanda atualizada com sucesso.',
+            dados: {
+                link_imagem: fileName
+            },
+            metadados: metadata
+        });
     }
 
     /**

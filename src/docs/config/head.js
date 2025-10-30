@@ -2,15 +2,15 @@
 
 // Função para obter as opções do Swagger
 const getServersInCorrectOrder = () => {
-    const devUrl = {
-        url: process.env.SWAGGER_DEV_URL || `http://localhost:5011`
+    const prodUrl = {
+        url: process.env.SWAGGER_PROD_URL || `http://localhost:5011/servicos`
     };
-    const prodUrl1 = {
-        url: process.env.SWAGGER_PROD_URL || "http://localhost:5011/servicos"
+    const devUrl = {
+        url: process.env.SWAGGER_DEV_URL || "http://localhost:5011"
     };
 
-    if (process.env.NODE_ENV === "production") return [prodUrl1, devUrl];
-    else return [devUrl, prodUrl1];
+    if (process.env.NODE_ENV === "development") return [devUrl, prodUrl];
+    else return [prodUrl, devUrl];
 };
 
 

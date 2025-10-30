@@ -130,59 +130,49 @@ class UsuarioController {
      * Faz upload de uma foto para um usuário.
      */
     async fotoUpload(req, res, next) {
-        try {
-            const {
-                id
-            } = req.params;
-            UsuarioIdSchema.parse(id);
+        const {
+            id
+        } = req.params;
+        UsuarioIdSchema.parse(id);
 
-            const file = req.files?.file;
-            if (!file) {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                    errorType: 'validationError',
-                    field: 'file',
-                    details: [],
-                    customMessage: 'Nenhum arquivo foi enviado.'
-                });
-            }
-
-            // Delega toda a lógica de validação e processamento ao service
-            const {
-                fileName,
-                metadata
-            } = await this.service.processarFoto(id, file, req);
-
-            return CommonResponse.success(res, {
-                message: 'Arquivo recebido e usuário atualizado com sucesso.',
-                dados: {
-                    link_imagem: fileName
-                },
-                metadados: metadata
+        const file = req.files?.file;
+        if (!file) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'file',
+                details: [],
+                customMessage: 'Nenhum arquivo foi enviado.'
             });
-        } catch (error) {
-            console.error('Erro no fotoUpload:', error);
-            return next(error);
         }
+
+        // Delega toda a lógica de validação e processamento ao service
+        const {
+            fileName,
+            metadata
+        } = await this.service.processarFoto(id, file, req);
+
+        return CommonResponse.success(res, {
+            message: 'Arquivo recebido e usuário atualizado com sucesso.',
+            dados: {
+                link_imagem: fileName
+            },
+            metadados: metadata
+        });
     }
 
     /**
      * Deleta a foto de um usuário.
      */
     async fotoDelete(req, res, next) {
-        try {
-            const { id } = req.params;
-            UsuarioIdSchema.parse(id);
+        const { id } = req.params;
+        UsuarioIdSchema.parse(id);
 
-            await this.service.deletarFoto(id, req);
+        await this.service.deletarFoto(id, req);
 
-            return CommonResponse.success(res, {
-                message: 'Foto deletada com sucesso.'
-            });
-        } catch (error) {
-            console.error('Erro no fotoDelete:', error);
-            return next(error);
-        }
+        return CommonResponse.success(res, {
+            message: 'Foto deletada com sucesso.'
+        });
     }
 
 }
