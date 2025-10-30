@@ -163,6 +163,18 @@ class DemandaController {
             } = req.params;
             DemandaIdSchema.parse(id);
 
+            // Normalizar tipo: remover acentos, minúsculo
+            const normalizedTipo = tipo.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+            if (!['solicitacao', 'resolucao'].includes(normalizedTipo)) {
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                    errorType: 'validationError',
+                    field: 'tipo',
+                    customMessage: 'Tipo deve ser "solicitacao" ou "resolucao".'
+                });
+            }
+
             const file = req.files?.file;
             if (!file) {
                 throw new CustomError({
@@ -176,12 +188,12 @@ class DemandaController {
             const {
                 fileName,
                 metadata
-            } = await this.service.processarFoto(id, file, tipo, req);
+            } = await this.service.processarFoto(id, file, normalizedTipo, req);
 
             return CommonResponse.success(res, {
                 message: 'Arquivo enviado e salvo com sucesso.',
                 dados: {
-                    [`link_imagem${tipo === "resolucao" ? "_resolucao" : ""}`]: fileName
+                    [`link_imagem${normalizedTipo === "resolucao" ? "_resolucao" : ""}`]: fileName
                 },
                 metadados: metadata
             });
@@ -199,7 +211,19 @@ class DemandaController {
             const { id, tipo } = req.params;
             DemandaIdSchema.parse(id);
 
-            await this.service.deletarFoto(id, tipo, req);
+            // Normalizar tipo: remover acentos, minúsculo
+            const normalizedTipo = tipo.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+            if (!['solicitacao', 'resolucao'].includes(normalizedTipo)) {
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                    errorType: 'validationError',
+                    field: 'tipo',
+                    customMessage: 'Tipo deve ser "solicitacao" ou "resolucao".'
+                });
+            }
+
+            await this.service.deletarFoto(id, normalizedTipo, req);
 
             return CommonResponse.success(res, {
                 message: 'Foto deletada com sucesso.'

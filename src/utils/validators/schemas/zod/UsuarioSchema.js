@@ -41,7 +41,7 @@ const UsuarioSchema = z.object({
     ),
   link_imagem: z
     .string()
-    .regex(/\.(jpg|jpeg|png|webp|svg|gif)$/i, {
+    .refine((val) => val === "" || /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(val), {
       message: "Deve ser um link de imagem com extensão válida (jpg, png, etc)."
     })
     .optional(),

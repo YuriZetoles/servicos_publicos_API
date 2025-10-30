@@ -80,11 +80,18 @@ class UploadService {
 
     /**
      * Deleta uma foto.
-     * @param {string} fileName - Nome do arquivo.
+     * @param {string} fileName - Nome do arquivo ou URL completa.
      * @returns {Promise<void>}
      */
     async deleteFoto(fileName) {
-        await this.uploadRepository.deleteFile(fileName);
+        // Se for uma URL completa, extrair apenas o nome do arquivo (key)
+        let key = fileName;
+        if (fileName.startsWith('http')) {
+            const url = new URL(fileName);
+            const pathParts = url.pathname.substring(1).split('/');
+            key = pathParts.slice(1).join('/'); // Remove o bucket e pega o resto
+        }
+        await this.uploadRepository.deleteFile(key);
     }
 }
 

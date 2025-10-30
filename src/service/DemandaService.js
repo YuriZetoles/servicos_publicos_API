@@ -534,7 +534,14 @@ class DemandaService {
         };
 
         DemandaUpdateSchema.parse(dados);
-        await this.atualizarFoto(demandaId, dados, req);
+
+        try {
+            await this.atualizarFoto(demandaId, dados, req);
+        } catch (error) {
+            // Se falhar ao atualizar DB, deletar do MinIO
+            await this.uploadService.deleteFoto(url);
+            throw error;
+        }
 
         return {
             fileName: url,
@@ -578,13 +585,13 @@ class DemandaService {
             });
         }
 
-        // Deletar do MinIO
-        await this.uploadService.deleteFoto(fileName);
-
-        // Atualizar no banco
-        const dados = { [campo]: null };
+        // Atualizar no banco primeiro
+        const dados = { [campo]: "" };
         DemandaUpdateSchema.parse(dados);
         await this.repository.atualizar(demandaId, dados);
+
+        // Deletar do MinIO
+        await this.uploadService.deleteFoto(fileName);
     }
 
 }

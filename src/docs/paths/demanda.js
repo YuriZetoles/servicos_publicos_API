@@ -456,9 +456,11 @@ const demandaRoutes = {
             + Função de Negócio:
                 - Validar extensão (jpg, jpeg, png, svg).
                 - Redimensionar para 400×400.
-                - Fazer upload para MinIO e atualizar o campo link_imagem com a URL.
+                - Fazer upload para MinIO e atualizar o campo link_imagem (para "solicitacao") ou link_imagem_resolucao (para "resolucao") com a URL.
             + Regras de Negócio:
                 - Verificar se o demanda existe.
+                - O parâmetro "tipo" aceita variações com acentos e maiúsculas/minúsculas (ex.: "Solicitação", "SOLICITAÇÃO", "solicitacao"), mas é normalizado para "solicitacao" ou "resolucao".
+                - Apenas "solicitacao" ou "resolucao" são aceitos após normalização.
                 - Munícipe pode apenas atualizar foto de sua própria demanda, exceto o administrador.
                 - Garantir que o arquivo seja uma imagem válida.
             + Resultado Esperado:
@@ -481,8 +483,9 @@ const demandaRoutes = {
                     required: true,
                     schema: {
                         type: "string",
-                        enum: ["normal", "resolucao"]
-                    }
+                        enum: ["solicitacao", "resolucao"]
+                    },
+                    description: 'Tipo da foto: "solicitacao" (para link_imagem) ou "resolucao" (para link_imagem_resolucao). Aceita variações com acentos e maiúsculas/minúsculas.'
                 }
             ],
             requestBody: {
@@ -515,12 +518,15 @@ const demandaRoutes = {
             tags: ["Demandas"],
             summary: "Deleta a foto do demanda",
             description: `
-            + Caso de uso: Remove a imagem associada ao demanda do MinIO e limpa o campo link_imagem.
+            + Caso de uso: Remove a imagem associada ao demanda do MinIO e limpa o campo link_imagem ou link_imagem_resolucao.
             + Função de Negócio:
                 - Verificar permissões.
+                - Atualizar o banco primeiro (para evitar arquivos órfãos).
                 - Deletar arquivo do MinIO.
-                - Atualizar link_imagem para null.
+                - Limpar link_imagem (para "solicitacao") ou link_imagem_resolucao (para "resolucao").
             + Regras de Negócio:
+                - O parâmetro "tipo" aceita variações com acentos e maiúsculas/minúsculas (ex.: "Solicitação", "SOLICITAÇÃO", "solicitacao"), mas é normalizado para "solicitacao" ou "resolucao".
+                - Apenas "solicitacao" ou "resolucao" são aceitos após normalização.
                 - Munícipe pode deletar foto de sua própria demanda.
                 - Administrador pode sempre.
             + Resultado Esperado:
@@ -543,8 +549,9 @@ const demandaRoutes = {
                     required: true,
                     schema: {
                         type: "string",
-                        enum: ["normal", "resolucao"]
-                    }
+                        enum: ["solicitacao", "resolucao"]
+                    },
+                    description: 'Tipo da foto: "solicitacao" (para link_imagem) ou "resolucao" (para link_imagem_resolucao). Aceita variações com acentos e maiúsculas/minúsculas.'
                 }
             ],
             responses: {

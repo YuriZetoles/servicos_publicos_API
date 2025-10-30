@@ -326,7 +326,14 @@ class UsuarioService {
             link_imagem: url
         };
         UsuarioUpdateSchema.parse(dados);
-        await this.atualizarFoto(userId, dados, req);
+
+        try {
+            await this.atualizarFoto(userId, dados, req);
+        } catch (error) {
+            // Se falhar ao atualizar DB, deletar do MinIO
+            await this.uploadService.deleteFoto(url);
+            throw error;
+        }
 
         return {
             fileName: url,
@@ -365,13 +372,13 @@ class UsuarioService {
             });
         }
 
-        // Deletar do MinIO
-        await this.uploadService.deleteFoto(fileName);
-
-        // Atualizar no banco
-        const dados = { link_imagem: null };
+        // Atualizar no banco primeiro
+        const dados = { link_imagem: "" };
         UsuarioUpdateSchema.parse(dados);
         await this.repository.atualizar(userId, dados);
+
+        // Deletar do MinIO
+        await this.uploadService.deleteFoto(fileName);
     }
 
 }
