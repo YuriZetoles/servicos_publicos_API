@@ -16,7 +16,7 @@ O projeto **Serviços Públicos** é uma API REST desenvolvida para promover a p
 - ✅ Otimizar processos administrativos
 - ✅ Garantir controle e rastreabilidade de solicitações
 
-## ✨ Funcionalidades
+## 📋 Funcionalidades
 
 ### 👥 Gestão de Usuários
 - 🔐 Cadastro e autenticação de usuários
@@ -287,7 +287,3 @@ Acesse a documentação interativa em: `http://localhost:5011/docs`
 | Luis Felipe Lopes | Analista | luis.felipe.lopes1275@gmail.com |
 | Danielle Silva de Melo | Analista | danielleesilva.4@gmail.com |
 | Yuri Ribeiro Zetoles | Analista | yurizetoles0123@gmail.com |
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
