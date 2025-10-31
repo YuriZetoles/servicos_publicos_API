@@ -65,7 +65,6 @@ class AuthService {
         // Buscar user com os tokens já armazenados
         const userComToken = await this.repository.buscarPorID(userEncontrado._id, true);
         let refreshtoken = userComToken.refreshtoken;
-        console.log("refresh token no banco", refreshtoken);
 
         if (refreshtoken) {
             try {
@@ -86,8 +85,6 @@ class AuthService {
         } else {
             refreshtoken = await this.TokenUtil.generateRefreshToken(userEncontrado._id)
         }
-
-        console.log("refresh token gerado", refreshtoken);
 
         await this.repository.armazenarTokens(userEncontrado._id, accessToken, refreshtoken);
 
@@ -136,7 +133,6 @@ class AuthService {
         }
 
         if (userEncontrado.refreshtoken !== token) {
-            console.log('Token inválido');
             throw new CustomError({
                 statusCode: HttpStatusCodes.UNAUTHORIZED.code,
                 errorType: 'invalidToken',
@@ -184,7 +180,6 @@ class AuthService {
 
     // RecuperaSenhaService.js
     async recuperaSenha(body) {
-        console.log('Estou em RecuperaSenhaService');
 
         console.log('Dados recebidos para recuperação de senha:', body);
         // ───────────────────────────────────────────────
@@ -235,7 +230,6 @@ class AuthService {
         // ───────────────────────────────────────────────
         // Passo 4 – Gerar token único (JWT) p/ recuperação
         // ───────────────────────────────────────────────
-        console.log('Gerando token único para recuperação de senha');
         const tokenUnico =
             await this.TokenUtil.generatePasswordRecoveryToken(userEncontrado._id);
 
@@ -340,11 +334,7 @@ class AuthService {
         };
 
 
-        console.log('Antes de sendMail');
         await sendMail(emailData);
-        console.log('Depois de sendMail');;
-
-        console.log('Enviando e-mail de recuperação de senha');
 
         // ───────────────────────────────────────────────
         // Passo 7 – Retornar resposta ao cliente

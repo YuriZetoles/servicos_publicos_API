@@ -36,7 +36,7 @@ describe('TipoDemandaFilterBuild', () => {
             const filtros = filterBuilder.build();
 
             expect(filtros).toEqual({
-                tipo: { $regex: tipo, $options: 'i' }
+                tipo: { $regex: `^${tipo}$`, $options: 'i' }
             });
         });
 
@@ -64,7 +64,7 @@ describe('TipoDemandaFilterBuild', () => {
 
             expect(filtros).toEqual({
                 titulo: { $regex: "Iluminação", $options: 'i' },
-                tipo: { $regex: "Urbana", $options: 'i' }
+                tipo: { $regex: "^Urbana$", $options: 'i' }
             });
         });
     });

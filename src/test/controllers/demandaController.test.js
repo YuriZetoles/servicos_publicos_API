@@ -28,7 +28,7 @@ describe("DemandaController", ()=> {
     };
     controller.service = serviceStub;
 
-    req = { params: {}, query: {}, body: {}, files: {} };
+    req = { params: {}, query: {}, body: {}, files: {}, path: "/demandas" };
     res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
@@ -340,7 +340,7 @@ describe("DemandaController", ()=> {
   describe('fotoUpload', () => {
     it('deve fazer upload de uma foto com sucesso', async () => {
       const req = {
-        params: { id: '123', tipo: 'denuncia' },
+        params: { id: '123', tipo: 'solicitacao' },
         files: { file: { name: 'imagem.png', buffer: Buffer.from('file') } },
       };
       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
@@ -361,7 +361,7 @@ describe("DemandaController", ()=> {
       await controller.fotoUpload(req, res, next);
 
       expect(DemandaIdSchema.parse).toHaveBeenCalledWith('123');
-      expect(controller.service.processarFoto).toHaveBeenCalledWith('123', req.files.file, 'denuncia', req);
+      expect(controller.service.processarFoto).toHaveBeenCalledWith('123', req.files.file, 'solicitacao', req);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Arquivo enviado e salvo com sucesso.',
@@ -371,67 +371,13 @@ describe("DemandaController", ()=> {
     });
 
     it('deve retornar erro se nenhum arquivo for enviado', async () => {
-      const req = { params: { id: '123', tipo: 'denuncia' }, files: {} };
+      const req = { params: { id: '123', tipo: 'solicitacao' }, files: {} };
       const res = {};
       const next = jest.fn();
 
       jest.spyOn(DemandaIdSchema, 'parse').mockReturnValue('123');
 
-      await controller.fotoUpload(req, res, next);
-
-      expect(next).toHaveBeenCalledWith(expect.objectContaining({
-        statusCode: 400,
-        field: 'file',
-        customMessage: 'Nenhum arquivo foi enviado.'
-      }));
-    });
-  });
-
-  describe('getFoto', () => {
-    it('deve fazer download da imagem da denúncia', async () => {
-      const req = {
-        params: { id: '123', tipo: 'denuncia' },
-        user_id: 'user_1'
-      };
-      const res = { setHeader: jest.fn(), sendFile: jest.fn() };
-      const next = jest.fn();
-
-      const fileName = 'imagem_123.png';
-      const fullPath = path.join(__dirname, '..', '..', 'uploads', fileName);
-
-      jest.spyOn(DemandaIdSchema, 'parse').mockReturnValue('123');
-      controller.service.listar = jest.fn().mockResolvedValue({
-        link_imagem: fileName
-      });
-
-      await controller.getFoto(req, res, next);
-
-      expect(DemandaIdSchema.parse).toHaveBeenCalledWith('123');
-      expect(controller.service.listar).toHaveBeenCalledWith({
-        params: { id: '123' },
-        user_id: 'user_1'
-      });
-      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'image/png');
-      expect(res.sendFile).toHaveBeenCalledWith(expect.stringContaining('uploads/imagem_123.png'));
-    });
-
-    it('deve retornar erro se imagem não for encontrada', async () => {
-      const req = { params: { id: '123', tipo: 'resolucao' }, user_id: 'user_1' };
-      const res = {};
-      const next = jest.fn();
-
-      jest.spyOn(DemandaIdSchema, 'parse').mockReturnValue('123');
-      controller.service.listar = jest.fn().mockResolvedValue({
-        link_imagem_resolucao: null
-      });
-
-      await controller.getFoto(req, res, next);
-
-      expect(next).toHaveBeenCalledWith(expect.objectContaining({
-        statusCode: 404,
-        field: 'link_imagem_resolucao',
-        customMessage: expect.stringContaining('Imagem de resolucao não encontrada.')
-      }));
+      await expect(controller.fotoUpload(req, res, next)).rejects.toThrow('Nenhum arquivo foi enviado.');
     });
   });
 })

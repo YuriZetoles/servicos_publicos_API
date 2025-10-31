@@ -28,7 +28,7 @@ async function seedTipoDemandaReais() {
       throw new Error("Nenhum usuário encontrado. Execute o seed de usuários primeiro.");
     }
 
-    const imagensGeradas = gerarImagensUnicas();
+    const imagensGeradas = await gerarImagensUnicas();
     console.log(`✓ ${Object.keys(imagensGeradas).length} imagens únicas geradas\n`);
 
     const tiposDemandaParaInserir = tiposDemandaReais.map((tipoDemanda, index) => {

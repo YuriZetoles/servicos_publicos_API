@@ -45,7 +45,6 @@ class AuthController {
     const token = req.body.access_token || req.headers.authorization?.split(' ')[1];
 
     if (!token || token === 'null' || token === 'undefined') {
-      console.log("Token recebido:", token);
 
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -60,7 +59,6 @@ class AuthController {
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET_ACCESS_TOKEN);
 
     if (!decoded || !decoded.id) {
-      console.log("Token decodificado inválid:", decoded);
 
       throw new CustomError({
         statusCode: HttpStatusCodes.INVALID_TOKEN.code,
@@ -96,7 +94,6 @@ class AuthController {
 
     // Verifica se o cabeçalho Authorization está presente
     if (!token || token === 'null' || token === 'undefined') {
-      console.log('Cabeçalho Authorization ausente.');
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
         errorType: 'invalidRefresh',
@@ -119,7 +116,6 @@ class AuthController {
    *  Metodo para recuperar a senha do usuário
    */
   recuperaSenha = async (req, res) => {
-    console.log('Estou no logar em RecuperaSenhaController, enviando req para RecuperaSenhaService');
 
     // 1º validação estrutural - validar os campos passados por body
     const body = req.body || {};

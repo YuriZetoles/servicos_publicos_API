@@ -423,9 +423,8 @@ describe('controller', () => {
         req.files = {};
 
         const idParseSpy = jest.spyOn(UsuarioIdSchema, 'parse').mockImplementation(() => {});
-        await controller.fotoUpload(req, res, next);
-        expect(next).toHaveBeenCalled();
-        const error = next.mock.calls[0][0];
+        await expect(controller.fotoUpload(req, res, next)).rejects.toThrow(CustomError);
+        const error = await controller.fotoUpload(req, res, next).catch(e => e);
         expect(error).toBeInstanceOf(CustomError);
         expect(error.customMessage).toBe('Nenhum arquivo foi enviado.');
 
@@ -443,60 +442,11 @@ describe('controller', () => {
                 });
             });
 
-            await controller.fotoUpload(req, res, next);
-
-            expect(next).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    statusCode: 400
-                })
-            );
+            await expect(controller.fotoUpload(req, res, next)).rejects.toThrow(CustomError);
+            const error = await controller.fotoUpload(req, res, next).catch(e => e);
+            expect(error.statusCode).toBe(400);
+            expect(error.customMessage).toBe('Extensão de arquivo inválida.');
         });
 
   });
-
-    describe('getFoto', () => {
-        it('deve enviar o arquivo se a foto existir', async () => {
-        req.params = { id: '123' };
-        const fakeUsuario = { link_imagem: 'photo.jpg' };
-        serviceStub.listar.mockResolvedValue(fakeUsuario);
-        const idParseSpy = jest.spyOn(UsuarioIdSchema, 'parse').mockImplementation(() => {});
-
-        await controller.getFoto(req, res, next);
-        expect(idParseSpy).toHaveBeenCalledWith('123');
-        expect(serviceStub.listar).toHaveBeenCalledWith(req);
-        expect(res.setHeader).toHaveBeenCalled();
-        expect(res.sendFile).toHaveBeenCalled();
-
-        idParseSpy.mockRestore();
-        });
-
-        it('deve chamar next com erro se a foto não for encontrada', async () => {
-        req.params = { id: '123' };
-        const fakeUsuario = {}; // no link_imagem
-        serviceStub.listar.mockResolvedValue(fakeUsuario);
-        const idParseSpy = jest.spyOn(UsuarioIdSchema, 'parse').mockImplementation(() => {});
-
-        await controller.getFoto(req, res, next);
-        expect(idParseSpy).toHaveBeenCalledWith('123');
-        expect(serviceStub.listar).toHaveBeenCalledWith(req);
-        expect(next).toHaveBeenCalled();
-        const error = next.mock.calls[0][0];
-        expect(error).toBeInstanceOf(CustomError);
-        expect(error.customMessage).toBe('Foto do usuário não encontrada.');
-
-        idParseSpy.mockRestore();
-        });
-
-        it('deve retornar erro 500 quando ocorrer erro ao ler arquivo', async () => {
-            req.params = { id: '123' };
-            const fakeUsuario = { link_imagem: 'photo.jpg' };
-            serviceStub.listar.mockResolvedValue(fakeUsuario);
-            res.sendFile.mockImplementation(() => {
-                throw new Error('Erro ao ler arquivo');
-            });
-            
-            await controller.getFoto(req, res, next);
-            expect(next).toHaveBeenCalledWith(expect.any(Error));
-        });
-    });
 });

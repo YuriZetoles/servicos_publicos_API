@@ -56,7 +56,7 @@ const DemandaSchema = z.object({
     .min(2, "A descrição não pode ser vazia."),
   link_imagem: z
     .string()
-    .regex(/\.(jpg|jpeg|png|webp|svg|gif)$/i, {
+    .refine((val) => val === "" || /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(val), {
       message: "Deve ser um link de imagem com extensão válida (jpg, png, etc)."
     })
     .optional(),
@@ -68,7 +68,7 @@ const DemandaSchema = z.object({
     .optional(),
   link_imagem_resolucao: z
     .string()
-    .regex(/\.(jpg|jpeg|png|webp|svg|gif)$/i, {
+    .refine((val) => val === "" || /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(val), {
       message: "Deve ser um link de imagem com extensão válida (jpg, png, etc)."
     })
     .optional(),

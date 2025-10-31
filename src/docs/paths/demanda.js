@@ -50,7 +50,6 @@ const demandaRoutes = {
                     description: "Filtra por status"
                 },
                 {
-                    //todo: revisar endereco
                     name: "endereco",
                     in: "query",
                     schema: {
@@ -69,13 +68,14 @@ const demandaRoutes = {
                     description: "Filtra por secretaria"
                 },
                 {
-                    name: "usuario",
+                    name: "tipo",
                     in: "query",
                     schema: {
-                        type: "string"
+                        type: "string",
+                        enum: ["Coleta", "Iluminação", "Saneamento", "Árvores", "Animais", "Pavimentação"]
                     },
                     required: false,
-                    description: "Filtra por usuario"
+                    description: "Filtra por tipo de demanda. Aceita variações com acentos e maiúsculas/minúsculas (ex.: 'coleta', 'COLETA', 'coléta', 'Iluminacao')."
                 },
                 {
                     name: "data",
@@ -452,14 +452,16 @@ const demandaRoutes = {
             tags: ["Demandas"],
             summary: "Faz upload da foto do demanda",
             description: `
-            + Caso de uso: Recebe um arquivo de imagem e atualiza o link_imagem do demanda.
+            + Caso de uso: Recebe um arquivo de imagem e faz upload para MinIO, atualizando o link_imagem do demanda.
             + Função de Negócio:
                 - Validar extensão (jpg, jpeg, png, svg).
                 - Redimensionar para 400×400.
-                - Salvar no servidor e atualizar o campo link_imagem.
+                - Fazer upload para MinIO e atualizar o campo link_imagem (para "solicitacao") ou link_imagem_resolucao (para "resolucao") com a URL.
             + Regras de Negócio:
                 - Verificar se o demanda existe.
-                - demanda pode apenas atualizar sua própria foto, exceto o administrador.
+                - O parâmetro "tipo" aceita variações com acentos e maiúsculas/minúsculas (ex.: "Solicitação", "SOLICITAÇÃO", "solicitacao"), mas é normalizado para "solicitacao" ou "resolucao".
+                - Apenas "solicitacao" ou "resolucao" são aceitos após normalização.
+                - Munícipe pode apenas atualizar foto de sua própria demanda, exceto o administrador.
                 - Garantir que o arquivo seja uma imagem válida.
             + Resultado Esperado:
                 - 200 OK com mensagem de sucesso, link_imagem atualizado e metadados do arquivo.
@@ -480,8 +482,10 @@ const demandaRoutes = {
                     in: "path",
                     required: true,
                     schema: {
-                        type: "string"
-                    }
+                        type: "string",
+                        enum: ["solicitacao", "resolucao"]
+                    },
+                    description: 'Tipo da foto: "solicitacao" (para link_imagem) ou "resolucao" (para link_imagem_resolucao). Aceita variações com acentos e maiúsculas/minúsculas.'
                 }
             ],
             requestBody: {
@@ -510,20 +514,27 @@ const demandaRoutes = {
                 500: commonResponses[500]()
             }
         },
-        get: {
+        delete: {
             tags: ["Demandas"],
-            summary: "Faz download da foto do demanda",
+            summary: "Deleta a foto do demanda",
             description: `
-            + Caso de uso: Retorna o arquivo de imagem associado ao demanda.
+            + Caso de uso: Remove a imagem associada ao demanda do MinIO e limpa o campo link_imagem ou link_imagem_resolucao.
             + Função de Negócio:
-                - Buscar link_imagem no banco.
-                - Retornar o binário da imagem com o Content-Type apropriado.
+                - Verificar permissões.
+                - Atualizar o banco primeiro (para evitar arquivos órfãos).
+                - Deletar arquivo do MinIO.
+                - Limpar link_imagem (para "solicitacao") ou link_imagem_resolucao (para "resolucao").
             + Regras de Negócio:
-                - Verificar se o demanda existe.
-                - Garantir que o arquivo seja uma imagem válida.
+                - O parâmetro "tipo" aceita variações com acentos e maiúsculas/minúsculas (ex.: "Solicitação", "SOLICITAÇÃO", "solicitacao"), mas é normalizado para "solicitacao" ou "resolucao".
+                - Apenas "solicitacao" ou "resolucao" são aceitos após normalização.
+                - Munícipe pode deletar foto de sua própria demanda.
+                - Administrador pode sempre.
             + Resultado Esperado:
-                - 200 OK com o arquivo de imagem.
+                - 200 OK com mensagem de sucesso.
         `,
+            security: [{
+                bearerAuth: []
+            }],
             parameters: [{
                     name: "id",
                     in: "path",
@@ -537,34 +548,14 @@ const demandaRoutes = {
                     in: "path",
                     required: true,
                     schema: {
-                        type: "string"
-                    }
+                        type: "string",
+                        enum: ["solicitacao", "resolucao"]
+                    },
+                    description: 'Tipo da foto: "solicitacao" (para link_imagem) ou "resolucao" (para link_imagem_resolucao). Aceita variações com acentos e maiúsculas/minúsculas.'
                 }
             ],
             responses: {
-                200: {
-                    description: "Arquivo de imagem retornado",
-                    content: {
-                        "image/jpeg": {
-                            schema: {
-                                type: "string",
-                                format: "binary"
-                            }
-                        },
-                        "image/png": {
-                            schema: {
-                                type: "string",
-                                format: "binary"
-                            }
-                        },
-                        "image/svg+xml": {
-                            schema: {
-                                type: "string",
-                                format: "binary"
-                            }
-                        }
-                    }
-                },
+                200: commonResponses[200](),
                 400: commonResponses[400](),
                 401: commonResponses[401](),
                 404: commonResponses[404](),

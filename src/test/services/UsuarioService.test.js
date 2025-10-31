@@ -604,14 +604,35 @@ describe("UsuarioService", () => {
     it("Admin não pode atualizar a foto de outro usuário", async () => {
       const id = "outro-id";
       const req = { user_id: "admin-id" };
-      const parsedData = { link_imagem: "x.png" };
+      const file = {
+        name: "foto.jpg",
+        size: 1024,
+        data: Buffer.from("..."),
+      };
 
-      repositoryMock.buscarPorID.mockResolvedValue({
-        _id: "admin-id",
-        nivel_acesso: { admin: true },
+      repositoryMock.buscarPorID.mockImplementation((userId) => {
+        if (userId === id) {
+          return Promise.resolve({
+            _id: id,
+            nivel_acesso: { administrador: false }
+          });
+        } else if (userId === "admin-id") {
+          return Promise.resolve({
+            _id: "admin-id",
+            nivel_acesso: { administrador: true }
+          });
+        }
+        return Promise.resolve(null);
       });
 
-      await expect(service.atualizarFoto(id, parsedData, req)).rejects.toThrow(
+      // Mock uploadService to avoid Sharp processing
+      service.uploadService = {
+        processarFoto: jest.fn().mockResolvedValue({ url: 'test.jpg', metadata: {} })
+      };
+
+      service.repository = repositoryMock;
+
+      await expect(service.processarFoto(id, file, req)).rejects.toThrow(
         CustomError
       );
       expect(repositoryMock.atualizar).not.toHaveBeenCalled();
@@ -746,8 +767,23 @@ describe("UsuarioService", () => {
       const req = { user_id: "usuario-001" };
       const userId = "usuario-001";
 
+      // Mock do usuário existente
+      repositoryMock.buscarPorID.mockResolvedValue({
+        _id: userId,
+        nivel_acesso: { admin: true }
+      });
+
+      // Mock do uploadService lançando erro de tamanho
+      const uploadError = new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'validationError',
+        field: 'file',
+        customMessage: 'Arquivo excede 50MB.'
+      });
+      service.uploadService.processarFoto = jest.fn().mockRejectedValue(uploadError);
+
       await expect(service.processarFoto(userId, file, req)).rejects.toThrow(
-        /Arquivo não pode exceder 50 MB/
+        /Arquivo excede 50MB/
       );
     });
 
@@ -760,8 +796,23 @@ describe("UsuarioService", () => {
       const req = { user_id: "usuario-001" };
       const userId = "usuario-001";
 
+      // Mock do usuário existente
+      repositoryMock.buscarPorID.mockResolvedValue({
+        _id: userId,
+        nivel_acesso: { admin: true }
+      });
+
+      // Mock do uploadService lançando erro de extensão
+      const uploadError = new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'validationError',
+        field: 'file',
+        customMessage: 'Extensão inválida. Permitido: jpg, jpeg, png, svg.'
+      });
+      service.uploadService.processarFoto = jest.fn().mockRejectedValue(uploadError);
+
       await expect(service.processarFoto(userId, file, req)).rejects.toThrow(
-        /Extensão de arquivo inválida/
+        /Extensão inválida\. Permitido: jpg, jpeg, png, svg\./
       );
     });
   });

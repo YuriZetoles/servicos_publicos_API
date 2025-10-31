@@ -78,13 +78,11 @@ class SecretariaRepository {
     }
 
     async listar(req) {
-        console.log('Listando em SecretariaRepository');
         const {
             id
         } = req.params || null;
 
         if (id) {
-            console.log('Buscando secretaria por ID:', id);
             const data = await this.modelSecretaria.findById(id);
 
             if (!data) {

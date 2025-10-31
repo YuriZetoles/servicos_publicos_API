@@ -25,8 +25,6 @@ class GrupoController {
         this.service = new GrupoService();
     }
     async listar(req, res) {
-        console.log('Estou no listar em GrupoController');
-
         const {
             id
         } = req.params || {}
@@ -46,7 +44,6 @@ class GrupoController {
     }
 
     async criar(req, res) {
-        console.log('Estou no criar em GrupoController');
 
         const parsedData = GrupoSchema.parse(req.body);
         let data = await this.service.criar(parsedData);
@@ -57,7 +54,6 @@ class GrupoController {
     }
 
     async atualizar(req, res) {
-        console.log('Estou no atualizar em GrupoController');
 
         const {
             id
@@ -73,7 +69,6 @@ class GrupoController {
 
 
     async deletar(req, res) {
-        console.log('Estou no deletar em GrupoController');
 
         const {
             id

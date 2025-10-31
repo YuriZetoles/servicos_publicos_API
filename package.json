@@ -16,15 +16,17 @@
     "@faker-js/faker": "^9.9.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
-    "compression": "^1.8.0",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-fileupload": "^1.5.2",
+    "express-rate-limit": "^8.2.0",
     "faker-br": "^0.4.1",
     "fs": "^0.0.1-security",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
+    "minio": "^8.0.6",
     "mongodb": "^6.15.0",
     "mongoose": "^8.13.2",
     "mongoose-paginate-v2": "^1.9.0",
@@ -80,6 +82,12 @@
     "transformIgnorePatterns": [
       "/node_modules/(?!node-fetch)/"
     ],
+    "roots": [
+      "<rootDir>"
+    ],
+    "moduleNameMapper": {
+      "^utils/(.*)$": "<rootDir>/src/utils/$1"
+    },
     "setupFilesAfterEnv": [
       "<rootDir>/jest.setup.js"
     ],
@@ -100,7 +108,6 @@
       "/utils/helpers/messages.js",
       "/utils/helpers/CommonResponse.js",
       "/middlewares/asyncWrapper.js",
-      "utils/helpers/CustomError.js",
       "utils/helpers/HttpStatusCodes.js",
       "utils/validators/schemas/zod/querys/GrupoQuerySchema.js",
       "utils/validators/schemas/zod/querys/RequestAuthorizationSchema.js",

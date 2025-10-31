@@ -24,13 +24,11 @@ describe('Rotas de tipoDemanda', () => {
   app.use(tipoDemandaRoutes);
   app.use(errorHandler);
 
-  const loginRes = await request(app)
-    .post('/login')
-    .send({ email: "admin@exemplo.com", senha: "Senha@123" });
-
-  token = loginRes.body.data.user.accessToken;
-
-  const tipoDemandares = await request(app).get('/tipoDemanda').set('Authorization', `Bearer ${token}`)
+    const loginRes = await request(app)
+      .post('/login')
+      .send({ identificador: "admin@exemplo.com", senha: "Senha@123" });
+    
+    token = loginRes.body.data.user.accessToken;  const tipoDemandares = await request(app).get('/tipoDemanda').set('Authorization', `Bearer ${token}`)
     tipoDemandaId = tipoDemandares.body?.data?.docs[0]?._id;
     expect(tipoDemandaId).toBeTruthy();
 

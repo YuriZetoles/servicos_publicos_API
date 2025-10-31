@@ -20,13 +20,11 @@ describe('Rotas de secretaria', () => {
   app.use(secretariaRoutes);
   app.use(errorHandler)
 
-  const loginRes = await request(app)
+    const loginRes = await request(app)
       .post('/login')
-      .send({ email: "admin@exemplo.com", senha: "Senha@123" });
-  
-    token = loginRes.body.data.user.accessToken;
-
-    const Secretariares = await request(app).get('/secretaria').set('Authorization', `Bearer ${token}`)
+      .send({ identificador: "admin@exemplo.com", senha: "Senha@123" });
+    
+    token = loginRes.body.data.user.accessToken;    const Secretariares = await request(app).get('/secretaria').set('Authorization', `Bearer ${token}`)
       SecretariaId = Secretariares.body?.data?.docs[0]?._id;
       expect(SecretariaId).toBeTruthy();
 });

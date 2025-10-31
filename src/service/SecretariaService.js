@@ -17,14 +17,11 @@ class SecretariaService {
     }
 
     async listar(req) {
-        console.log("Estou no SecretariaService");
         const data = await this.repository.listar(req);
-        console.log('Estou retornando os dados em SecretariaService para o controller');
         return data;
     }
 
     async criar(parsedData) {
-        console.log("Estou no criar em SecretariaService")
 
         //validar nome unico 
         await this.validarNome(parsedData.nome);
@@ -35,7 +32,6 @@ class SecretariaService {
     }
 
     async atualizar(id, parsedData) {
-        console.log('Estou no atualizar em SecretariaService');
 
         delete parsedData.email;
 
@@ -48,7 +44,6 @@ class SecretariaService {
 
 
     async deletar(id) {
-        console.log('Estou no deletar em SecretariaService');
 
         await this.ensureSecretariaExists(id);
 

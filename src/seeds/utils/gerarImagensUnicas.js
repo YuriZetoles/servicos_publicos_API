@@ -3,19 +3,17 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import UploadRepository from '../../repository/UploadRepository.js';
+import 'dotenv/config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Gera SVGs únicos para cada tipo de demanda específico
+ * Gera SVGs únicos para cada tipo de demanda específico e faz upload para MinIO
  */
-function gerarImagensUnicas() {
-  const uploadsDir = path.join(__dirname, '../../../uploads');
-  
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
+async function gerarImagensUnicas() {
+    const uploadRepository = new UploadRepository();
 
   const cores = {
     coleta: { primaria: '#16a34a', secundaria: '#22c55e', fundo: '#dcfce7' },
@@ -91,15 +89,29 @@ function gerarImagensUnicas() {
   const imagensGeradas = {};
   let contador = 0;
 
+  // Processa cada imagem de forma assíncrona
   for (const [nomeArquivo, conteudoSVG] of Object.entries(svgs)) {
-    const caminhoCompleto = path.join(uploadsDir, nomeArquivo);
-    fs.writeFileSync(caminhoCompleto, conteudoSVG);
-    imagensGeradas[nomeArquivo.replace('.svg', '')] = nomeArquivo;
-    contador++;
-    console.log(`✓ Imagem gerada: ${nomeArquivo}`);
+    try {
+      console.log(`Fazendo upload de ${nomeArquivo} para MinIO...`);
+
+      // Converte SVG string para Buffer
+      const buffer = Buffer.from(conteudoSVG, 'utf8');
+
+      // Faz upload para MinIO (sobrescreve se já existir)
+      const url = await uploadRepository.uploadFile(buffer, nomeArquivo, 'image/svg+xml');
+
+      // Mapeia o nome do arquivo para o nome sem extensão para os seeds
+      imagensGeradas[nomeArquivo.replace('.svg', '')] = nomeArquivo;
+      contador++;
+
+      console.log(`${nomeArquivo} enviado com sucesso: ${url}`);
+    } catch (error) {
+      console.error(`Erro ao fazer upload de ${nomeArquivo}:`, error.message);
+      throw error;
+    }
   }
 
-  console.log(`✓ ${contador} imagens geradas`);
+  console.log(`✓ ${contador} imagens enviadas para MinIO`);
   return imagensGeradas;
 }
 

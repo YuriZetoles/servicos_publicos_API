@@ -4,31 +4,19 @@ import DemandaRepository from "../repository/DemandaRepository.js";
 import CustomError from "../utils/helpers/CustomError.js";
 import UsuarioRepository from "../repository/UsuarioRepository.js";
 import SecretariaRepository from "../repository/SecretariaRepository.js";
+import UploadService from "./UploadService.js";
 import {
     DemandaSchema,
     DemandaUpdateSchema
 } from '../utils/validators/schemas/zod/DemandaSchema.js';
 import HttpStatusCodes from "../utils/helpers/HttpStatusCodes.js";
 
-// Importações necessárias para o upload de arquivos
-import path from 'path';
-import {
-    fileURLToPath
-} from 'url';
-import {
-    v4 as uuidv4
-} from 'uuid';
-import fs from 'fs';
-import sharp from 'sharp';
-// Helper para __dirname em módulo ES
-const getDirname = () => path.dirname(fileURLToPath(
-    import.meta.url));
-
 class DemandaService {
     constructor() {
         this.repository = new DemandaRepository()
         this.userRepository = new UsuarioRepository()
         this.secretariaRepository = new SecretariaRepository()
+        this.uploadService = new UploadService()
     }
 
     async listar(req) {
@@ -41,7 +29,6 @@ class DemandaService {
 
         // Verificar se é a rota /meus
         if (req.path.includes('/meus')) {
-            console.log('🔍 Rota /meus - aplicando filtro específico para usuário logado');
             const repoReqMeus = { params: req.params };
             repoReqMeus.query = {
                 ...(req.query || {}),
@@ -51,23 +38,21 @@ class DemandaService {
             const data = await this.repository.listar(repoReqMeus);
             
             // Aplicar filtro específico para "meus pedidos"
-            if (nivel.municipe) {
+            if (nivel && nivel.municipe) {
                 const userId = usuario._id.toString();
-                console.log('👤 Filtrando demandas do munícipe:', userId);
                 
                 data.docs = data.docs.filter(demanda => {
                     const demandaUsuarios = (demanda.usuarios || []).map(user => user._id.toString());
                     return demandaUsuarios.includes(userId);
                 });
                 
-                console.log('📊 Total demandas do munícipe:', data.docs.length);
-            } else if (nivel.secretario) {
+            } else if (nivel && nivel.secretario) {
                 const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
                 data.docs = data.docs.filter(demanda => {
                     const secretariasDemanda = (demanda.secretarias || []).map(s => s._id.toString());
                     return secretariasDemanda.some(id => secretariasUsuario.includes(id));
                 });
-            } else if (nivel.operador) {
+            } else if (nivel && nivel.operador) {
                 const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
                 const userId = usuario._id.toString();
                 data.docs = data.docs.filter(demanda => {
@@ -81,10 +66,10 @@ class DemandaService {
         }
 
         if (id) {
-            const data = await this.repository.buscarPorID(id);
+            let data = await this.repository.buscarPorID(id);
             
             // Aplicar filtros de permissão também para busca por ID
-            if (nivel.secretario) {
+            if (nivel && nivel.secretario) {
                 const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
                 const secretariasDemanda = (data.secretarias || []).map(s => s._id.toString());
                 const temPermissao = secretariasDemanda.some(id => secretariasUsuario.includes(id));
@@ -100,7 +85,7 @@ class DemandaService {
                 }
             }
 
-            if (nivel.operador) {
+            if (nivel && nivel.operador) {
                 const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
                 const userId = usuario._id.toString();
                 const secretariasDemanda = (data.secretarias || []).map(s => s._id.toString());
@@ -118,7 +103,7 @@ class DemandaService {
                 }
             }
 
-            if (nivel.municipe) {
+            if (nivel && nivel.municipe) {
                 const userId = usuario._id.toString();
                 const demandaUsuarios = (data.usuarios || []).map(user => user._id.toString());
                 const temPermissao = demandaUsuarios.includes(userId);
@@ -134,16 +119,13 @@ class DemandaService {
                 }
             }
 
-            if (!nivel.secretario && !nivel.operador && !nivel.municipe) {
+            if (!nivel || (!nivel.administrador && !nivel.secretario && !nivel.operador && !nivel.municipe)) {
                 data = await this.filtrarDemandaPorUser(data, usuario);
             }
 
             return data;
         }
 
-        // If the caller is a munícipe, ask repository to filter by user id so pagination
-        // is calculated correctly on the DB side. Do not mutate the original req
-        // (Express's req.query can be getter-only) — pass a plain object instead.
         const repoReq = { params: req.params };
         repoReq.query = {
             ...(req.query || {}),
@@ -152,7 +134,7 @@ class DemandaService {
 
         const data = await this.repository.listar(repoReq);
 
-        if (nivel.secretario) {
+        if (nivel && nivel.secretario) {
             const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
 
             data.docs = data.docs.filter(demanda => {
@@ -161,7 +143,7 @@ class DemandaService {
             });
         }
 
-        if (nivel.operador) {
+        if (nivel && nivel.operador) {
             const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
             const userId = usuario._id.toString();
 
@@ -172,7 +154,7 @@ class DemandaService {
             });
         }
 
-        if (nivel.municipe) {
+        if (nivel && nivel.municipe) {
             const userId = usuario._id.toString()
 
             data.docs = data.docs.filter(demanda => {
@@ -181,7 +163,7 @@ class DemandaService {
             })
         }
 
-        if (!nivel.secretario && !nivel.operador && !nivel.municipe) {
+        if (!nivel || (!nivel.administrador && !nivel.secretario && !nivel.operador && !nivel.municipe)) {
             data.docs = await Promise.all(
                 data.docs.map(demanda => this.filtrarDemandaPorUser(demanda, usuario))
             );
@@ -192,12 +174,11 @@ class DemandaService {
 
 
     async criar(parsedData, req) {
-        console.log("Estou em Demanda Service");
 
         const usuario = await this.userRepository.buscarPorID(req.user_id)
         const nivel = usuario?.nivel_acesso;
 
-        if (nivel.operador) {
+        if (nivel && nivel.operador) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.FORBIDDEN.code,
                 errorType: 'permissionError',
@@ -207,7 +188,7 @@ class DemandaService {
             });
         }
 
-        if (nivel.municipe) {
+        if (nivel && nivel.municipe) {
             const secretaria = await this.secretariaRepository.buscarPorTipo(parsedData.tipo);
 
             parsedData.usuarios = [req.user_id]
@@ -226,7 +207,6 @@ class DemandaService {
     }
 
     async atualizar(id, parsedData, req) {
-        console.log("Estou em atualizar de Demanda Service");
 
         this.removerCampos(parsedData, ["tipo", "data"]);
 
@@ -235,7 +215,7 @@ class DemandaService {
 
         const demanda = await this.repository.buscarPorID(id);
 
-        if (!nivel.municipe && !nivel.admin) {
+        if (!nivel || (!nivel.municipe && !nivel.administrador)) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.FORBIDDEN.code,
                 errorType: 'permissionError',
@@ -256,12 +236,11 @@ class DemandaService {
     }
 
     async atribuir(id, parsedData, req) {
-        console.log("Estou em atribuir de Demanda Service");
 
         const usuario = await this.userRepository.buscarPorID(req.user_id);
         const nivel = usuario?.nivel_acesso;
 
-        if (!nivel.secretario) {
+        if (!nivel || !nivel.secretario) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.FORBIDDEN.code,
                 errorType: 'permissionError',
@@ -335,14 +314,13 @@ class DemandaService {
     }
 
     async devolver(id, parsedData, req) {
-        console.log("Estou em devolver de Demanda Service");
 
         const usuario = await this.userRepository.buscarPorID(req.user_id);
         const nivel = usuario?.nivel_acesso;
         const userId = usuario._id.toString();
 
         // Permitir operadores, administradores e secretários (com regras distintas)
-        if (!nivel.operador && !nivel.administrador && !nivel.secretario) {
+        if (!nivel || (!nivel.operador && !nivel.administrador && !nivel.secretario)) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.FORBIDDEN.code,
                 errorType: 'permissionError',
@@ -354,7 +332,7 @@ class DemandaService {
         const demanda = await this.repository.buscarPorID(id);
 
         // Se for secretário: ele pode devolver (recusar) a demanda da sua secretaria
-        if (nivel.secretario) {
+        if (nivel && nivel.secretario) {
             const secretariasUsuario = (usuario?.secretarias).map(s => s._id?.toString?.() || s.toString());
             const secretariasDemanda = (demanda?.secretarias || []).map(s => s._id?.toString?.() || s.toString());
 
@@ -391,7 +369,7 @@ class DemandaService {
         }
 
         // Se for operador (ou admin usando mesma rota): comportamento anterior para operador
-        if (nivel.operador || nivel.administrador) {
+        if ((nivel && nivel.operador) || (nivel && nivel.administrador)) {
             const usuariosDemanda = demanda?.usuarios || [];
 
             const novaListaUsuarios = usuariosDemanda.filter(u => u._id.toString() !== userId);
@@ -409,12 +387,11 @@ class DemandaService {
     }
 
     async resolver(id, parsedData, req) {
-        console.log("Estou em resolver de Demanda Service");
 
         const usuario = await this.userRepository.buscarPorID(req.user_id);
         const nivel = usuario?.nivel_acesso;
 
-        if (!nivel.operador && !nivel.admin) {
+        if (!nivel || (!nivel.operador && !nivel.administrador)) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.FORBIDDEN.code,
                 errorType: 'permissionError',
@@ -438,36 +415,12 @@ class DemandaService {
     }
 
     async atualizarFoto(id, parsedData, req) {
-        console.log("Estou em atualizarFoto de DemandaService");
-
-        const usuario = await this.userRepository.buscarPorID(req.user_id);
-        const nivel = usuario?.nivel_acesso;
-        const userId = usuario._id.toString();
-
-        const demanda = await this.repository.buscarPorID(id);
-        const usuariosDemanda = (demanda?.usuarios).map(u => u._id.toString());
-
-        const isAdmin = nivel.administrador;
-        const isMunicipe = nivel.municipe;
-
-        if (!(isAdmin || (isMunicipe && usuariosDemanda.includes(userId)))) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.FORBIDDEN.code,
-                errorType: 'permissionError',
-                field: 'Usuário',
-                details: [],
-                customMessage: "Você não tem permissão para atualizar a imagem dessa demanda."
-            });
-        }
-
         await this.ensureDemandaExists(id);
-
         const data = await this.repository.atualizar(id, parsedData);
         return data;
     }
 
     async deletar(id, req) {
-        console.log("Estou em deletar de Demanda Service");
 
         const usuario = await this.userRepository.buscarPorID(req.user_id);
         const nivel = usuario?.nivel_acesso;
@@ -478,7 +431,7 @@ class DemandaService {
 
         const usuariosDemanda = (demanda?.usuarios).map(u => u._id.toString())
 
-        if (nivel.municipe) {
+        if (nivel && nivel.municipe) {
             if (!usuariosDemanda.includes(userId)) {
                 throw new CustomError({
                     statusCode: HttpStatusCodes.FORBIDDEN.code,
@@ -496,6 +449,9 @@ class DemandaService {
         return data;
     }
 
+    // ================================
+    // MÉTODOS UTILITÁRIOS
+    // ================================
     async ensureDemandaExists(id) {
         const demandaExistente = await this.repository.buscarPorID(id);
 
@@ -512,13 +468,13 @@ class DemandaService {
 
         const niveis = ['administrador', 'secretario', 'operador', 'municipe'];
 
-        const nivelAtivo = niveis.find(nivel => nivelAcesso[nivel]);
+        const nivelAtivo = niveis.find(nivel => nivelAcesso && nivelAcesso[nivel]);
 
         return permissoes[nivelAtivo] || [];
     }
 
     async filtrarDemandaPorUser(demanda, usuario) {
-        const camposPermitidos = await this.nivelAcesso(usuario.nivel_acesso);
+        const camposPermitidos = await this.nivelAcesso(usuario?.nivel_acesso);
 
         Object.keys(demanda).forEach(campo => {
             if (!camposPermitidos.includes(campo)) {
@@ -544,70 +500,97 @@ class DemandaService {
     }
 
     /**
-     * Valida extensão, tamanho, redimensiona e salva a imagem,
-     * atualiza o usuário e retorna nome do arquivo + metadados.
+     * Processa e faz upload da foto para MinIO, atualiza a demanda e retorna metadados.
      */
     async processarFoto(demandaId, file, tipo, req) {
-        const ext = path.extname(file.name).slice(1).toLowerCase();
-        const validExts = ['jpg', 'jpeg', 'png', 'svg'];
-        if (!validExts.includes(ext)) {
+        // Verificar permissões antes de processar upload
+        const usuario = await this.userRepository.buscarPorID(req.user_id);
+        const nivel = usuario?.nivel_acesso;
+        const userId = usuario._id.toString();
+
+        const demanda = await this.repository.buscarPorID(demandaId);
+        const usuariosDemanda = (demanda?.usuarios).map(u => u._id.toString());
+
+        const isAdmin = nivel && nivel.administrador;
+        const isMunicipe = nivel && nivel.municipe;
+
+        if (!(isAdmin || (isMunicipe && usuariosDemanda.includes(userId)))) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                errorType: 'validationError',
-                field: 'file',
-                customMessage: 'Extensão inválida. Permitido: jpg, jpeg, png, svg.'
+                statusCode: HttpStatusCodes.FORBIDDEN.code,
+                errorType: 'permissionError',
+                field: 'Usuário',
+                details: [],
+                customMessage: "Você não tem permissão para atualizar a imagem dessa demanda."
             });
         }
 
-        const MAX_BYTES = 50 * 1024 * 1024;
-        if (file.size > MAX_BYTES) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                errorType: 'validationError',
-                field: 'file',
-                customMessage: 'Arquivo excede 50MB.'
-            });
-        }
-
-        const fileName = `${uuidv4()}.${ext}`;
-        const uploadsDir = path.join(getDirname(), '..', '..', 'uploads');
-        if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, {
-                recursive: true
-            });
-        }
-        const uploadPath = path.join(uploadsDir, fileName);
-
-        const transformer = sharp(file.data).resize(400, 400, {
-            fit: sharp.fit.cover,
-            position: sharp.strategy.entropy
-        });
-        if (['jpg', 'jpeg'].includes(ext)) {
-            transformer.jpeg({
-                quality: 80
-            });
-        }
-
-        const buffer = await transformer.toBuffer();
-        await fs.promises.writeFile(uploadPath, buffer);
+        const { url, metadata } = await this.uploadService.processarFoto(file);
 
         // Define dinamicamente o campo a ser atualizado
         const campo = tipo === "resolucao" ? "link_imagem_resolucao" : "link_imagem";
         const dados = {
-            [campo]: fileName
+            [campo]: url
         };
 
         DemandaUpdateSchema.parse(dados);
-        await this.atualizarFoto(demandaId, dados, req);
+
+        try {
+            await this.atualizarFoto(demandaId, dados, req);
+        } catch (error) {
+            // Se falhar ao atualizar DB, deletar do MinIO
+            await this.uploadService.deleteFoto(url);
+            throw error;
+        }
 
         return {
-            fileName,
-            metadata: {
-                fileExtension: ext,
-                fileSize: file.size,
-                md5: file.md5,
-            },
+            fileName: url,
+            metadata
         };
+    }
+
+    /**
+     * Deleta a foto de uma demanda.
+     */
+    async deletarFoto(demandaId, tipo, req) {
+        const usuario = await this.userRepository.buscarPorID(req.user_id);
+        const nivel = usuario?.nivel_acesso;
+        const userId = usuario._id.toString();
+
+        const demanda = await this.repository.buscarPorID(demandaId);
+        const usuariosDemanda = (demanda?.usuarios).map(u => u._id.toString());
+
+        const isAdmin = nivel && nivel.administrador;
+        const isMunicipe = nivel && nivel.municipe;
+
+        if (!(isAdmin || (isMunicipe && usuariosDemanda.includes(userId)))) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.FORBIDDEN.code,
+                errorType: 'permissionError',
+                field: 'Usuário',
+                details: [],
+                customMessage: "Você não tem permissão para deletar a imagem dessa demanda."
+            });
+        }
+
+        const campo = tipo === "resolucao" ? "link_imagem_resolucao" : "link_imagem";
+        const fileName = demanda[campo];
+
+        if (!fileName) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
+                errorType: 'notFound',
+                field: campo,
+                customMessage: `Imagem de ${tipo} não encontrada.`
+            });
+        }
+
+        // Atualizar no banco primeiro
+        const dados = { [campo]: "" };
+        DemandaUpdateSchema.parse(dados);
+        await this.repository.atualizar(demandaId, dados);
+
+        // Deletar do MinIO
+        await this.uploadService.deleteFoto(fileName);
     }
 
 }

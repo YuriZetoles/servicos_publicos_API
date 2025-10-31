@@ -305,7 +305,6 @@ class UsuarioRepository {
     }
 
     async buscarPorPorCodigoRecuperacao(codigo) {
-        console.log('Estou no buscarPorPorCodigoRecuperacao em UsuarioRepository');
         const filtro = {
             codigo_recupera_senha: codigo
         };

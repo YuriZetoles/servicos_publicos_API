@@ -20,8 +20,27 @@ class DemandaFilterBuild {
 
   comTipo(tipo) {
     if (tipo) {
+      // Função para normalizar string: remover acentos e converter para minúsculo
+      const normalizeString = (str) => {
+        return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      };
+
+      // Normalizar o valor de entrada
+      const normalizedTipo = normalizeString(tipo);
+
+      // Usar regex case-insensitive que também encontra variações com/sem acentos
+      // Criar padrão que encontra tanto "iluminacao" quanto "iluminação"
+      const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const pattern = escapeRegex(normalizedTipo).replace(/a/g, '[aàáâãäå]') // variações de 'a'
+                                                  .replace(/e/g, '[eèéêë]')   // variações de 'e'
+                                                  .replace(/i/g, '[iìíîï]')   // variações de 'i'
+                                                  .replace(/o/g, '[oòóôõö]')   // variações de 'o'
+                                                  .replace(/u/g, '[uùúûü]')   // variações de 'u'
+                                                  .replace(/c/g, '[cç]')       // variações de 'c'
+                                                  .replace(/n/g, '[nñ]');      // variações de 'n'
+
       this.filtros.tipo = {
-        $regex: tipo,
+        $regex: pattern,
         $options: "i"
       };
     }

@@ -19,30 +19,18 @@ import {
     DemandaUpdateSchema
 } from '../utils/validators/schemas/zod/DemandaSchema.js';
 
-// Importações necessárias para o upload de arquivos
-import path from 'path';
-import {
-    fileURLToPath
-} from 'url';
-// Helper para __dirname em módulo ES
-const getDirname = () => path.dirname(fileURLToPath(
-    import.meta.url));
-
 class DemandaController {
     constructor() {
         this.service = new DemandaService();
     }
 
     async listar(req, res) {
-        console.log('Estou no listar em Demanda');
-
         const {
             id
         } = req.params || {};
 
         // Verificar se é a rota /meus
         if (req.path.includes('/meus')) {
-            console.log('🔍 Rota /meus detectada - aplicando filtro para usuário logado');
             // Para a rota /meus, não validamos ID
         } else if (id) {
             DemandaIdSchema.parse(id);
@@ -60,7 +48,6 @@ class DemandaController {
     }
 
     async criar(req, res) {
-        console.log('Estou no criar em DemandaController');
 
         const parsedData = DemandaSchema.parse(req.body)
         let data = await this.service.criar(parsedData, req);
@@ -71,7 +58,6 @@ class DemandaController {
     }
 
     async atualizar(req, res) {
-        console.log('Estou no atualizar em DemandaController');
 
         const {
             id
@@ -91,7 +77,6 @@ class DemandaController {
     }
 
     async atribuir(req, res) {
-        console.log('Estou no atribuir em DemandaController');
 
         const {
             id
@@ -108,7 +93,6 @@ class DemandaController {
     }
 
     async devolver(req, res) {
-        console.log('Estou no devolver em DemandaController');
 
         const {
             id
@@ -125,7 +109,6 @@ class DemandaController {
     }
 
     async resolver(req, res) {
-        console.log('Estou no resolver em DemandaController');
 
         const {
             id
@@ -142,7 +125,6 @@ class DemandaController {
     }
 
     async deletar(req, res) {
-        console.log('Estou no deletar em DemandaController');
 
         const id = req?.params?.id;
         DemandaIdSchema.parse(id)
@@ -165,85 +147,72 @@ class DemandaController {
      * Faz upload de uma foto para um usuário.
      */
     async fotoUpload(req, res, next) {
-        try {
-            const {
-                id,
-                tipo
-            } = req.params;
-            DemandaIdSchema.parse(id);
+        const {
+            id,
+            tipo
+        } = req.params;
+        DemandaIdSchema.parse(id);
 
-            const file = req.files?.file;
-            if (!file) {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                    errorType: 'validationError',
-                    field: 'file',
-                    customMessage: 'Nenhum arquivo foi enviado.'
-                });
-            }
+        // Normalizar tipo: remover acentos, minúsculo
+        const normalizedTipo = tipo.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-            const {
-                fileName,
-                metadata
-            } = await this.service.processarFoto(id, file, tipo, req);
-
-            return CommonResponse.success(res, {
-                message: 'Arquivo enviado e salvo com sucesso.',
-                dados: {
-                    [`link_imagem${tipo === "resolucao" ? "_resolucao" : ""}`]: fileName
-                },
-                metadados: metadata
+        if (!['solicitacao', 'resolucao'].includes(normalizedTipo)) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'tipo',
+                customMessage: 'Tipo deve ser "solicitacao" ou "resolucao".'
             });
-        } catch (error) {
-            console.error('Erro no fotoUpload:', error);
-            return next(error);
         }
+
+        const file = req.files?.file;
+        if (!file) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'file',
+                customMessage: 'Nenhum arquivo foi enviado.'
+            });
+        }
+
+        const {
+            fileName,
+            metadata
+        } = await this.service.processarFoto(id, file, normalizedTipo, req);
+
+        return CommonResponse.success(res, {
+            message: 'Arquivo enviado e salvo com sucesso.',
+            dados: {
+                [`link_imagem${normalizedTipo === "resolucao" ? "_resolucao" : ""}`]: fileName
+            },
+            metadados: metadata
+        });
     }
 
     /**
-     * Faz download da foto de um usuário.
+     * Deleta a foto de uma demanda.
      */
-    async getFoto(req, res, next) {
-        try {
-            const {
-                id,
-                tipo
-            } = req.params;
-            DemandaIdSchema.parse(id);
+    async fotoDelete(req, res, next) {
+        const { id, tipo } = req.params;
+        DemandaIdSchema.parse(id);
 
-            const demanda = await this.service.listar({
-                params: {
-                    id
-                },
-                user_id: req.user_id
+        // Normalizar tipo: remover acentos, minúsculo
+        const normalizedTipo = tipo.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+        if (!['solicitacao', 'resolucao'].includes(normalizedTipo)) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'tipo',
+                customMessage: 'Tipo deve ser "solicitacao" ou "resolucao".'
             });
-            const campo = tipo === "resolucao" ? "link_imagem_resolucao" : "link_imagem";
-            const fileName = demanda[campo];
-
-            if (!fileName) {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.NOT_FOUND.code,
-                    errorType: 'notFound',
-                    field: campo,
-                    customMessage: `Imagem de ${tipo} não encontrada.`
-                });
-            }
-
-            const filePath = path.join(getDirname(), '..', '..', 'uploads', fileName);
-            const extensao = path.extname(fileName).slice(1).toLowerCase();
-            const mimeTypes = {
-                jpg: 'image/jpeg',
-                jpeg: 'image/jpeg',
-                png: 'image/png',
-                svg: 'image/svg+xml'
-            };
-
-            res.setHeader('Content-Type', mimeTypes[extensao] || 'application/octet-stream');
-            return res.sendFile(filePath);
-        } catch (error) {
-            console.error('Erro no getFoto:', error);
-            return next(error);
         }
+
+        await this.service.deletarFoto(id, normalizedTipo, req);
+
+        return CommonResponse.success(res, {
+            message: 'Foto deletada com sucesso.'
+        });
     }
 
 }

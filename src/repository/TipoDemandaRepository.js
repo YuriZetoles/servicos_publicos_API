@@ -76,13 +76,11 @@ class TipoDemandaRepository {
     }
 
     async listar(req) {
-        console.log('Listando em TipoDemandaRepository');
         const {
             id
         } = req.params || null;
 
         if (id) {
-            console.log('Buscando TipoDemanda por ID:', id);
             const data = await this.modelTipoDemanda.findById(id);
 
             if (!data) {

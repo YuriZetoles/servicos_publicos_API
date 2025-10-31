@@ -25,7 +25,6 @@ class SecretariaController {
         this.service = new SecretariaService();
     }
     async listar(req, res) {
-        console.log('Estou no listar em SecretariaController');
 
         const {
             id
@@ -46,7 +45,6 @@ class SecretariaController {
     }
 
     async criar(req, res) {
-        console.log('Estou no criar em SecretariaController');
 
         const parsedData = SecretariaSchema.parse(req.body);
         let data = await this.service.criar(parsedData);
@@ -57,7 +55,6 @@ class SecretariaController {
     }
 
     async atualizar(req, res) {
-        console.log('Estou no atualizar em SecretariaController');
 
         const {
             id
@@ -75,7 +72,6 @@ class SecretariaController {
 
 
     async deletar(req, res) {
-        console.log('Estou no deletar em SecretariaController');
 
         const {
             id

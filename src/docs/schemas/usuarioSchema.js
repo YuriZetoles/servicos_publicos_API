@@ -60,7 +60,7 @@ const usuarioSchemas = {
       data_nomeacao: "2024-07-14T12:30:00.000Z",
       cargo: "Planejador",
       formacao: "Segurança",
-      link_imagem: "http://edivan.net/b4a264ac-c062-4a5d-afe4-62f6f8428515.jpg",
+      link_imagem: "https://example.com/image.jpg",
       nivel_acesso: {
         municipe: false,
         operador: false,
@@ -142,7 +142,7 @@ const usuarioSchemas = {
 const removalMapping = {
   UsuarioListagem: ['__v'],
   UsuarioDetalhes: ['__v'],
-  UsuarioPost: ['createdAt', 'updatedAt', '__v', '_id'],
+  UsuarioPost: ['createdAt', 'updatedAt', '__v', '_id', 'senha'],
   UsuarioPatch: ['createdAt', 'updatedAt', '__v', '_id'],
   UsuarioDelete: ['createdAt', 'updatedAt', '__v', '_id'],
   UsuarioLogin: ['tokenUnico', 'senha', '__v', '_id', 'codigo_recupera_senha', 'exp_codigo_recupera_senha'],

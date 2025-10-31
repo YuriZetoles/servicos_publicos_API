@@ -19,7 +19,7 @@ beforeAll(async () => {
 
   const loginRes = await request(app)
     .post('/login')
-    .send({ email: "admin@exemplo.com", senha: "Senha@123" });
+    .send({ identificador: "admin@exemplo.com", senha: "Senha@123" });
 
   token = loginRes.body.data.user.accessToken;
 });
