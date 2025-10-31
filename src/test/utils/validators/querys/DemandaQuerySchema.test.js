@@ -37,12 +37,40 @@ describe("DemandaQuerySchema", () => {
       if (result.success) expect(result.data.tipo).toBe("Coleta");
     });
 
+    it("deve aceitar tipo válido em minúsculo", () => {
+      const input = { tipo: "coleta" };
+      const result = DemandaQuerySchema.safeParse(input);
+      expect(result.success).toBe(true);
+      if (result.success) expect(result.data.tipo).toBe("Coleta");
+    });
+
+    it("deve aceitar tipo válido sem acentuação", () => {
+      const input = { tipo: "Iluminacao" };
+      const result = DemandaQuerySchema.safeParse(input);
+      expect(result.success).toBe(true);
+      if (result.success) expect(result.data.tipo).toBe("Iluminação");
+    });
+
+    it("deve aceitar tipo válido com maiúsculas e minúsculas misturadas", () => {
+      const input = { tipo: "CoLeTa" };
+      const result = DemandaQuerySchema.safeParse(input);
+      expect(result.success).toBe(true);
+      if (result.success) expect(result.data.tipo).toBe("Coleta");
+    });
+
+    it("deve aceitar tipo válido com acentuação parcial", () => {
+      const input = { tipo: "árvores" };
+      const result = DemandaQuerySchema.safeParse(input);
+      expect(result.success).toBe(true);
+      if (result.success) expect(result.data.tipo).toBe("Árvores");
+    });
+
     it("deve rejeitar tipo inválido", () => {
       const input = { tipo: "Inexistente" };
       const result = DemandaQuerySchema.safeParse(input);
       expect(result.success).toBe(false);
       if (!result.success)
-        expect(result.error.issues[0].message).toMatch(/Invalid enum value/);
+        expect(result.error.issues[0].message).toBe("Tipo inválido. Valores aceitos: Coleta, Iluminação, Saneamento, Árvores, Animais, Pavimentação");
     });
   });
 

@@ -84,13 +84,62 @@ class UploadService {
      * @returns {Promise<void>}
      */
     async deleteFoto(fileName) {
-        // Se for uma URL completa, extrair apenas o nome do arquivo (key)
-        let key = fileName;
-        if (fileName.startsWith('http')) {
-            const url = new URL(fileName);
-            const pathParts = url.pathname.substring(1).split('/');
-            key = pathParts.slice(1).join('/'); // Remove o bucket e pega o resto
+        // Validar entrada básica
+        if (fileName == null) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'fileName',
+                customMessage: 'Nome do arquivo não pode ser nulo ou indefinido.'
+            });
         }
+
+        // Converter para string e validar
+        const fileNameStr = String(fileName);
+        if (!fileNameStr || fileNameStr.trim() === '') {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'fileName',
+                customMessage: 'Nome do arquivo inválido para exclusão.'
+            });
+        }
+
+        // Extrair a key (nome do arquivo) da URL ou usar diretamente se já for a key
+        let key = fileNameStr;
+
+        // Verificar se é uma URL (http ou https)
+        if (fileNameStr.startsWith('http://') || fileNameStr.startsWith('https://')) {
+            try {
+                const url = new URL(fileNameStr);
+                // Extrair o path: /bucket/file.jpg para bucket/file.jpg
+                const pathName = url.pathname.substring(1);
+                const pathParts = pathName.split('/');
+
+                // Se tem pelo menos bucket e o arquivo, pegar do segundo elemento em diante
+                if (pathParts.length >= 2) {
+                    key = pathParts.slice(1).join('/'); // Remove bucket, mantém arquivo e subpastas
+                } else {
+                    // Fallback: usar o último segmento do path
+                    key = pathParts[pathParts.length - 1];
+                }
+            } catch (urlError) {
+                // Se não conseguir parsear como URL, assumir que já é a key
+                // O middleware de erro global vai tratar isso se necessário
+                key = fileNameStr;
+            }
+        }
+
+        // Validar key final
+        if (!key || key.trim() === '') {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'fileName',
+                customMessage: 'Nome do arquivo inválido para exclusão.'
+            });
+        }
+
         await this.uploadRepository.deleteFile(key);
     }
 }

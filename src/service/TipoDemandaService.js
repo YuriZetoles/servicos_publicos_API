@@ -122,6 +122,14 @@ class TipoDemandaService {
     }
 
     async validarTipo(tipo) {
+        // Função helper para normalizar string (remover acentos e converter para minúsculo)
+        const normalizarString = (str) => {
+            return str
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, ''); // Remove acentos
+        };
+
         const tiposPermitidos = [
             'Coleta',
             'Iluminação',
@@ -131,7 +139,10 @@ class TipoDemandaService {
             'Pavimentação'
         ];
         
-        if (!tiposPermitidos.includes(tipo)) {
+        const tipoNormalizado = normalizarString(tipo);
+        const tiposNormalizados = tiposPermitidos.map(t => normalizarString(t));
+        
+        if (!tiposNormalizados.includes(tipoNormalizado)) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'validationError',

@@ -27,7 +27,7 @@ services:
       - ./.env
     volumes:
       - ./:/app:delegated
-      - node_modules:/app/node_modules
+      - /app/node_modules
     command: ["run", "dev"]
     depends_on:
       mongodb:
@@ -37,7 +37,6 @@ services:
 
 volumes:
   vol-mongodb-servicos:
-  node_modules:
 
 networks:
   servicos-network:

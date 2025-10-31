@@ -423,9 +423,8 @@ describe('controller', () => {
         req.files = {};
 
         const idParseSpy = jest.spyOn(UsuarioIdSchema, 'parse').mockImplementation(() => {});
-        await controller.fotoUpload(req, res, next);
-        expect(next).toHaveBeenCalled();
-        const error = next.mock.calls[0][0];
+        await expect(controller.fotoUpload(req, res, next)).rejects.toThrow(CustomError);
+        const error = await controller.fotoUpload(req, res, next).catch(e => e);
         expect(error).toBeInstanceOf(CustomError);
         expect(error.customMessage).toBe('Nenhum arquivo foi enviado.');
 
@@ -443,13 +442,10 @@ describe('controller', () => {
                 });
             });
 
-            await controller.fotoUpload(req, res, next);
-
-            expect(next).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    statusCode: 400
-                })
-            );
+            await expect(controller.fotoUpload(req, res, next)).rejects.toThrow(CustomError);
+            const error = await controller.fotoUpload(req, res, next).catch(e => e);
+            expect(error.statusCode).toBe(400);
+            expect(error.customMessage).toBe('Extensão de arquivo inválida.');
         });
 
   });

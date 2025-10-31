@@ -17,6 +17,25 @@ export const TipoDemandaEnum = z.enum([
     "Pavimentação"
 ]);
 
+// Função para normalizar string: remover acentos e converter para minúsculo
+const normalizeString = (str) => {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+};
+
+// Enum normalizado para validação
+const normalizedTipoValues = TipoDemandaEnum.options.map(val => normalizeString(val));
+
+export const TipoDemandaQueryEnum = z.string()
+    .transform((val) => normalizeString(val))
+    .refine((val) => normalizedTipoValues.includes(val), {
+        message: "Tipo inválido. Valores aceitos: Coleta, Iluminação, Saneamento, Árvores, Animais, Pavimentação"
+    })
+    .transform((val) => {
+        // Retornar o valor original do enum correspondente
+        const index = normalizedTipoValues.indexOf(val);
+        return TipoDemandaEnum.options[index];
+    });
+
 export const StatusDemandaEnum = z.enum([
     "Em aberto",
     "Em andamento",
@@ -29,7 +48,7 @@ export const DemandaIdSchema = z.string().refine((id) => mongoose.Types.ObjectId
 });
 
 export const DemandaQuerySchema = z.object({
-    tipo: TipoDemandaEnum
+    tipo: TipoDemandaQueryEnum
         .optional(),
     status: StatusDemandaEnum
         .optional(),

@@ -19,9 +19,13 @@ describe('DemandaFilterBuild', () => {
         it('deve adicionar filtro de tipo', () => {
             const tipo = "Limpeza";
             filterBuilder.comTipo(tipo);
-            expect(filterBuilder.build()).toEqual({
-                tipo: { $regex: tipo, $options: 'i' }
-            });
+            const filtros = filterBuilder.build();
+
+            expect(filtros).toHaveProperty('tipo');
+            expect(filtros.tipo).toHaveProperty('$regex');
+            expect(filtros.tipo).toHaveProperty('$options', 'i');
+            // Verificar se o regex contém variações de caracteres acentuados
+            expect(filtros.tipo.$regex).toMatch(/\[.*\]/); // Deve conter classes de caracteres
         });
 
         it('não deve adicionar filtro de tipo se for vazio', () => {

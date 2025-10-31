@@ -50,7 +50,6 @@ const demandaRoutes = {
                     description: "Filtra por status"
                 },
                 {
-                    //todo: revisar endereco
                     name: "endereco",
                     in: "query",
                     schema: {
@@ -69,13 +68,14 @@ const demandaRoutes = {
                     description: "Filtra por secretaria"
                 },
                 {
-                    name: "usuario",
+                    name: "tipo",
                     in: "query",
                     schema: {
-                        type: "string"
+                        type: "string",
+                        enum: ["Coleta", "Iluminação", "Saneamento", "Árvores", "Animais", "Pavimentação"]
                     },
                     required: false,
-                    description: "Filtra por usuario"
+                    description: "Filtra por tipo de demanda. Aceita variações com acentos e maiúsculas/minúsculas (ex.: 'coleta', 'COLETA', 'coléta', 'Iluminacao')."
                 },
                 {
                     name: "data",

@@ -313,7 +313,7 @@ class UsuarioService {
         const usuarioLogado = await this.repository.buscarPorID(req.user_id);
         const nivel = usuarioLogado.nivel_acesso;
 
-        if (nivel.admin && String(usuarioLogado._id) !== String(userId)) {
+        if (nivel.administrador && String(usuarioLogado._id) !== String(userId)) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.FORBIDDEN.code,
                 errorType: 'permissionError',
@@ -353,7 +353,7 @@ class UsuarioService {
         const usuarioLogado = await this.repository.buscarPorID(req.user_id);
         const nivel = usuarioLogado.nivel_acesso;
 
-        if (nivel.admin && String(usuarioLogado._id) !== String(userId)) {
+        if (nivel.administrador && String(usuarioLogado._id) !== String(userId)) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.FORBIDDEN.code,
                 errorType: 'permissionError',

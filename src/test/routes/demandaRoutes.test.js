@@ -19,13 +19,11 @@ beforeAll(async () => {
   app.use(demandaRoutes);
   app.use(errorHandler);
 
-  const loginRes = await request(app)
+    const loginRes = await request(app)
       .post('/login')
-      .send({ email: "admin@exemplo.com", senha: "Senha@123" });
-  
-    token = loginRes.body.data.user.accessToken;
-
-    const Demandares = await request(app).get('/demandas').set('Authorization', `Bearer ${token}`)
+      .send({ identificador: "admin@exemplo.com", senha: "Senha@123" });
+    
+    token = loginRes.body.data.user.accessToken;    const Demandares = await request(app).get('/demandas').set('Authorization', `Bearer ${token}`)
           DemandaID = Demandares.body?.data?.docs[0]?._id;
           expect(DemandaID).toBeTruthy();
 });

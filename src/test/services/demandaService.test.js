@@ -3,6 +3,7 @@ import DemandaService from "../../service/DemandaService.js";
 import DemandaRepository from "../../repository/DemandaRepository.js";
 import UsuarioRepository from "../../repository/UsuarioRepository.js";
 import SecretariaRepository from "../../repository/SecretariaRepository.js";
+import UploadService from "../../service/UploadService.js";
 import {
   CustomError,
   HttpStatusCodes,
@@ -17,6 +18,7 @@ import { DemandaUpdateSchema } from "../../utils/validators/schemas/zod/DemandaS
 jest.mock("../../repository/DemandaRepository.js");
 jest.mock("../../repository/UsuarioRepository.js");
 jest.mock("../../repository/SecretariaRepository.js");
+jest.mock("../../service/UploadService.js");
 jest.unstable_mockModule('uuid', () => ({
   v4: jest.fn(),
 }));
@@ -30,7 +32,7 @@ jest.unstable_mockModule('sharp', () => ({
 
 describe("DemandaService", () => {
   let service;
-  let repoMock, userRepoMock, secRepoMock;
+  let repoMock, userRepoMock, secRepoMock, uploadServiceMock;
   const ctx = (id) => ({ params: { id }, user_id: "user1" });
 
   beforeEach(() => {
@@ -46,9 +48,14 @@ describe("DemandaService", () => {
     };
     userRepoMock = { buscarPorID: jest.fn(), buscarPorIDs: jest.fn() };
     secRepoMock = { buscarPorTipo: jest.fn() };
+    uploadServiceMock = {
+      processarFoto: jest.fn(),
+      deleteFoto: jest.fn(),
+    };
     DemandaRepository.mockImplementation(() => repoMock);
     UsuarioRepository.mockImplementation(() => userRepoMock);
     SecretariaRepository.mockImplementation(() => secRepoMock);
+    UploadService.mockImplementation(() => uploadServiceMock);
     service = new DemandaService();
   });
 
@@ -480,6 +487,30 @@ describe("DemandaService", () => {
         md5: "mocked-md5",
       };
 
+      // Mock do usuário com permissões
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "usuario1",
+        nivel_acesso: { administrador: true },
+      });
+
+      // Mock da demanda
+      repoMock.buscarPorID.mockResolvedValue({
+        usuarios: [{ _id: "usuario1" }],
+      });
+
+      // Mock do uploadService lançando erro de extensão inválida
+      const uploadError = new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'validationError',
+        field: 'file',
+        customMessage: 'Extensão inválida. Permitido: jpg, jpeg, png, svg.'
+      });
+      uploadServiceMock.processarFoto.mockRejectedValue(uploadError);
+
+      await expect(
+        service.processarFoto(demandaId, file, "inicio", req)
+      ).rejects.toThrow(CustomError);
+
       await expect(
         service.processarFoto(demandaId, file, "inicio", req)
       ).rejects.toMatchObject({
@@ -497,11 +528,191 @@ describe("DemandaService", () => {
         md5: "mocked-md5",
       };
 
+      // Mock do usuário com permissões
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "usuario1",
+        nivel_acesso: { administrador: true },
+      });
+
+      // Mock da demanda
+      repoMock.buscarPorID.mockResolvedValue({
+        usuarios: [{ _id: "usuario1" }],
+      });
+
+      // Mock do uploadService lançando erro de tamanho
+      const uploadError = new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'validationError',
+        field: 'file',
+        customMessage: 'Arquivo excede 50MB.'
+      });
+      uploadServiceMock.processarFoto.mockRejectedValue(uploadError);
+
+      await expect(
+        service.processarFoto(demandaId, file, "inicio", req)
+      ).rejects.toThrow(CustomError);
+
       await expect(
         service.processarFoto(demandaId, file, "inicio", req)
       ).rejects.toMatchObject({
         customMessage: "Arquivo excede 50MB.",
       });
+    });
+
+    it("deve processar foto com sucesso para administrador", async () => {
+      const demandaId = "demanda123";
+      const req = { user_id: "usuario1" };
+      const file = {
+        name: "imagem.jpg",
+        size: 1024,
+        data: Buffer.from([]),
+        md5: "mocked-md5",
+      };
+
+      // Mock do usuário administrador
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "usuario1",
+        nivel_acesso: { administrador: true },
+      });
+
+      // Mock da demanda
+      repoMock.buscarPorID.mockResolvedValue({
+        usuarios: [{ _id: "usuario1" }],
+      });
+
+      // Mock do uploadService retornando sucesso
+      const uploadResult = {
+        url: "http://minio.example.com/bucket/imagem.jpg",
+        metadata: { fileName: "imagem.jpg" }
+      };
+      uploadServiceMock.processarFoto.mockResolvedValue(uploadResult);
+
+      // Mock da atualização
+      repoMock.atualizar.mockResolvedValue({ updated: true });
+
+      const result = await service.processarFoto(demandaId, file, "inicio", req);
+
+      expect(result).toEqual({
+        fileName: "http://minio.example.com/bucket/imagem.jpg",
+        metadata: { fileName: "imagem.jpg" }
+      });
+      expect(uploadServiceMock.processarFoto).toHaveBeenCalledWith(file);
+      expect(repoMock.atualizar).toHaveBeenCalledWith(demandaId, { link_imagem: "http://minio.example.com/bucket/imagem.jpg" });
+    });
+
+    it("deve processar foto com sucesso para munícipe relacionado", async () => {
+      const demandaId = "demanda123";
+      const req = { user_id: "usuario1" };
+      const file = {
+        name: "imagem.jpg",
+        size: 1024,
+        data: Buffer.from([]),
+        md5: "mocked-md5",
+      };
+
+      // Mock do usuário munícipe
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "usuario1",
+        nivel_acesso: { municipe: true },
+      });
+
+      // Mock da demanda com o usuário relacionado
+      repoMock.buscarPorID.mockResolvedValue({
+        usuarios: [{ _id: "usuario1" }],
+      });
+
+      // Mock do uploadService retornando sucesso
+      const uploadResult = {
+        url: "http://minio.example.com/bucket/imagem.jpg",
+        metadata: { fileName: "imagem.jpg" }
+      };
+      uploadServiceMock.processarFoto.mockResolvedValue(uploadResult);
+
+      // Mock da atualização
+      repoMock.atualizar.mockResolvedValue({ updated: true });
+
+      const result = await service.processarFoto(demandaId, file, "resolucao", req);
+
+      expect(result).toEqual({
+        fileName: "http://minio.example.com/bucket/imagem.jpg",
+        metadata: { fileName: "imagem.jpg" }
+      });
+      expect(repoMock.atualizar).toHaveBeenCalledWith(demandaId, { link_imagem_resolucao: "http://minio.example.com/bucket/imagem.jpg" });
+    });
+
+    it("deve lançar erro se usuário não tiver permissão", async () => {
+      const demandaId = "demanda123";
+      const req = { user_id: "usuario1" };
+      const file = {
+        name: "imagem.jpg",
+        size: 1024,
+        data: Buffer.from([]),
+        md5: "mocked-md5",
+      };
+
+      // Mock do usuário sem permissões adequadas
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "usuario1",
+        nivel_acesso: { operador: true },
+      });
+
+      // Mock da demanda sem o usuário relacionado
+      repoMock.buscarPorID.mockResolvedValue({
+        usuarios: [{ _id: "outroUsuario" }],
+      });
+
+      await expect(
+        service.processarFoto(demandaId, file, "inicio", req)
+      ).rejects.toThrow(CustomError);
+
+      await expect(
+        service.processarFoto(demandaId, file, "inicio", req)
+      ).rejects.toMatchObject({
+        statusCode: HttpStatusCodes.FORBIDDEN.code,
+        errorType: "permissionError",
+        customMessage: "Você não tem permissão para atualizar a imagem dessa demanda."
+      });
+
+      expect(uploadServiceMock.processarFoto).not.toHaveBeenCalled();
+    });
+
+    it("deve deletar foto do MinIO se atualização do banco falhar", async () => {
+      const demandaId = "demanda123";
+      const req = { user_id: "usuario1" };
+      const file = {
+        name: "imagem.jpg",
+        size: 1024,
+        data: Buffer.from([]),
+        md5: "mocked-md5",
+      };
+
+      // Mock do usuário administrador
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "usuario1",
+        nivel_acesso: { administrador: true },
+      });
+
+      // Mock da demanda
+      repoMock.buscarPorID.mockResolvedValue({
+        usuarios: [{ _id: "usuario1" }],
+      });
+
+      // Mock do uploadService retornando sucesso
+      const uploadResult = {
+        url: "http://minio.example.com/bucket/imagem.jpg",
+        metadata: { fileName: "imagem.jpg" }
+      };
+      uploadServiceMock.processarFoto.mockResolvedValue(uploadResult);
+
+      // Mock da atualização falhando
+      repoMock.atualizar.mockRejectedValue(new Error("Erro no banco"));
+
+      await expect(
+        service.processarFoto(demandaId, file, "inicio", req)
+      ).rejects.toThrow();
+
+      // Verifica que tentou deletar do MinIO após falha
+      expect(uploadServiceMock.deleteFoto).toHaveBeenCalledWith("http://minio.example.com/bucket/imagem.jpg");
     });
   });
 
@@ -729,17 +940,28 @@ describe("DemandaService", () => {
         usuarios: [{ _id: "456" }],
       });
 
+      const file = {
+        name: "foto.jpg",
+        size: 1024,
+        data: Buffer.from("..."),
+      };
+
+      const uploadResult = {
+        url: "http://minio.example.com/bucket/foto.jpg",
+        metadata: { fileName: "foto.jpg" }
+      };
+      uploadServiceMock.processarFoto.mockResolvedValue(uploadResult);
+
       mockRepository.atualizar.mockResolvedValue({ updated: true });
 
       const req = { user_id: "456" };
-      const result = await demandaService.atualizarFoto(
-        "demandaId",
-        parsedData,
-        req
-      );
+      const result = await demandaService.processarFoto("demandaId", file, "inicio", req);
 
-      expect(result).toEqual({ updated: true });
-      expect(mockRepository.atualizar).toHaveBeenCalled();
+      expect(result).toEqual({
+        fileName: "http://minio.example.com/bucket/foto.jpg",
+        metadata: { fileName: "foto.jpg" }
+      });
+      expect(mockRepository.atualizar).toHaveBeenCalledWith("demandaId", { link_imagem: "http://minio.example.com/bucket/foto.jpg" });
     });
 
     it("deve lançar erro se municipe não estiver associado à demanda", async () => {
@@ -752,20 +974,27 @@ describe("DemandaService", () => {
         usuarios: [{ _id: "outraPessoa" }],
       });
 
+      const file = {
+        name: "foto.jpg",
+        size: 1024,
+        data: Buffer.from("..."),
+      };
+
       const req = { user_id: "789" };
 
       await expect(
-        demandaService.atualizarFoto("demandaId", parsedData, req)
+        demandaService.processarFoto("demandaId", file, "inicio", req)
       ).rejects.toThrow(CustomError);
 
       await expect(
-        demandaService.atualizarFoto("demandaId", parsedData, req)
+        demandaService.processarFoto("demandaId", file, "inicio", req)
       ).rejects.toMatchObject({
         statusCode: HttpStatusCodes.FORBIDDEN.code,
         errorType: "permissionError",
+        customMessage: "Você não tem permissão para atualizar a imagem dessa demanda."
       });
 
-      expect(mockRepository.atualizar).not.toHaveBeenCalled();
+      expect(uploadServiceMock.processarFoto).not.toHaveBeenCalled();
     });
 
     it("deve lançar erro se o usuário não tiver nível de acesso válido", async () => {
@@ -778,13 +1007,19 @@ describe("DemandaService", () => {
         usuarios: [{ _id: "123" }],
       });
 
+      const file = {
+        name: "foto.jpg",
+        size: 1024,
+        data: Buffer.from("..."),
+      };
+
       const req = { user_id: "123" };
 
       await expect(
-        demandaService.atualizarFoto("demandaId", parsedData, req)
+        demandaService.processarFoto("demandaId", file, "inicio", req)
       ).rejects.toThrow(CustomError);
 
-      expect(mockRepository.atualizar).not.toHaveBeenCalled();
+      expect(uploadServiceMock.processarFoto).not.toHaveBeenCalled();
     });
   });
 

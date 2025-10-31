@@ -3,7 +3,8 @@
 import fs from 'fs';
 import path from 'path';
 import {
-    fileURLToPath
+    fileURLToPath,
+    pathToFileURL
 } from 'url';
 
 // Obtém o diretório atual do arquivo
@@ -24,7 +25,8 @@ async function loadModels() {
         if (file.endsWith('.js')) {
             try {
                 const modelPath = path.join(modelsDir, file);
-                const module = await import(modelPath);
+                const modelUrl = pathToFileURL(modelPath);
+                const module = await import(modelUrl);
                 const model = module.default || module;
                 const modelName = path.basename(file, '.js');
                 models.push({
