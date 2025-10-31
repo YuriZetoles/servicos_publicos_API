@@ -19,15 +19,6 @@ import {
     DemandaUpdateSchema
 } from '../utils/validators/schemas/zod/DemandaSchema.js';
 
-// Importações necessárias para o upload de arquivos
-import path from 'path';
-import {
-    fileURLToPath
-} from 'url';
-// Helper para __dirname em módulo ES
-const getDirname = () => path.dirname(fileURLToPath(
-    import.meta.url));
-
 class DemandaController {
     constructor() {
         this.service = new DemandaService();

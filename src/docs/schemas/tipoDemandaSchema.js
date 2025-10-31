@@ -60,7 +60,7 @@ const tipoDemandaSchemas = {
 const removalMapping = {
   TipoDemandaListagem: ['__v'],
   TipoDemandaDetalhes: ['__v'],
-  TipoDemandaPost: ['createdAt', 'updatedAt', '__v', '_id'],
+  TipoDemandaPost: ['createdAt', 'updatedAt', '__v', '_id', 'usuarios'],
   TipoDemandaPatch: ['createdAt', 'updatedAt', '__v', '_id'],
   TipoDemandaDelete: ['createdAt', 'updatedAt', '__v', '_id'],
 };

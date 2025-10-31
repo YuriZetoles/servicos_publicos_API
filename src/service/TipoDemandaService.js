@@ -69,12 +69,22 @@ class TipoDemandaService {
     // ================================
     async atualizarFoto(id, parsedData, req) {
         await this.ensureTipoDemandaExists(id);
+        const data = await this.repository.atualizar(id, parsedData);
+        return data;
+    }
+
+    /**
+     * Processa e faz upload da foto para MinIO, atualiza o tipo demanda e retorna metadados.
+     */
+    async processarFoto(tipoDemandaId, file, req) {
+        // Verificar permissões antes de processar upload
+        await this.ensureTipoDemandaExists(tipoDemandaId);
 
         const usuario = await this.userRepository.buscarPorID(req.user_id);
         const nivel = usuario?.nivel_acesso;
         const userId = usuario._id.toString();
 
-        const tipoDemanda = await this.repository.buscarPorID(id);
+        const tipoDemanda = await this.repository.buscarPorID(tipoDemandaId);
         const usuariosTipoDemanda = (tipoDemanda?.usuarios).map(u => u._id.toString());
 
         const isAdmin = nivel.administrador;
@@ -90,16 +100,6 @@ class TipoDemandaService {
             });
         }
 
-        await this.ensureTipoDemandaExists(id);
-
-        const data = await this.repository.atualizar(id, parsedData);
-        return data;
-    }
-
-    /**
-     * Processa e faz upload da foto para MinIO, atualiza o tipo demanda e retorna metadados.
-    */
-    async processarFoto(tipoDemandaId, file, req) {
         const { url, metadata } = await this.uploadService.processarFoto(file);
 
         const dados = {

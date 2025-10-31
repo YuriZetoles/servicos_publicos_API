@@ -126,9 +126,6 @@ class DemandaService {
             return data;
         }
 
-        // If the caller is a munícipe, ask repository to filter by user id so pagination
-        // is calculated correctly on the DB side. Do not mutate the original req
-        // (Express's req.query can be getter-only) — pass a plain object instead.
         const repoReq = { params: req.params };
         repoReq.query = {
             ...(req.query || {}),
@@ -418,29 +415,7 @@ class DemandaService {
     }
 
     async atualizarFoto(id, parsedData, req) {
-
-        const usuario = await this.userRepository.buscarPorID(req.user_id);
-        const nivel = usuario?.nivel_acesso;
-        const userId = usuario._id.toString();
-
-        const demanda = await this.repository.buscarPorID(id);
-        const usuariosDemanda = (demanda?.usuarios).map(u => u._id.toString());
-
-        const isAdmin = nivel && nivel.administrador;
-        const isMunicipe = nivel && nivel.municipe;
-
-        if (!(isAdmin || (isMunicipe && usuariosDemanda.includes(userId)))) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.FORBIDDEN.code,
-                errorType: 'permissionError',
-                field: 'Usuário',
-                details: [],
-                customMessage: "Você não tem permissão para atualizar a imagem dessa demanda."
-            });
-        }
-
         await this.ensureDemandaExists(id);
-
         const data = await this.repository.atualizar(id, parsedData);
         return data;
     }
@@ -474,6 +449,9 @@ class DemandaService {
         return data;
     }
 
+    // ================================
+    // MÉTODOS UTILITÁRIOS
+    // ================================
     async ensureDemandaExists(id) {
         const demandaExistente = await this.repository.buscarPorID(id);
 
@@ -525,6 +503,27 @@ class DemandaService {
      * Processa e faz upload da foto para MinIO, atualiza a demanda e retorna metadados.
      */
     async processarFoto(demandaId, file, tipo, req) {
+        // Verificar permissões antes de processar upload
+        const usuario = await this.userRepository.buscarPorID(req.user_id);
+        const nivel = usuario?.nivel_acesso;
+        const userId = usuario._id.toString();
+
+        const demanda = await this.repository.buscarPorID(demandaId);
+        const usuariosDemanda = (demanda?.usuarios).map(u => u._id.toString());
+
+        const isAdmin = nivel && nivel.administrador;
+        const isMunicipe = nivel && nivel.municipe;
+
+        if (!(isAdmin || (isMunicipe && usuariosDemanda.includes(userId)))) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.FORBIDDEN.code,
+                errorType: 'permissionError',
+                field: 'Usuário',
+                details: [],
+                customMessage: "Você não tem permissão para atualizar a imagem dessa demanda."
+            });
+        }
+
         const { url, metadata } = await this.uploadService.processarFoto(file);
 
         // Define dinamicamente o campo a ser atualizado

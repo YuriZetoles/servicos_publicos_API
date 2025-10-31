@@ -19,16 +19,6 @@ import {
     asyncWrapper
 } from '../utils/helpers/index.js';
 
-// Importações necessárias para o upload de arquivos
-import path from 'path';
-import {
-    fileURLToPath
-} from 'url';
-// Helper para __dirname em módulo ES
-const getDirname = () => path.dirname(fileURLToPath(
-    import.meta.url));
-
-
 class TipoDemandaController {
     constructor() {
         this.service = new TipoDemandaService();
@@ -106,7 +96,7 @@ class TipoDemandaController {
     /**
      * Faz upload de uma foto para um Tipo Demanda.
      */
-    async fotoUpload(req, res, next) {
+    async fotoUpload(req, res) {
         const {
             id
         } = req.params;

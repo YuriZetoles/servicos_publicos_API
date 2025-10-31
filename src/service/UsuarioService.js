@@ -263,27 +263,14 @@ class UsuarioService {
     }
 
     async atualizarFoto(id, parsedData, req) {
-
         await this.ensureUserExists(id);
-
-        const usuarioLogado = await this.repository.buscarPorID(req.user_id);
-        const nivel = usuarioLogado.nivel_acesso;
-
-        if (nivel.admin && String(usuarioLogado._id) !== String(id)) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.FORBIDDEN.code,
-                errorType: 'permissionError',
-                field: 'Usuário',
-                details: [],
-                customMessage: "Você só pode atualizar a sua própria foto."
-            });
-        }
-
         const data = await this.repository.atualizar(id, parsedData);
         return data;
     }
-
-    //metodos auxiliares
+    
+    // ================================
+    // MÉTODOS UTILITÁRIOS
+    // ================================
     async validateEmail(email, id = null) {
         const usuarioExistente = await this.repository.buscarPorEmail(email, id);
         if (usuarioExistente) {
@@ -320,6 +307,22 @@ class UsuarioService {
      * Processa e faz upload da foto para MinIO, atualiza o usuário e retorna metadados.
      */
     async processarFoto(userId, file, req) {
+        // Verificar permissões antes de processar upload
+        await this.ensureUserExists(userId);
+
+        const usuarioLogado = await this.repository.buscarPorID(req.user_id);
+        const nivel = usuarioLogado.nivel_acesso;
+
+        if (nivel.admin && String(usuarioLogado._id) !== String(userId)) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.FORBIDDEN.code,
+                errorType: 'permissionError',
+                field: 'Usuário',
+                details: [],
+                customMessage: "Você só pode atualizar a sua própria foto."
+            });
+        }
+
         const { url, metadata } = await this.uploadService.processarFoto(file);
 
         const dados = {

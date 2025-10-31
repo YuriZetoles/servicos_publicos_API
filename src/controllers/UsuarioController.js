@@ -20,12 +20,6 @@ import {
 } from '../utils/helpers/index.js';
 import TokenUtil from '../utils/TokenUtil.js';
 
-// Importações necessárias para o upload de arquivos
-import path from 'path';
-import {
-    fileURLToPath
-} from 'url';
-
 class UsuarioController {
     constructor() {
         this.service = new UsuarioService();

@@ -76,7 +76,7 @@ const demandaSchemas = {
     required: [],
     description: "Schema para atribuir uma demanda",
     example: {
-      usuarios: ["687493051022d36d2cfc70d4"]
+      usuarios: ["<id_valido_de_usuario>"]
     }
   },
   DemandaDevolver: {
@@ -101,7 +101,7 @@ const demandaSchemas = {
 const removalMapping = {
   DemandaListagem: ['__v'],
   DemandaDetalhes: ['__v'],
-  DemandaPost: ['createdAt', 'updatedAt', '__v', '_id'],
+  DemandaPost: ['createdAt', 'updatedAt', '__v', '_id', 'usuarios', 'secretarias'],
   DemandaPatch: ['createdAt', 'updatedAt', '__v', '_id'],
   DemandaDelete: ['createdAt', 'updatedAt', '__v', '_id']
 };
