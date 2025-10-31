@@ -101,7 +101,7 @@ async function gerarImagensUnicas() {
       const url = await uploadRepository.uploadFile(buffer, nomeArquivo, 'image/svg+xml');
 
       // Mapeia o nome do arquivo para o nome sem extensão para os seeds
-      imagensGeradas[nomeArquivo.replace('.svg', '')] = nomeArquivo;
+      imagensGeradas[nomeArquivo.replace('.svg', '')] =  url;
       contador++;
 
       console.log(`${nomeArquivo} enviado com sucesso: ${url}`);
