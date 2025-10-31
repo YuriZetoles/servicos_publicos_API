@@ -11,6 +11,7 @@ import CommonResponse from './utils/helpers/CommonResponse.js';
 import express from "express";
 import expressFileUpload from 'express-fileupload';
 import compression from 'compression';
+import { authRateLimit, publicRateLimit } from './middlewares/RateLimitMiddleware.js';
 
 const app = express();
 
@@ -41,6 +42,12 @@ app.use(expressFileUpload());
 
 // Habilitando o uso de urlencoded pelo express
 app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting para endpoints públicos (antes da autenticação)
+app.use('/api/auth', publicRateLimit);
+
+// Rate limiting para endpoints autenticados
+app.use('/api', authRateLimit);
 
 // Passando para o arquivo de rotas o app
 routes(app);

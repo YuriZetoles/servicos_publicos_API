@@ -11,7 +11,7 @@ class UploadService {
     }
 
     /**
-     * Processa, valida e faz upload de uma foto.
+     * Processa, valida e faz upload de uma imagem com compressão aplicada.
      * @param {Object} file - Arquivo do express-fileupload.
      * @returns {Promise<Object>} - { url, metadata }
      */
@@ -42,40 +42,61 @@ class UploadService {
         // 3) Gera nome único
         const fileName = `${uuidv4()}.${ext}`;
 
-        // 4) Processa imagem (redimensiona e comprime)
-        let transformer = sharp(file.data).resize(400, 400, {
-            fit: sharp.fit.cover,
-            position: sharp.strategy.entropy
-        });
+        try {
+            // 4) Processa imagem com compressão otimizada
+            let transformer = sharp(file.data)
+                .resize(400, 400, {
+                    fit: sharp.fit.cover,
+                    position: sharp.strategy.entropy
+                });
 
-        if (['jpg', 'jpeg'].includes(ext)) {
-            transformer = transformer.jpeg({ quality: 80 });
-        }
-
-        const buffer = await transformer.toBuffer();
-
-        // 5) Define contentType
-        const mimeTypes = {
-            jpg: 'image/jpeg',
-            jpeg: 'image/jpeg',
-            png: 'image/png',
-            svg: 'image/svg+xml'
-        };
-        const contentType = mimeTypes[ext] || 'application/octet-stream';
-
-        // 6) Faz upload para MinIO
-        const url = await this.uploadRepository.uploadFile(buffer, fileName, contentType);
-
-        // 7) Retorna metadados
-        return {
-            url,
-            metadata: {
-                fileExtension: ext,
-                fileSize: file.size,
-                md5: file.md5,
-                fileName
+            // Compressão baseada no formato (apenas para imagens processáveis)
+            if (['jpg', 'jpeg'].includes(ext)) {
+                transformer = transformer.jpeg({
+                    quality: 80,
+                    progressive: true,
+                    mozjpeg: true
+                });
+            } else if (ext === 'png') {
+                transformer = transformer.png({
+                    compressionLevel: 6
+                });
             }
-        };
+            // SVG é processado igual às outras imagens (redimensionado)
+
+            const buffer = await transformer.toBuffer();
+
+            // 5) Define contentType
+            const mimeTypes = {
+                jpg: 'image/jpeg',
+                jpeg: 'image/jpeg',
+                png: 'image/png',
+                svg: 'image/svg+xml'
+            };
+            const contentType = mimeTypes[ext] || 'application/octet-stream';
+
+            // 6) Faz upload para MinIO
+            const url = await this.uploadRepository.uploadFile(buffer, fileName, contentType);
+
+            // 7) Retorna metadados
+            return {
+                url,
+                metadata: {
+                    fileExtension: ext,
+                    fileSize: file.size,
+                    md5: file.md5,
+                    fileName
+                }
+            };
+
+        } catch (error) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
+                errorType: 'processingError',
+                field: 'file',
+                customMessage: 'Erro ao processar imagem: ' + error.message
+            });
+        }
     }
 
     /**

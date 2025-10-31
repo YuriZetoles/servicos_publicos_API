@@ -30,6 +30,7 @@ describe('UploadService', () => {
         const sharpMock = {
             resize: jest.fn().mockReturnThis(),
             jpeg: jest.fn().mockReturnThis(),
+            png: jest.fn().mockReturnThis(),
             toBuffer: jest.fn(),
         };
         sharp.mockReturnValue(sharpMock);
@@ -58,6 +59,7 @@ describe('UploadService', () => {
                     sharp.mockReturnValue({
                         resize: jest.fn().mockReturnThis(),
                         jpeg: jest.fn().mockReturnThis(),
+                        png: jest.fn().mockReturnThis(),
                         toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed-image')),
                     });
 
@@ -97,6 +99,7 @@ describe('UploadService', () => {
                 sharp.mockReturnValue({
                     resize: jest.fn().mockReturnThis(),
                     jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
                     toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed-image')),
                 });
 
@@ -120,6 +123,7 @@ describe('UploadService', () => {
                 sharp.mockReturnValue({
                     resize: jest.fn().mockReturnThis(),
                     jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
                     toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed-image')),
                 });
 
@@ -157,6 +161,7 @@ describe('UploadService', () => {
                 const sharpInstance = {
                     resize: jest.fn().mockReturnThis(),
                     jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
                     toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed-jpg')),
                 };
 
@@ -169,7 +174,11 @@ describe('UploadService', () => {
                     fit: sharp.fit.cover,
                     position: sharp.strategy.entropy
                 });
-                expect(sharpInstance.jpeg).toHaveBeenCalledWith({ quality: 80 });
+                expect(sharpInstance.jpeg).toHaveBeenCalledWith({ 
+                    quality: 80,
+                    progressive: true,
+                    mozjpeg: true
+                });
                 expect(sharpInstance.toBuffer).toHaveBeenCalled();
             });
 
@@ -184,6 +193,7 @@ describe('UploadService', () => {
                 const sharpInstance = {
                     resize: jest.fn().mockReturnThis(),
                     jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
                     toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed-png')),
                 };
 
@@ -196,6 +206,7 @@ describe('UploadService', () => {
                     fit: sharp.fit.cover,
                     position: sharp.strategy.entropy
                 });
+                expect(sharpInstance.png).toHaveBeenCalledWith({ compressionLevel: 6 });
                 expect(sharpInstance.jpeg).not.toHaveBeenCalled();
                 expect(sharpInstance.toBuffer).toHaveBeenCalled();
             });
@@ -211,6 +222,7 @@ describe('UploadService', () => {
                 const sharpInstance = {
                     resize: jest.fn().mockReturnThis(),
                     jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
                     toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed-svg')),
                 };
 
@@ -255,7 +267,8 @@ describe('UploadService', () => {
                     const sharpInstance = {
                         resize: jest.fn().mockReturnThis(),
                         jpeg: jest.fn().mockReturnThis(),
-                        toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed')),
+                    png: jest.fn().mockReturnThis(),
+                    toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed')),
                     };
 
                     if (ext !== 'svg') {
@@ -285,6 +298,7 @@ describe('UploadService', () => {
                 sharp.mockReturnValue({
                     resize: jest.fn().mockReturnThis(),
                     jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
                     toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed')),
                 });
 
@@ -313,6 +327,7 @@ describe('UploadService', () => {
                 sharp.mockReturnValue({
                     resize: jest.fn().mockReturnThis(),
                     jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
                     toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed')),
                 });
 
@@ -362,6 +377,7 @@ describe('UploadService', () => {
                 sharp.mockReturnValue({
                     resize: jest.fn().mockReturnThis(),
                     jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
                     toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed')),
                 });
 
@@ -504,7 +520,8 @@ describe('UploadService', () => {
             const sharpInstance = {
                 resize: jest.fn().mockReturnThis(),
                 jpeg: jest.fn().mockReturnThis(),
-                toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed-image')),
+                    png: jest.fn().mockReturnThis(),
+                    toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed-image')),
             };
 
             sharp.mockReturnValue(sharpInstance);
@@ -534,3 +551,4 @@ describe('UploadService', () => {
         });
     });
 });
+
