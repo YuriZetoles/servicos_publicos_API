@@ -131,16 +131,30 @@ class DemandaService {
             ...(req.query || {}),
             ...(nivel?.municipe ? { usuario: usuario._id.toString() } : {})
         };
+        
+        // Para secretários, se não houver filtro de secretaria explícito na query,
+        // adicionar os IDs das secretarias do usuário diretamente
+        if (nivel?.secretario && usuario.secretarias?.length > 0 && !req.query?.secretaria) {
+            const secretariasIDs = usuario.secretarias.map(s => s._id.toString());
+            // Passar como string separada por vírgula ou como array
+            repoReq.secretariasUsuario = secretariasIDs;
+        }
 
         const data = await this.repository.listar(repoReq);
 
-        if (nivel && nivel.secretario) {
+        // Remover filtro manual pós-query para secretários quando não há filtro explícito
+        // pois agora está sendo feito no repository
+        if (nivel && nivel.secretario && req.query?.secretaria) {
+            // Apenas filtrar se houver filtro explícito de secretaria
             const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
 
             data.docs = data.docs.filter(demanda => {
                 const secretariasDemanda = (demanda.secretarias || []).map(s => s._id.toString());
                 return secretariasDemanda.some(id => secretariasUsuario.includes(id));
             });
+            
+            // Atualizar o totalDocs para refletir o número filtrado
+            data.totalDocs = data.docs.length;
         }
 
         if (nivel && nivel.operador) {

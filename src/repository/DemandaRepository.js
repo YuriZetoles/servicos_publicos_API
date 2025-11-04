@@ -78,6 +78,11 @@ class DemandaRepository {
         await filterBuilder.comSecretaria(secretaria || '');
 
         const filtros = filterBuilder.build();
+        
+        // Adicionar filtro de secretarias do usuário se fornecido
+        if (req.secretariasUsuario && Array.isArray(req.secretariasUsuario) && req.secretariasUsuario.length > 0) {
+            filtros.secretarias = { $in: req.secretariasUsuario };
+        }
 
         const options = {
             page: parseInt(page, 10),
