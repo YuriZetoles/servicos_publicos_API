@@ -125,7 +125,8 @@ describe('controller', () => {
             senha: 'Senha@123',
             cpf: '12345678909',
             celular: '11999999999',
-            link_imagem: 'imagem_teste.png', 
+            link_imagem: 'imagem_teste.png',
+            data_nascimento: '10/05/1992',
             endereco: {
                 logradouro: 'Rua Teste',
                 cep: '12345678',
@@ -208,6 +209,7 @@ describe('controller', () => {
             cpf: '12345678909',
             celular: '11999999999',
             link_imagem: 'imagem_teste.png',
+            data_nascimento: '15/03/1995',
             endereco: {
             logradouro: 'Rua Teste',
             cep: '12345678',

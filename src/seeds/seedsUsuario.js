@@ -68,6 +68,7 @@ async function seedUsuario() {
       ativo: globalFakeMapping.ativo(),
       cpf: globalFakeMapping.cpf(),
       email: globalFakeMapping.email(),
+      data_nascimento: globalFakeMapping.data_nascimento(),
       celular: globalFakeMapping.celular(),
       cnh: globalFakeMapping.cnh(),
       data_nomeacao: globalFakeMapping.data_nomeacao(),

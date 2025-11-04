@@ -2,6 +2,7 @@
 
 import mongoose from "mongoose";
 import mongoosePaginate from 'mongoose-paginate-v2';
+import brazilianDatePlugin from "../utils/helpers/mongooseBrazilianDatePlugin.js";
 
 const permissaoSchema = new mongoose.Schema({
   rota: {
@@ -73,6 +74,7 @@ grupoSchema.pre('save', function (next) {
 });
 
 grupoSchema.plugin(mongoosePaginate);
+grupoSchema.plugin(brazilianDatePlugin);
 
 const Grupo = mongoose.model('Grupo', grupoSchema);
 export default Grupo;

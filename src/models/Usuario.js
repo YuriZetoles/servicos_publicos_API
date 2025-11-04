@@ -2,6 +2,7 @@
 
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
+import brazilianDatePlugin from "../utils/helpers/mongooseBrazilianDatePlugin.js";
 
 export const estadosBrasil = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
@@ -30,6 +31,10 @@ class Usuario {
       email: {
         type: String,
         unique: true
+      },
+      data_nascimento: {
+        type: Date,
+        required: true
       },
       celular: {
         type: String
@@ -143,6 +148,7 @@ class Usuario {
     })
 
     usuarioSchema.plugin(mongoosePaginate);
+    usuarioSchema.plugin(brazilianDatePlugin);
 
     this.model =
       mongoose.models.usuarios || mongoose.model("usuarios", usuarioSchema);

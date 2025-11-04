@@ -189,7 +189,19 @@ class Validator {
         return true;
     }
 
-    // Continue adaptando os demais métodos seguindo o mesmo padrão...
+    validarData(data){
+        const hoje = new Date()
+        const dataAtualSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())
+        const dataNascimento = new Date(data)
+
+        let idade = dataAtualSemHora.getFullYear() - dataNascimento.getFullYear()
+
+        const aniversarioEsteAno = new Date(dataAtualSemHora.getFullYear(), dataNascimento.getMonth(), dataNascimento.getDate())
+        if(dataAtualSemHora < aniversarioEsteAno){
+            idade --
+        }
+        return idade >=18
+    }
 
     // Método para validar e retornar a primeira mensagem de erro encontrada
     validar() {
@@ -197,4 +209,4 @@ class Validator {
     }
 }
 
-export default Validator;
+export default new Validator();

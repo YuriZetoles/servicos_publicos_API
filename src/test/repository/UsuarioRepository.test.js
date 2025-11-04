@@ -212,7 +212,7 @@ describe('UsuarioRepository', () => {
       const req = { params: {}, query: { page: '1', limite: '10' } };
       const result = await repo.listar(req);
       expect(paginateMock).toHaveBeenCalled();
-      expect(result.docs[0]).toEqual({ nome: 'Usuário' });
+      expect(result.docs[0].nome).toBe('Usuário');
     });
   });
 

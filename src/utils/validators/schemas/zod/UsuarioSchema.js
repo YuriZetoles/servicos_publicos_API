@@ -7,13 +7,13 @@ import {
   estadosBrasil
 } from "../../../../models/Usuario.js";
 import mongoose from 'mongoose';
+import DateHelper from "../../../helpers/DateHelper.js";
 
 /** Definição da expressão regular para a senha
  * Padrão: 1 letra maiúscula, 1 letra minúscula, 1 número e 1 caractere especial
  * Tamanho mínimo: 8 caracteres
  **/
-const senhaRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+const senhaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 const UsuarioSchema = z.object({
   nome: z
@@ -50,6 +50,14 @@ const UsuarioSchema = z.object({
     .string()
     .min(1, "O nome social deve conter mais que 1 caracter.")
     .optional(),
+  data_nascimento: z
+    .string()
+    .refine(DateHelper.isValidBrFormat, {
+      message: "Formato de data inválido. Use DD/MM/AAAA (ex: 15/03/1990)"
+    })
+    .refine(DateHelper.isMaiorDeIdade, {
+      message: "Data de nascimento inválida. O usuário deve ter 18 anos ou mais."
+    }),
   cpf: z
     .string()
     .trim()
@@ -62,7 +70,12 @@ const UsuarioSchema = z.object({
     .string()
     .trim()
     .regex(/^\d{11}$/, "A CNH deve conter 11 dígitos."),
-  data_nomeacao: z.string().datetime().optional(),
+  data_nomeacao: z
+    .string()
+    .refine((val) => !val || DateHelper.isValidBrFormat(val), {
+      message: "Formato de data inválido. Use DD/MM/AAAA (ex: 15/03/2020)"
+    })
+    .optional(),
   cargo: z.string().optional(),
   formacao: z.string().optional(),
   nivel_acesso: z

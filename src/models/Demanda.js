@@ -2,6 +2,7 @@
 
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
+import brazilianDatePlugin from "../utils/helpers/mongooseBrazilianDatePlugin.js";
 
 class Demanda {
     constructor() {
@@ -77,6 +78,7 @@ class Demanda {
         });
 
         demandaSchema.plugin(mongoosePaginate);
+        demandaSchema.plugin(brazilianDatePlugin);
         this.model = mongoose.model('demandas', demandaSchema);
     }
 }

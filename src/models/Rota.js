@@ -2,6 +2,7 @@
 
 import mongoose from "mongoose";
 import mongoosePaginate from 'mongoose-paginate-v2';
+import brazilianDatePlugin from "../utils/helpers/mongooseBrazilianDatePlugin.js";
 
 class Rota {
   constructor() {
@@ -57,6 +58,7 @@ class Rota {
 
     // Plugin de paginação
     rotaSchema.plugin(mongoosePaginate);
+    rotaSchema.plugin(brazilianDatePlugin);
 
     // Hook para garantir que rota está em minúsculas antes de salvar (redundante pois temos lowercase, mas ok)
     rotaSchema.pre('save', function (next) {

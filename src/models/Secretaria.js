@@ -2,6 +2,7 @@
 
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
+import brazilianDatePlugin from "../utils/helpers/mongooseBrazilianDatePlugin.js";
 
 class Secretaria {
     constructor() {
@@ -30,6 +31,7 @@ class Secretaria {
         );
 
         secretariaSchema.plugin(mongoosePaginate);
+        secretariaSchema.plugin(brazilianDatePlugin);
         this.model = mongoose.model('secretarias', secretariaSchema);
     }
 }
