@@ -418,6 +418,28 @@ class DemandaService {
 
         this.manterCampos(parsedData, ["link_imagem_resolucao", "resolucao"])
 
+        // Validar que a imagem de resolução é obrigatória
+        if (!parsedData.link_imagem_resolucao || parsedData.link_imagem_resolucao.trim() === '') {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'link_imagem_resolucao',
+                details: [],
+                customMessage: "A imagem de resolução é obrigatória para resolver uma demanda."
+            });
+        }
+
+        // Validar que a descrição da resolução é obrigatória
+        if (!parsedData.resolucao || parsedData.resolucao.trim() === '') {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'resolucao',
+                details: [],
+                customMessage: "A descrição da resolução é obrigatória para resolver uma demanda."
+            });
+        }
+
         const data = await this.repository.resolver(id, {
             link_imagem_resolucao: parsedData.link_imagem_resolucao,
             resolucao: parsedData.resolucao,
@@ -527,8 +549,23 @@ class DemandaService {
 
         const isAdmin = nivel && nivel.administrador;
         const isMunicipe = nivel && nivel.municipe;
+        const isOperador = nivel && nivel.operador;
 
-        if (!(isAdmin || (isMunicipe && usuariosDemanda.includes(userId)))) {
+        // Para imagem de solicitação: admin ou munícipe dono da demanda
+        // Para imagem de resolução: admin ou operador atribuído à demanda
+        let temPermissao = false;
+        
+        if (isAdmin) {
+            temPermissao = true;
+        } else if (tipo === "resolucao" && isOperador && usuariosDemanda.includes(userId)) {
+            // Operador pode enviar imagem de resolução se estiver atribuído à demanda
+            temPermissao = true;
+        } else if (tipo === "solicitacao" && isMunicipe && usuariosDemanda.includes(userId)) {
+            // Munícipe pode enviar imagem de solicitação se for dono da demanda
+            temPermissao = true;
+        }
+
+        if (!temPermissao) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.FORBIDDEN.code,
                 errorType: 'permissionError',
@@ -575,8 +612,23 @@ class DemandaService {
 
         const isAdmin = nivel && nivel.administrador;
         const isMunicipe = nivel && nivel.municipe;
+        const isOperador = nivel && nivel.operador;
 
-        if (!(isAdmin || (isMunicipe && usuariosDemanda.includes(userId)))) {
+        // Para imagem de solicitação: admin ou munícipe dono da demanda
+        // Para imagem de resolução: admin ou operador atribuído à demanda
+        let temPermissao = false;
+        
+        if (isAdmin) {
+            temPermissao = true;
+        } else if (tipo === "resolucao" && isOperador && usuariosDemanda.includes(userId)) {
+            // Operador pode deletar imagem de resolução se estiver atribuído à demanda
+            temPermissao = true;
+        } else if (tipo === "solicitacao" && isMunicipe && usuariosDemanda.includes(userId)) {
+            // Munícipe pode deletar imagem de solicitação se for dono da demanda
+            temPermissao = true;
+        }
+
+        if (!temPermissao) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.FORBIDDEN.code,
                 errorType: 'permissionError',
