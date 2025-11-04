@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import Usuario from "../models/Usuario.js";
 import Secretaria from "../models/Secretaria.js";
 import Grupo from "../models/Grupo.js";
+import DateHelper from "../utils/helpers/DateHelper.js";
 import getGlobalFakeMapping from "./globalFakeMapping.js";
 
 import DbConnect from "../config/dbConnect.js";
@@ -378,7 +379,21 @@ async function seedUsuario() {
   });
 
 
-  const result = await Usuario.collection.insertMany(usuarios);
+  // Antes de inserir via collection (que pode inserir strings diretamente),
+  // converteremos qualquer data em formato brasileiro (DD/MM/AAAA) para
+  // objetos Date para evitar erros de cast no Mongoose.
+  const usuariosToInsert = usuarios.map((u) => {
+    const copy = { ...u };
+    if (copy.data_nascimento && typeof copy.data_nascimento === 'string') {
+      copy.data_nascimento = DateHelper.brToDate(copy.data_nascimento);
+    }
+    if (copy.data_nomeacao && typeof copy.data_nomeacao === 'string') {
+      copy.data_nomeacao = DateHelper.brToDate(copy.data_nomeacao);
+    }
+    return copy;
+  });
+
+  const result = await Usuario.collection.insertMany(usuariosToInsert);
   console.log(
     `${Object.keys(result.insertedIds).length} usuários inseridos com sucesso!`
   );
