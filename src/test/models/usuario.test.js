@@ -91,6 +91,7 @@ describe('Modelo de Usuário', () => {
       celular: "6999999999",
       nome: "João da Silva",
       senha: "senha123",
+      data_nascimento: "15/03/1990",
       nivel_acesso: {
         municipe: true,
         operador: false,
@@ -119,6 +120,7 @@ describe('Modelo de Usuário', () => {
       senha: 'password123',
       cpf: '12345678901',
       celular: '69988887777',
+      data_nascimento: "20/05/1985",
       endereco: {
         logradouro: "Rua X",
         cep: "76900000",
@@ -155,6 +157,7 @@ describe('Modelo de Usuário', () => {
       nome_social: 'Joana Silva',
       portaria_nomeacao: 'PORTARIA 123/2020',
       senha: 'senhaSegura123',
+      data_nascimento: "10/07/1988",
       endereco: {
         logradouro: 'Rua das Flores',
         cep: '76980000',
@@ -181,6 +184,7 @@ describe('Modelo de Usuário', () => {
       cpf: '12345678901',
       celular: '69988887777',
       cnh: '12345678900',
+      data_nascimento: "25/12/1995",
       endereco: {
         logradouro: "Rua X",
         cep: "76900000",

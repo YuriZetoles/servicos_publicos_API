@@ -11,7 +11,8 @@ describe('UsuarioSchema', () => {
     cpf: "12345678901",
     celular: "11987654321",
     cnh: "12345678901",
-    data_nomeacao: new Date().toISOString(),
+    data_nascimento: "15/03/1990",
+    data_nomeacao: "01/01/2020",
     cargo: "Professora",
     formacao: "Pedagogia",
     nivel_acesso: {

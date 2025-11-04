@@ -90,7 +90,8 @@ describe("Modelo Secretaria", () => {
     );
 
     expect(secretariaAtualizada.nome).toBe("Serviço Autônomo de Água e Esgoto");
-    expect(secretariaAtualizada.updatedAt).not.toEqual(secretariaSalva.updatedAt);
+    // updatedAt agora vem formatado em DD/MM/AAAA pelo plugin
+    expect(typeof secretariaAtualizada.updatedAt).toBe("string");
   });
 
   it("Deve remover uma secretaria existente - Remoção de secretaria", async () => {

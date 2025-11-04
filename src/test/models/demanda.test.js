@@ -46,7 +46,8 @@ describe('Modelo demanda', () => {
     expect(demandaSalva._id).toBeDefined();
     expect(demandaSalva.tipo).toBe("Animais");
     expect(demandaSalva.status).toBe("Em aberto");
-    expect(new Date(demandaSalva.data).toISOString()).toBe("2025-05-19T14:30:00.000Z");
+    // Campo data agora vem formatado em DD/MM/AAAA pelo plugin
+    expect(demandaSalva.data).toBe("19/05/2025");
     expect(demandaSalva.resolucao).toBe("Em avaliação pela equipe técnica.");
     expect(demandaSalva.feedback).toBe(4);
     expect(demandaSalva.avaliacao_resolucao).toBe("Rápido e eficiente.");

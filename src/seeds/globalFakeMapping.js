@@ -41,9 +41,19 @@ const fakeMappings = {
     cnpj: () => Math.random() < 0.3 ? fakebr.br.cnpj() : undefined,
     username: () => faker.internet.username().toLowerCase(),
     email: () => fakebr.internet.email(),
+    data_nascimento: () => {
+      const start = new Date(1950, 0, 1);
+      const end = new Date();
+      end.setFullYear(end.getFullYear() - 18); // Pelo menos 18 anos
+      return fakebr.date.between(start, end).toLocaleDateString('pt-BR');
+    },
     celular: () => faker.phone.number("(##) 9####-####"),
     cnh: () => fakebr.helpers.replaceSymbols("###########"),
-    data_nomeacao: () => fakebr.date.past(),
+    data_nomeacao: () => {
+      const start = new Date(2000, 0, 1);
+      const end = new Date();
+      return fakebr.date.between(start, end).toLocaleDateString('pt-BR');
+    },
     cargo: () => fakebr.name.jobType(),
     formacao: () => fakebr.name.jobArea(),
     nivel_acesso: () => {

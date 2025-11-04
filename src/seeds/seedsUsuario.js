@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import Usuario from "../models/Usuario.js";
 import Secretaria from "../models/Secretaria.js";
 import Grupo from "../models/Grupo.js";
+import DateHelper from "../utils/helpers/DateHelper.js";
 import getGlobalFakeMapping from "./globalFakeMapping.js";
 
 import DbConnect from "../config/dbConnect.js";
@@ -68,6 +69,7 @@ async function seedUsuario() {
       ativo: globalFakeMapping.ativo(),
       cpf: globalFakeMapping.cpf(),
       email: globalFakeMapping.email(),
+      data_nascimento: globalFakeMapping.data_nascimento(),
       celular: globalFakeMapping.celular(),
       cnh: globalFakeMapping.cnh(),
       data_nomeacao: globalFakeMapping.data_nomeacao(),
@@ -104,6 +106,7 @@ async function seedUsuario() {
     ativo: true,
     cpf: "00000000191",
     email: "admin@exemplo.com",
+    data_nascimento: "15/03/2000",
     celular: "(11) 99999-9999",
     cnh: "12345678900",
     data_nomeacao: new Date("2020-01-01"),
@@ -138,6 +141,7 @@ async function seedUsuario() {
     ativo: true,
     cpf: "00000000272",
     email: "secretario@exemplo.com",
+    data_nascimento: "20/05/2000",
     celular: "(11) 98888-8888",
     cnh: "23456789011",
     data_nomeacao: new Date("2021-02-15"),
@@ -173,6 +177,7 @@ async function seedUsuario() {
     ativo: true,
     cpf: "00000000353",
     email: "operador@exemplo.com",
+    data_nascimento: "10/08/1990",
     celular: "(11) 97777-7777",
     cnh: "34567890122",
     data_nomeacao: new Date("2022-03-20"),
@@ -208,6 +213,7 @@ async function seedUsuario() {
     ativo: true,
     cpf: "00000000434",
     email: "municipe@exemplo.com",
+    data_nascimento: "25/12/1995",
     celular: "(11) 96666-6666",
     cnh: "45678901233",
     data_nomeacao: new Date("2023-04-25"),
@@ -239,6 +245,7 @@ async function seedUsuario() {
     ativo: true,
     cpf: "00000000900",
     email: "secretariofixo@exemplo.com",
+    data_nascimento: "05/06/1998",
     celular: "(11) 91111-1111",
     cnh: "11111111111",
     data_nomeacao: new Date("2021-01-01"),
@@ -273,6 +280,7 @@ async function seedUsuario() {
     ativo: true,
     cpf: "00000000911",
     email: "operadorfixo@exemplo.com",
+    data_nascimento: "18/11/1988",
     celular: "(11) 92222-2222",
     cnh: "22222222222",
     data_nomeacao: new Date("2022-01-01"),
@@ -306,6 +314,7 @@ async function seedUsuario() {
     ativo: true,
     cpf: "01162809213",
     email: "operadorfixo2@exemplo.com",
+    data_nascimento: "30/09/1991",
     celular: "(11) 92322-2222",
     cnh: "22222462222",
     data_nomeacao: new Date("2022-01-01"),
@@ -340,6 +349,7 @@ async function seedUsuario() {
     ativo: true,
     cpf: "00000000922",
     email: "municipefixo@exemplo.com",
+    data_nascimento: "12/02/1997",
     celular: "(11) 93333-3333",
     cnh: "33333333333",
     data_nomeacao: new Date("2023-01-01"),
@@ -369,7 +379,21 @@ async function seedUsuario() {
   });
 
 
-  const result = await Usuario.collection.insertMany(usuarios);
+  // Antes de inserir via collection (que pode inserir strings diretamente),
+  // converteremos qualquer data em formato brasileiro (DD/MM/AAAA) para
+  // objetos Date para evitar erros de cast no Mongoose.
+  const usuariosToInsert = usuarios.map((u) => {
+    const copy = { ...u };
+    if (copy.data_nascimento && typeof copy.data_nascimento === 'string') {
+      copy.data_nascimento = DateHelper.brToDate(copy.data_nascimento);
+    }
+    if (copy.data_nomeacao && typeof copy.data_nomeacao === 'string') {
+      copy.data_nomeacao = DateHelper.brToDate(copy.data_nomeacao);
+    }
+    return copy;
+  });
+
+  const result = await Usuario.collection.insertMany(usuariosToInsert);
   console.log(
     `${Object.keys(result.insertedIds).length} usuários inseridos com sucesso!`
   );

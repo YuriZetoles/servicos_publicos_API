@@ -274,7 +274,8 @@ class UsuarioRepository {
 
     async criar(dadosUsuario) {
         const usuario = new this.modelUsuario(dadosUsuario);
-        return await usuario.save()
+        const usuarioSalvo = await usuario.save();
+        return usuarioSalvo;
     }
 
     async atualizar(id, parsedData) {
