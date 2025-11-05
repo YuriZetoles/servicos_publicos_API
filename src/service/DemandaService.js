@@ -418,17 +418,6 @@ class DemandaService {
 
         this.manterCampos(parsedData, ["link_imagem_resolucao", "resolucao"])
 
-        // Validar que a imagem de resolução é obrigatória
-        if (!parsedData.link_imagem_resolucao || parsedData.link_imagem_resolucao.trim() === '') {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                errorType: 'validationError',
-                field: 'link_imagem_resolucao',
-                details: [],
-                customMessage: "A imagem de resolução é obrigatória para resolver uma demanda."
-            });
-        }
-
         // Validar que a descrição da resolução é obrigatória
         if (!parsedData.resolucao || parsedData.resolucao.trim() === '') {
             throw new CustomError({
@@ -441,7 +430,7 @@ class DemandaService {
         }
 
         const data = await this.repository.resolver(id, {
-            link_imagem_resolucao: parsedData.link_imagem_resolucao,
+            link_imagem_resolucao: parsedData.link_imagem_resolucao || "",
             resolucao: parsedData.resolucao,
             motivo_devolucao: "",
             status: "Concluída"
