@@ -100,7 +100,10 @@ class TipoDemandaService {
             });
         }
 
-        const { url, metadata } = await this.uploadService.processarFoto(file);
+        const imagemAntiga = tipoDemanda.link_imagem;
+
+        // Usa o método centralizado que substitui a imagem (upload nova + delete antiga)
+        const { url, metadata } = await this.uploadService.substituirFoto(file, imagemAntiga);
 
         const dados = {
             link_imagem: url

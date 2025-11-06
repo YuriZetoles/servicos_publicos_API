@@ -4,6 +4,7 @@ import path from 'path';
 import UploadRepository from '../repository/UploadRepository.js';
 import CustomError from '../utils/helpers/CustomError.js';
 import HttpStatusCodes from '../utils/helpers/HttpStatusCodes.js';
+import logger from '../utils/logger.js';
 
 class UploadService {
     constructor() {
@@ -96,6 +97,74 @@ class UploadService {
                 field: 'file',
                 customMessage: 'Erro ao processar imagem: ' + error.message
             });
+        }
+    }
+
+    /**
+     * Substitui uma foto: faz upload da nova e deleta a antiga.
+     * @param {Object} file - Arquivo do express-fileupload.
+     * @param {string|null} imagemAntiga - URL ou nome da imagem antiga (pode ser null/empty).
+     * @returns {Promise<Object>} - { url, metadata }
+     */
+    async substituirFoto(file, imagemAntiga = null) {
+        // 1. Faz upload da nova imagem
+        const { url, metadata } = await this.processarFoto(file);
+
+        // 2. Deleta a imagem antiga (se existir) com retry em background
+        if (imagemAntiga && imagemAntiga !== "") {
+            this.deleteFotoComRetry(imagemAntiga);
+        }
+
+        return { url, metadata };
+    }
+
+    /**
+     * Deleta uma foto com retry automático (exponential backoff).
+     * Executa em background sem bloquear a resposta.
+     * @param {string} imagemUrl - URL ou nome da imagem.
+     * @param {number} maxTentativas - Número máximo de tentativas (padrão: 3).
+     * @returns {Promise<void>}
+     */
+    async deleteFotoComRetry(imagemUrl, maxTentativas = 3) {
+        for (let tentativa = 1; tentativa <= maxTentativas; tentativa++) {
+            try {
+                await this.deleteFoto(imagemUrl);
+                
+                // Sucesso! Loga apenas se não foi na primeira tentativa
+                if (tentativa > 1) {
+                    logger.info(`Imagem antiga deletada com sucesso após ${tentativa} tentativa(s)`, {
+                        imagemUrl,
+                        tentativa
+                    });
+                }
+                
+                return; // Sai da função se deletou com sucesso
+                
+            } catch (error) {
+                const ehUltimaTentativa = tentativa === maxTentativas;
+                
+                if (ehUltimaTentativa) {
+                    // Última tentativa falhou - loga warning
+                    logger.warn(`Falha ao deletar imagem antiga após ${maxTentativas} tentativa(s)`, {
+                        imagemUrl,
+                        tentativasRealizadas: maxTentativas,
+                        error: error.message,
+                        stack: error.stack
+                    });
+                } else {
+                    // Ainda há tentativas restantes - aguarda antes de tentar novamente
+                    const delayMs = Math.pow(2, tentativa - 1) * 1000; // 1s, 2s, 4s...
+                    
+                    logger.debug(`Tentativa ${tentativa} de deletar imagem falhou. Tentando novamente em ${delayMs}ms...`, {
+                        imagemUrl,
+                        tentativa,
+                        proximaTentativaEm: `${delayMs}ms`,
+                        error: error.message
+                    });
+                    
+                    await new Promise(resolve => setTimeout(resolve, delayMs));
+                }
+            }
         }
     }
 
