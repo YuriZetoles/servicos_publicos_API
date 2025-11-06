@@ -51,6 +51,7 @@ describe("DemandaService", () => {
     uploadServiceMock = {
       processarFoto: jest.fn(),
       deleteFoto: jest.fn(),
+      substituirFoto: jest.fn(),
     };
     DemandaRepository.mockImplementation(() => repoMock);
     UsuarioRepository.mockImplementation(() => userRepoMock);
@@ -505,7 +506,7 @@ describe("DemandaService", () => {
         field: 'file',
         customMessage: 'Extensão inválida. Permitido: jpg, jpeg, png, svg.'
       });
-      uploadServiceMock.processarFoto.mockRejectedValue(uploadError);
+      uploadServiceMock.substituirFoto.mockRejectedValue(uploadError);
 
       await expect(
         service.processarFoto(demandaId, file, "inicio", req)
@@ -546,7 +547,7 @@ describe("DemandaService", () => {
         field: 'file',
         customMessage: 'Arquivo excede 50MB.'
       });
-      uploadServiceMock.processarFoto.mockRejectedValue(uploadError);
+      uploadServiceMock.substituirFoto.mockRejectedValue(uploadError);
 
       await expect(
         service.processarFoto(demandaId, file, "inicio", req)
@@ -578,6 +579,7 @@ describe("DemandaService", () => {
       // Mock da demanda
       repoMock.buscarPorID.mockResolvedValue({
         usuarios: [{ _id: "usuario1" }],
+        link_imagem: "http://minio.example.com/bucket/old-image.jpg"
       });
 
       // Mock do uploadService retornando sucesso
@@ -585,7 +587,7 @@ describe("DemandaService", () => {
         url: "http://minio.example.com/bucket/imagem.jpg",
         metadata: { fileName: "imagem.jpg" }
       };
-      uploadServiceMock.processarFoto.mockResolvedValue(uploadResult);
+      uploadServiceMock.substituirFoto.mockResolvedValue(uploadResult);
 
       // Mock da atualização
       repoMock.atualizar.mockResolvedValue({ updated: true });
@@ -596,7 +598,7 @@ describe("DemandaService", () => {
         fileName: "http://minio.example.com/bucket/imagem.jpg",
         metadata: { fileName: "imagem.jpg" }
       });
-      expect(uploadServiceMock.processarFoto).toHaveBeenCalledWith(file);
+      expect(uploadServiceMock.substituirFoto).toHaveBeenCalledWith(file, "http://minio.example.com/bucket/old-image.jpg");
       expect(repoMock.atualizar).toHaveBeenCalledWith(demandaId, { link_imagem: "http://minio.example.com/bucket/imagem.jpg" });
     });
 
@@ -626,7 +628,7 @@ describe("DemandaService", () => {
         url: "http://minio.example.com/bucket/imagem.jpg",
         metadata: { fileName: "imagem.jpg" }
       };
-      uploadServiceMock.processarFoto.mockResolvedValue(uploadResult);
+      uploadServiceMock.substituirFoto.mockResolvedValue(uploadResult);
 
       // Mock da atualização
       repoMock.atualizar.mockResolvedValue({ updated: true });
@@ -673,7 +675,7 @@ describe("DemandaService", () => {
         customMessage: "Você não tem permissão para atualizar a imagem dessa demanda."
       });
 
-      expect(uploadServiceMock.processarFoto).not.toHaveBeenCalled();
+      expect(uploadServiceMock.substituirFoto).not.toHaveBeenCalled();
     });
 
     it("deve deletar foto do MinIO se atualização do banco falhar", async () => {
@@ -702,7 +704,7 @@ describe("DemandaService", () => {
         url: "http://minio.example.com/bucket/imagem.jpg",
         metadata: { fileName: "imagem.jpg" }
       };
-      uploadServiceMock.processarFoto.mockResolvedValue(uploadResult);
+      uploadServiceMock.substituirFoto.mockResolvedValue(uploadResult);
 
       // Mock da atualização falhando
       repoMock.atualizar.mockRejectedValue(new Error("Erro no banco"));
@@ -950,7 +952,7 @@ describe("DemandaService", () => {
         url: "http://minio.example.com/bucket/foto.jpg",
         metadata: { fileName: "foto.jpg" }
       };
-      uploadServiceMock.processarFoto.mockResolvedValue(uploadResult);
+      uploadServiceMock.substituirFoto.mockResolvedValue(uploadResult);
 
       mockRepository.atualizar.mockResolvedValue({ updated: true });
 
@@ -994,7 +996,7 @@ describe("DemandaService", () => {
         customMessage: "Você não tem permissão para atualizar a imagem dessa demanda."
       });
 
-      expect(uploadServiceMock.processarFoto).not.toHaveBeenCalled();
+      expect(uploadServiceMock.substituirFoto).not.toHaveBeenCalled();
     });
 
     it("deve lançar erro se o usuário não tiver nível de acesso válido", async () => {
@@ -1019,7 +1021,7 @@ describe("DemandaService", () => {
         demandaService.processarFoto("demandaId", file, "inicio", req)
       ).rejects.toThrow(CustomError);
 
-      expect(uploadServiceMock.processarFoto).not.toHaveBeenCalled();
+      expect(uploadServiceMock.substituirFoto).not.toHaveBeenCalled();
     });
   });
 

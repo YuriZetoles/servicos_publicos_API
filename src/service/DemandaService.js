@@ -524,10 +524,13 @@ class DemandaService {
             });
         }
 
-        const { url, metadata } = await this.uploadService.processarFoto(file);
-
         // Define dinamicamente o campo a ser atualizado
         const campo = tipo === "resolucao" ? "link_imagem_resolucao" : "link_imagem";
+        const imagemAntiga = demanda[campo];
+
+        // Usa o método centralizado que substitui a imagem (upload nova + delete antiga)
+        const { url, metadata } = await this.uploadService.substituirFoto(file, imagemAntiga);
+
         const dados = {
             [campo]: url
         };

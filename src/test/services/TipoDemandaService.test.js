@@ -29,6 +29,7 @@ describe('TipoDemandaService', () => {
     uploadServiceMock = {
       processarFoto: jest.fn(),
       deleteFoto: jest.fn(),
+      substituirFoto: jest.fn(),
     };
 
     TipoDemandaRepository.mockImplementation(() => repositoryMock);
@@ -167,14 +168,14 @@ describe('TipoDemandaService', () => {
 
       userRepositoryMock.buscarPorID.mockResolvedValue(mockUsuario);
       repositoryMock.buscarPorID.mockResolvedValue(mockTipoDemanda);
-      uploadServiceMock.processarFoto.mockResolvedValue(mockUploadResult);
+      uploadServiceMock.substituirFoto.mockResolvedValue(mockUploadResult);
       repositoryMock.atualizar.mockResolvedValue({});
 
       const resultado = await service.processarFoto(mockTipoDemandaId, mockFile, mockReq);
 
       expect(userRepositoryMock.buscarPorID).toHaveBeenCalledWith('user123');
       expect(repositoryMock.buscarPorID).toHaveBeenCalledWith(mockTipoDemandaId);
-      expect(uploadServiceMock.processarFoto).toHaveBeenCalledWith(mockFile);
+      expect(uploadServiceMock.substituirFoto).toHaveBeenCalledWith(mockFile, mockTipoDemanda.link_imagem);
       expect(repositoryMock.atualizar).toHaveBeenCalledWith(mockTipoDemandaId, { link_imagem: mockUploadResult.url });
       expect(resultado).toEqual({
         fileName: mockUploadResult.url,
@@ -198,7 +199,7 @@ describe('TipoDemandaService', () => {
 
       userRepositoryMock.buscarPorID.mockResolvedValue(mockUsuario);
       repositoryMock.buscarPorID.mockResolvedValue(mockTipoDemanda);
-      uploadServiceMock.processarFoto.mockResolvedValue(mockUploadResult);
+      uploadServiceMock.substituirFoto.mockResolvedValue(mockUploadResult);
       repositoryMock.atualizar.mockResolvedValue({});
 
       const resultado = await service.processarFoto(mockTipoDemandaId, mockFile, mockReq);
@@ -223,7 +224,7 @@ describe('TipoDemandaService', () => {
       repositoryMock.buscarPorID.mockResolvedValue(mockTipoDemanda);
 
       await expect(service.processarFoto(mockTipoDemandaId, mockFile, mockReq)).rejects.toThrow(CustomError);
-      expect(uploadServiceMock.processarFoto).not.toHaveBeenCalled();
+      expect(uploadServiceMock.substituirFoto).not.toHaveBeenCalled();
     });
 
     it('deve lançar erro quando usuário é munícipe', async () => {
@@ -258,7 +259,7 @@ describe('TipoDemandaService', () => {
 
       userRepositoryMock.buscarPorID.mockResolvedValue(mockUsuario);
       repositoryMock.buscarPorID.mockResolvedValue(mockTipoDemanda);
-      uploadServiceMock.processarFoto.mockResolvedValue(mockUploadResult);
+      uploadServiceMock.substituirFoto.mockResolvedValue(mockUploadResult);
       repositoryMock.atualizar.mockRejectedValue(new Error('Database error'));
 
       await expect(service.processarFoto(mockTipoDemandaId, mockFile, mockReq)).rejects.toThrow('Database error');
@@ -269,7 +270,7 @@ describe('TipoDemandaService', () => {
       repositoryMock.buscarPorID.mockResolvedValue(null);
 
       await expect(service.processarFoto('invalid_id', mockFile, mockReq)).rejects.toThrow(CustomError);
-      expect(uploadServiceMock.processarFoto).not.toHaveBeenCalled();
+      expect(uploadServiceMock.substituirFoto).not.toHaveBeenCalled();
     });
   });
 
