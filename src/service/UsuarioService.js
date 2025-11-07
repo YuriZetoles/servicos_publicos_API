@@ -313,7 +313,7 @@ class UsuarioService {
      */
     async processarFoto(userId, file, req) {
         // Verificar permissões antes de processar upload
-        await this.ensureUserExists(userId);
+        const usuario = await this.ensureUserExists(userId);
 
         const usuarioLogado = await this.repository.buscarPorID(req.user_id);
         const nivel = usuarioLogado.nivel_acesso;
@@ -328,7 +328,10 @@ class UsuarioService {
             });
         }
 
-        const { url, metadata } = await this.uploadService.processarFoto(file);
+        const imagemAntiga = usuario.link_imagem;
+
+        // Usa o método centralizado que substitui a imagem (upload nova + delete antiga)
+        const { url, metadata } = await this.uploadService.substituirFoto(file, imagemAntiga);
 
         const dados = {
             link_imagem: url

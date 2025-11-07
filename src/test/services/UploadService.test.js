@@ -550,5 +550,295 @@ describe('UploadService', () => {
             expect(uploadRepositoryMock.deleteFile).toHaveBeenCalledWith('test-file.jpg');
         });
     });
-});
 
+    describe('substituirFoto', () => {
+        describe('Upload da nova imagem', () => {
+            it('deve fazer upload da nova imagem com sucesso', async () => {
+                const file = {
+                    name: 'nova.jpg',
+                    size: 1024,
+                    data: Buffer.from('nova-imagem'),
+                    md5: 'novo-hash'
+                };
+
+                sharp.mockReturnValue({
+                    resize: jest.fn().mockReturnThis(),
+                    jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
+                    toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed')),
+                });
+
+                uploadRepositoryMock.uploadFile.mockResolvedValue('http://minio.example.com/bucket/test-uuid-123.jpg');
+
+                const result = await service.substituirFoto(file, null);
+
+                expect(result).toHaveProperty('url', 'http://minio.example.com/bucket/test-uuid-123.jpg');
+                expect(result).toHaveProperty('metadata');
+            });
+        });
+
+        describe('Deleção da imagem antiga com retry', () => {
+            it('deve deletar a imagem antiga na primeira tentativa', async () => {
+                const file = {
+                    name: 'nova.jpg',
+                    size: 1024,
+                    data: Buffer.from('nova-imagem'),
+                    md5: 'novo-hash'
+                };
+
+                const imagemAntiga = 'http://minio.example.com/bucket/antiga.jpg';
+
+                sharp.mockReturnValue({
+                    resize: jest.fn().mockReturnThis(),
+                    jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
+                    toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed')),
+                });
+
+                uploadRepositoryMock.uploadFile.mockResolvedValue('http://minio.example.com/bucket/test-uuid-123.jpg');
+                uploadRepositoryMock.deleteFile.mockResolvedValue();
+
+                const result = await service.substituirFoto(file, imagemAntiga);
+
+                expect(result).toHaveProperty('url', 'http://minio.example.com/bucket/test-uuid-123.jpg');
+                
+                // Aguarda um pouco para o retry em background processar
+                await new Promise(resolve => setTimeout(resolve, 50));
+                
+                expect(uploadRepositoryMock.deleteFile).toHaveBeenCalledWith('antiga.jpg');
+                expect(uploadRepositoryMock.deleteFile).toHaveBeenCalledTimes(1);
+            });
+
+            it('deve tentar deletar 3 vezes com exponential backoff antes de desistir', async () => {
+                const file = {
+                    name: 'nova.jpg',
+                    size: 1024,
+                    data: Buffer.from('nova-imagem'),
+                    md5: 'novo-hash'
+                };
+
+                const imagemAntiga = 'http://minio.example.com/bucket/antiga.jpg';
+
+                sharp.mockReturnValue({
+                    resize: jest.fn().mockReturnThis(),
+                    jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
+                    toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed')),
+                });
+
+                uploadRepositoryMock.uploadFile.mockResolvedValue('http://minio.example.com/bucket/test-uuid-123.jpg');
+                uploadRepositoryMock.deleteFile.mockRejectedValue(new Error('MinIO timeout'));
+
+                const result = await service.substituirFoto(file, imagemAntiga);
+
+                // Retorna sucesso mesmo que deleção falhe
+                expect(result).toHaveProperty('url', 'http://minio.example.com/bucket/test-uuid-123.jpg');
+                
+                // Aguarda todas as tentativas: 0ms + 1000ms + 2000ms = 3s + margem
+                await new Promise(resolve => setTimeout(resolve, 3500));
+                
+                // Deve ter tentado 3 vezes
+                expect(uploadRepositoryMock.deleteFile).toHaveBeenCalledTimes(3);
+                expect(uploadRepositoryMock.deleteFile).toHaveBeenCalledWith('antiga.jpg');
+            });
+
+            it('deve deletar na segunda tentativa após falha temporária', async () => {
+                const file = {
+                    name: 'nova.jpg',
+                    size: 1024,
+                    data: Buffer.from('nova-imagem'),
+                    md5: 'novo-hash'
+                };
+
+                const imagemAntiga = 'http://minio.example.com/bucket/antiga.jpg';
+
+                sharp.mockReturnValue({
+                    resize: jest.fn().mockReturnThis(),
+                    jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
+                    toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed')),
+                });
+
+                uploadRepositoryMock.uploadFile.mockResolvedValue('http://minio.example.com/bucket/test-uuid-123.jpg');
+                
+                // Primeira tentativa falha, segunda sucede
+                uploadRepositoryMock.deleteFile
+                    .mockRejectedValueOnce(new Error('Network timeout'))
+                    .mockResolvedValueOnce();
+
+                const result = await service.substituirFoto(file, imagemAntiga);
+
+                expect(result).toHaveProperty('url', 'http://minio.example.com/bucket/test-uuid-123.jpg');
+                
+                // Aguarda primeira tentativa falhar + delay de 1s + segunda tentativa
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Deve ter tentado 2 vezes (primeira falhou, segunda sucedeu)
+                expect(uploadRepositoryMock.deleteFile).toHaveBeenCalledTimes(2);
+                expect(uploadRepositoryMock.deleteFile).toHaveBeenCalledWith('antiga.jpg');
+            });
+
+            it('não deve tentar deletar quando imagemAntiga é null', async () => {
+                const file = {
+                    name: 'nova.jpg',
+                    size: 1024,
+                    data: Buffer.from('nova-imagem'),
+                    md5: 'novo-hash'
+                };
+
+                sharp.mockReturnValue({
+                    resize: jest.fn().mockReturnThis(),
+                    jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
+                    toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed')),
+                });
+
+                uploadRepositoryMock.uploadFile.mockResolvedValue('http://minio.example.com/bucket/test-uuid-123.jpg');
+
+                await service.substituirFoto(file, null);
+                
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                expect(uploadRepositoryMock.deleteFile).not.toHaveBeenCalled();
+            });
+
+            it('não deve tentar deletar quando imagemAntiga é string vazia', async () => {
+                const file = {
+                    name: 'nova.jpg',
+                    size: 1024,
+                    data: Buffer.from('nova-imagem'),
+                    md5: 'novo-hash'
+                };
+
+                sharp.mockReturnValue({
+                    resize: jest.fn().mockReturnThis(),
+                    jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
+                    toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed')),
+                });
+
+                uploadRepositoryMock.uploadFile.mockResolvedValue('http://minio.example.com/bucket/test-uuid-123.jpg');
+
+                await service.substituirFoto(file, "");
+                
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                expect(uploadRepositoryMock.deleteFile).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('Tratamento de erros no upload', () => {
+            it('deve propagar erro se o upload da nova imagem falhar', async () => {
+                const file = {
+                    name: 'nova.jpg',
+                    size: 1024,
+                    data: Buffer.from('nova-imagem'),
+                    md5: 'novo-hash'
+                };
+
+                sharp.mockReturnValue({
+                    resize: jest.fn().mockReturnThis(),
+                    jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
+                    toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed')),
+                });
+
+                const uploadError = new Error('Falha no upload para MinIO');
+                uploadRepositoryMock.uploadFile.mockRejectedValue(uploadError);
+
+                await expect(service.substituirFoto(file, 'antiga.jpg')).rejects.toThrow('Falha no upload para MinIO');
+                
+                // Não deve tentar deletar a antiga se o upload falhou
+                await new Promise(resolve => setTimeout(resolve, 50));
+                expect(uploadRepositoryMock.deleteFile).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('Fluxo completo de substituição', () => {
+            it('deve substituir com sucesso: upload nova + delete antiga', async () => {
+                const file = {
+                    name: 'substituicao.jpg',
+                    size: 2048,
+                    data: Buffer.from('nova-imagem-completa'),
+                    md5: 'hash-completo'
+                };
+
+                const imagemAntiga = 'https://minio.example.com/bucket/fotos/imagem-antiga.jpg';
+
+                sharp.mockReturnValue({
+                    resize: jest.fn().mockReturnThis(),
+                    jpeg: jest.fn().mockReturnThis(),
+                    png: jest.fn().mockReturnThis(),
+                    toBuffer: jest.fn().mockResolvedValue(Buffer.from('processed-completo')),
+                });
+
+                uploadRepositoryMock.uploadFile.mockResolvedValue('http://minio.example.com/bucket/test-uuid-123.jpg');
+                uploadRepositoryMock.deleteFile.mockResolvedValue();
+
+                const result = await service.substituirFoto(file, imagemAntiga);
+
+                expect(result).toEqual({
+                    url: 'http://minio.example.com/bucket/test-uuid-123.jpg',
+                    metadata: {
+                        fileExtension: 'jpg',
+                        fileSize: 2048,
+                        md5: 'hash-completo',
+                        fileName: 'test-uuid-123.jpg'
+                    }
+                });
+
+                expect(uploadRepositoryMock.uploadFile).toHaveBeenCalledTimes(1);
+                
+                // Aguarda um pouco para o retry em background processar
+                await new Promise(resolve => setTimeout(resolve, 50));
+                
+                expect(uploadRepositoryMock.deleteFile).toHaveBeenCalledWith('fotos/imagem-antiga.jpg');
+            });
+        });
+    });
+
+    describe('deleteFotoComRetry', () => {
+        it('deve deletar com sucesso na primeira tentativa', async () => {
+            uploadRepositoryMock.deleteFile.mockResolvedValue();
+
+            await service.deleteFotoComRetry('http://minio.example.com/bucket/file.jpg');
+
+            expect(uploadRepositoryMock.deleteFile).toHaveBeenCalledTimes(1);
+            expect(uploadRepositoryMock.deleteFile).toHaveBeenCalledWith('file.jpg');
+        });
+
+        it('deve tentar múltiplas vezes antes de desistir', async () => {
+            uploadRepositoryMock.deleteFile.mockRejectedValue(new Error('Falha persistente'));
+
+            // Executa em background (fire and forget)
+            const promise = service.deleteFotoComRetry('http://minio.example.com/bucket/file.jpg', 3);
+
+            // Aguarda todas as tentativas: 1s + 2s = 3s + margem
+            await new Promise(resolve => setTimeout(resolve, 3500));
+
+            // Deve ter tentado 3 vezes
+            expect(uploadRepositoryMock.deleteFile).toHaveBeenCalledTimes(3);
+            
+            // Aguarda a promise terminar
+            await promise;
+        }, 6000); // Timeout de 6 segundos
+
+        it('deve aplicar exponential backoff entre tentativas', async () => {
+            const startTime = Date.now();
+            
+            uploadRepositoryMock.deleteFile
+                .mockRejectedValueOnce(new Error('Tentativa 1'))
+                .mockRejectedValueOnce(new Error('Tentativa 2'))
+                .mockResolvedValueOnce();
+
+            await service.deleteFotoComRetry('http://minio.example.com/bucket/file.jpg', 3);
+
+            const endTime = Date.now();
+            const elapsed = endTime - startTime;
+
+            // Deve ter aguardado aproximadamente: 1000ms (1ª retry) + 2000ms (2ª retry) = 3000ms
+            expect(elapsed).toBeGreaterThanOrEqual(2900); // Margem de 100ms
+            expect(uploadRepositoryMock.deleteFile).toHaveBeenCalledTimes(3);
+        });
+    });
+});
