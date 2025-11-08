@@ -131,6 +131,13 @@ class DemandaService {
             ...(req.query || {}),
             ...(nivel?.municipe ? { usuario: usuario._id.toString() } : {})
         };
+
+        // Se for operador e não houver filtro de usuario explícito,
+        // pedir ao repository que filtre por usuário para que a paginação
+        // seja aplicada no nível do banco (evita páginas vazias após filtro)
+        if (nivel?.operador && !req.query?.usuario) {
+            repoReq.query.usuario = usuario._id.toString();
+        }
         
         // Para secretários, se não houver filtro de secretaria explícito na query,
         // adicionar os IDs das secretarias do usuário diretamente
@@ -158,13 +165,13 @@ class DemandaService {
         }
 
         if (nivel && nivel.operador) {
-            const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
+            const secretariasUsuario = (usuario.secretarias || []).map(s => s._id ? s._id.toString() : (typeof s === 'string' ? s : String(s)));
             const userId = usuario._id.toString();
 
             data.docs = data.docs.filter(demanda => {
-                const secretariasDemanda = (demanda.secretarias || []).map(s => s._id.toString());
-                const demandaUsuarios = (demanda.usuarios || []).map(user => user._id.toString());
-                return secretariasDemanda.some(id => secretariasUsuario.includes(id)) && demandaUsuarios.includes(userId);
+                const demandaUsuarios = (demanda.usuarios || []).map(user => user._id ? user._id.toString() : (typeof user === 'string' ? user : String(user)));
+                // Operador deve ver apenas as demandas que foram atribuídas a ele
+                return demandaUsuarios.includes(userId);
             });
         }
 
