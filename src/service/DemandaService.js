@@ -132,25 +132,46 @@ class DemandaService {
             ...(nivel?.municipe ? { usuario: usuario._id.toString() } : {})
         };
 
+        // Se for operador e não houver filtro de usuario explícito,
+        // pedir ao repository que filtre por usuário para que a paginação
+        // seja aplicada no nível do banco (evita páginas vazias após filtro)
+        if (nivel?.operador && !req.query?.usuario) {
+            repoReq.query.usuario = usuario._id.toString();
+        }
+        
+        // Para secretários, se não houver filtro de secretaria explícito na query,
+        // adicionar os IDs das secretarias do usuário diretamente
+        if (nivel?.secretario && usuario.secretarias?.length > 0 && !req.query?.secretaria) {
+            const secretariasIDs = usuario.secretarias.map(s => s._id.toString());
+            // Passar como array de IDs para o repository montar o filtro
+            repoReq.query.secretaria = secretariasIDs;
+        }
+
         const data = await this.repository.listar(repoReq);
 
-        if (nivel && nivel.secretario) {
+        // Remover filtro manual pós-query para secretários quando não há filtro explícito
+        // pois agora está sendo feito no repository
+        if (nivel && nivel.secretario && req.query?.secretaria) {
+            // Apenas filtrar se houver filtro explícito de secretaria
             const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
 
             data.docs = data.docs.filter(demanda => {
                 const secretariasDemanda = (demanda.secretarias || []).map(s => s._id.toString());
                 return secretariasDemanda.some(id => secretariasUsuario.includes(id));
             });
+            
+            // Atualizar o totalDocs para refletir o número filtrado
+            data.totalDocs = data.docs.length;
         }
 
         if (nivel && nivel.operador) {
-            const secretariasUsuario = usuario.secretarias?.map(s => s._id.toString());
+            const secretariasUsuario = (usuario.secretarias || []).map(s => s._id ? s._id.toString() : (typeof s === 'string' ? s : String(s)));
             const userId = usuario._id.toString();
 
             data.docs = data.docs.filter(demanda => {
-                const secretariasDemanda = (demanda.secretarias || []).map(s => s._id.toString());
-                const demandaUsuarios = (demanda.usuarios || []).map(user => user._id.toString());
-                return secretariasDemanda.some(id => secretariasUsuario.includes(id)) && demandaUsuarios.includes(userId);
+                const demandaUsuarios = (demanda.usuarios || []).map(user => user._id ? user._id.toString() : (typeof user === 'string' ? user : String(user)));
+                // Operador deve ver apenas as demandas que foram atribuídas a ele
+                return demandaUsuarios.includes(userId);
             });
         }
 
@@ -404,8 +425,19 @@ class DemandaService {
 
         this.manterCampos(parsedData, ["link_imagem_resolucao", "resolucao"])
 
+        // Validar que a descrição da resolução é obrigatória
+        if (!parsedData.resolucao || parsedData.resolucao.trim() === '') {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'resolucao',
+                details: [],
+                customMessage: "A descrição da resolução é obrigatória para resolver uma demanda."
+            });
+        }
+
         const data = await this.repository.resolver(id, {
-            link_imagem_resolucao: parsedData.link_imagem_resolucao,
+            link_imagem_resolucao: parsedData.link_imagem_resolucao || "",
             resolucao: parsedData.resolucao,
             motivo_devolucao: "",
             status: "Concluída"
@@ -513,8 +545,23 @@ class DemandaService {
 
         const isAdmin = nivel && nivel.administrador;
         const isMunicipe = nivel && nivel.municipe;
+        const isOperador = nivel && nivel.operador;
 
-        if (!(isAdmin || (isMunicipe && usuariosDemanda.includes(userId)))) {
+        // Para imagem de solicitação: admin ou munícipe dono da demanda
+        // Para imagem de resolução: admin ou operador atribuído à demanda
+        let temPermissao = false;
+        
+        if (isAdmin) {
+            temPermissao = true;
+        } else if (tipo === "resolucao" && isOperador && usuariosDemanda.includes(userId)) {
+            // Operador pode enviar imagem de resolução se estiver atribuído à demanda
+            temPermissao = true;
+        } else if (tipo === "solicitacao" && isMunicipe && usuariosDemanda.includes(userId)) {
+            // Munícipe pode enviar imagem de solicitação se for dono da demanda
+            temPermissao = true;
+        }
+
+        if (!temPermissao) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.FORBIDDEN.code,
                 errorType: 'permissionError',
@@ -564,8 +611,23 @@ class DemandaService {
 
         const isAdmin = nivel && nivel.administrador;
         const isMunicipe = nivel && nivel.municipe;
+        const isOperador = nivel && nivel.operador;
 
-        if (!(isAdmin || (isMunicipe && usuariosDemanda.includes(userId)))) {
+        // Para imagem de solicitação: admin ou munícipe dono da demanda
+        // Para imagem de resolução: admin ou operador atribuído à demanda
+        let temPermissao = false;
+        
+        if (isAdmin) {
+            temPermissao = true;
+        } else if (tipo === "resolucao" && isOperador && usuariosDemanda.includes(userId)) {
+            // Operador pode deletar imagem de resolução se estiver atribuído à demanda
+            temPermissao = true;
+        } else if (tipo === "solicitacao" && isMunicipe && usuariosDemanda.includes(userId)) {
+            // Munícipe pode deletar imagem de solicitação se for dono da demanda
+            temPermissao = true;
+        }
+
+        if (!temPermissao) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.FORBIDDEN.code,
                 errorType: 'permissionError',

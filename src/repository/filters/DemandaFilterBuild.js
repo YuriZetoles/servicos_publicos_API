@@ -150,18 +150,31 @@ class DemandaFilterBuild {
 
   async comSecretaria(secretaria) {
     if (secretaria) {
-      const secretariaEncontrado =
-        await this.secretariaRepository.buscarPorNome(secretaria);
+      // Se já vier um array de IDs (ex: do service para secretarios), usa diretamente
+      if (Array.isArray(secretaria)) {
+        this.filtros.secretarias = { $in: secretaria };
+        return this;
+      }
+
+      // Se for uma string que é um ObjectId, usa diretamente
+      const isObjectIdString = typeof secretaria === 'string' && /^[0-9a-fA-F]{24}$/.test(secretaria);
+      if (isObjectIdString) {
+        this.filtros.secretarias = { $in: [secretaria] };
+        return this;
+      }
+
+      // Caso contrário, busca por nome (comportamento anterior)
+      const secretariaEncontrado = await this.secretariaRepository.buscarPorNome(secretaria);
 
       const secretariasIDs = secretariaEncontrado ?
         Array.isArray(secretariaEncontrado) ?
-        secretariaEncontrado.map((g) => g._id) :
-        [secretariaEncontrado._id] :
+          secretariaEncontrado.map((g) => g._id) :
+          [secretariaEncontrado._id] :
         [];
 
-      this.filtros.secretarias = {
-        $in: secretariasIDs
-      };
+      if (secretariasIDs.length > 0) {
+        this.filtros.secretarias = { $in: secretariasIDs };
+      }
     }
 
     return this;

@@ -84,10 +84,16 @@ class UsuarioService {
         // Secretário: limita a listagem às secretarias do usuário logado
         if (nivel.secretario) {
             const secretariasDoLogado = (usuarioLogado?.secretarias).map(s => s._id?.toString?.() || s.toString());
+            
+            // Força o filtro por secretarias do usuário logado
             req.query.secretaria = secretariasDoLogado;
 
             const requestedNivel = req.query.nivel_acesso;
 
+            // Secretário só pode ver:
+            // 1. Operadores da mesma secretaria
+            // 2. Ele mesmo (quando pede por secretarios)
+            
             // Se pediu especificamente por secretarios, retorna apenas o próprio usuário
             if (requestedNivel === 'secretario') {
                 const unico = await this.repository.buscarPorID(usuarioID);
@@ -108,30 +114,39 @@ class UsuarioService {
             }
 
             // Por padrão ou se pediu por 'operador', traz apenas operadores das secretarias do logado
-            if (!requestedNivel) {
+            if (!requestedNivel || requestedNivel === 'operador') {
                 req.query.nivel_acesso = 'operador';
+            } else {
+                // Se pediu por outro nível (municipe, administrador), não pode ver
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.FORBIDDEN.code,
+                    errorType: 'permissionError',
+                    customMessage: 'Secretários só podem listar operadores da mesma secretaria.'
+                });
             }
 
             const resultado = await this.repository.listar(req);
 
-            // Filtra qualquer secretário que não seja o próprio usuário (evita vazamento de outros secretários)
+            // Garante que todos os resultados são apenas operadores da mesma secretaria
             if (resultado && Array.isArray(resultado.docs)) {
-                const docsFiltered = resultado.docs.filter(doc => {
-                    const isSecretario = !!(doc.nivel_acesso && doc.nivel_acesso.secretario);
-                    const isSelf = String(doc._id) === String(usuarioID);
-                    return !(isSecretario && !isSelf);
+                resultado.docs = resultado.docs.filter(doc => {
+                    const isOperador = !!(doc.nivel_acesso && doc.nivel_acesso.operador);
+                    const secretariasDoc = (doc?.secretarias || []).map(s => s._id?.toString?.() || s.toString());
+                    const compartilhaSecretaria = secretariasDoc.some(sec => secretariasDoLogado.includes(sec));
+                    return isOperador && compartilhaSecretaria;
                 });
 
-                // Se o próprio usuário não estiver presente, adiciona-o no topo
-                const containsSelf = docsFiltered.some(d => String(d._id) === String(usuarioID));
+                // Garantir que o próprio secretário apareça no resultado
+                const containsSelf = resultado.docs.some(d => String(d._id) === String(usuarioID));
                 if (!containsSelf) {
                     const self = await this.repository.buscarPorID(usuarioID);
                     const selfObj = typeof self.toObject === 'function' ? self.toObject() : self;
-                    docsFiltered.unshift(selfObj);
+                    // Inserir o próprio usuário no topo dos resultados
+                    resultado.docs.unshift(selfObj);
                     resultado.totalDocs = (resultado.totalDocs || 0) + 1;
+                } else {
+                    resultado.totalDocs = resultado.docs.length;
                 }
-
-                resultado.docs = docsFiltered;
             }
 
             return resultado;

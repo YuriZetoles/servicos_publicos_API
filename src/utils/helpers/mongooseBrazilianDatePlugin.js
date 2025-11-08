@@ -38,6 +38,17 @@ function brazilianDatePlugin(schema) {
       schematype.get(function(date) {
         if (!date) return null;
         
+        // Verifica se é um objeto Date válido
+        if (!(date instanceof Date)) {
+          // Tenta converter para Date se for string ou número
+          date = new Date(date);
+        }
+        
+        // Verifica se a data é válida
+        if (isNaN(date.getTime())) {
+          return null;
+        }
+        
         // Extrai dia, mês e ano do objeto Date
         const dia = String(date.getDate()).padStart(2, '0');
         const mes = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() retorna 0-11
