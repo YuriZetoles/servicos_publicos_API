@@ -143,8 +143,8 @@ class DemandaService {
         // adicionar os IDs das secretarias do usuário diretamente
         if (nivel?.secretario && usuario.secretarias?.length > 0 && !req.query?.secretaria) {
             const secretariasIDs = usuario.secretarias.map(s => s._id.toString());
-            // Passar como string separada por vírgula ou como array
-            repoReq.secretariasUsuario = secretariasIDs;
+            // Passar como array de IDs para o repository montar o filtro
+            repoReq.query.secretaria = secretariasIDs;
         }
 
         const data = await this.repository.listar(repoReq);
