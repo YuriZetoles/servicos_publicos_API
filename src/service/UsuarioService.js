@@ -135,8 +135,18 @@ class UsuarioService {
                     const compartilhaSecretaria = secretariasDoc.some(sec => secretariasDoLogado.includes(sec));
                     return isOperador && compartilhaSecretaria;
                 });
-                
-                resultado.totalDocs = resultado.docs.length;
+
+                // Garantir que o próprio secretário apareça no resultado
+                const containsSelf = resultado.docs.some(d => String(d._id) === String(usuarioID));
+                if (!containsSelf) {
+                    const self = await this.repository.buscarPorID(usuarioID);
+                    const selfObj = typeof self.toObject === 'function' ? self.toObject() : self;
+                    // Inserir o próprio usuário no topo dos resultados
+                    resultado.docs.unshift(selfObj);
+                    resultado.totalDocs = (resultado.totalDocs || 0) + 1;
+                } else {
+                    resultado.totalDocs = resultado.docs.length;
+                }
             }
 
             return resultado;
