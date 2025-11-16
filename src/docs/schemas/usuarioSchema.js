@@ -112,7 +112,7 @@ const usuarioSchemas = {
   },
   signupPost: {
     ...deepCopy(usuarioJsonSchema),
-    required: ["nome", "cpf", "email", "senha", "cnh", "endereco"],
+    required: ["nome", "cpf", "email", "senha", "cnh", "data_nascimento", "endereco"],
     description: "Schema para cadastro de usuário",
     example: {
       nome: "João Silva",
@@ -120,6 +120,7 @@ const usuarioSchemas = {
       email: "joao.silva@email.com",
       senha: "Senha@123",
       cnh: "13345678900",
+      data_nascimento: "15/01/1990",
       celular: "12345678900",
       endereco: {
         logradouro: "Rua das Flores",
@@ -168,7 +169,8 @@ usuarioSchemas.UsuarioPost.example = await generateExample(usuarioSchemas.Usuari
 usuarioSchemas.UsuarioPatch.example = await generateExample(usuarioSchemas.UsuarioPatch, null, usuarioMongooseSchema);
 usuarioSchemas.UsuarioLogin.example = await generateExample(usuarioSchemas.UsuarioLogin, null, usuarioMongooseSchema);
 usuarioSchemas.UsuarioRespostaLogin.example = await generateExample(usuarioSchemas.UsuarioRespostaLogin, null, usuarioMongooseSchema);
-usuarioSchemas.signupPost.example = await generateExample(usuarioSchemas.signupPost, null, usuarioMongooseSchema);
+// Não gera exemplo automático para signupPost porque já tem exemplo completo definido manualmente
+// usuarioSchemas.signupPost.example = await generateExample(usuarioSchemas.signupPost, null, usuarioMongooseSchema);
 
 /**
  * Schemas personalizados para upload/download de foto de usuário, não há como automatizar

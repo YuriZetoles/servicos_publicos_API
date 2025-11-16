@@ -58,7 +58,7 @@ const authRoutes = {
                 - Permitir ao usuário solicitar link seguro para redefinição de senha.
                 + Recebe { email } no corpo da requisição.
                     - Gera um token de redefinição com validade de 1 hora.
-                    - Envia e-mail com link para \`/reset-password?token=…\`.
+                    - Envia e-mail com link para redefinição de senha.
                     - Retorna 200 OK sem diferenciar se o e-mail existe 
                         + Mensagens a evitar, pois com as mensagens abaixo é possível descobrir por meio de força bruta se o e-mail existe ou não:
                             - Se o e-mail não estiver cadastrado, retorna 404 Not Found.
@@ -86,8 +86,66 @@ const authRoutes = {
                 }
             },
             responses: {
-                200: commonResponses[200]("#/components/schemas/RequisicaoRecuperaSenha"),
+                200: commonResponses[200]("#/components/schemas/RespostaRecuperaSenha"),
                 400: commonResponses[400](),
+                404: commonResponses[404](),
+                500: commonResponses[500]()
+            }
+        }
+    },
+
+    "/password/reset": {
+        patch: {
+            tags: ["Auth"],
+            summary: "Redefine senha do usuário usando token de recuperação",
+            description: `
+            + Caso de uso: Redefinição de senha através de token recebido por e-mail.
+            
+            + Função de Negócio:
+                - Permitir ao usuário redefinir sua senha de forma segura usando token único.
+                + Recebe token via query parameter (?token=...) e { senha } no corpo.
+                    - Valida token JWT de recuperação (expiração: 1 hora).
+                    - Verifica se token não foi usado anteriormente.
+                    - Verifica se token não expirou.
+                    - Gera hash da nova senha usando bcrypt.
+                    - Atualiza senha e limpa token de recuperação do banco.
+                    - Token é de uso único (após uso, é invalidado).
+            
+            + Regras de Negócio:
+                - Token deve ser único e não reutilizável.
+                - Senha deve atender requisitos mínimos de segurança (validado por schema).
+                - Após redefinição bem-sucedida, usuário deve fazer login novamente.
+                - Token expirado retorna 401 Unauthorized.
+                - Token inválido ou já utilizado retorna 404 Not Found.
+            
+            + Resultado Esperado:
+                - 200 OK com mensagem de sucesso: Senha atualizada com sucesso.
+                - Usuário deve realizar novo login com a senha redefinida.
+      `,
+            parameters: [
+                {
+                    name: "token",
+                    in: "query",
+                    required: true,
+                    description: "Token JWT de recuperação de senha recebido por e-mail",
+                    schema: {
+                        type: "string",
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NGZhMjFkNzk5NjlkMjE3MmU3ODcxMCIsImlhdCI6MTczMzE4NDkxOCwiZXhwIjoxNzMzMTg4NTE4fQ.xYz123..."
+                    }
+                }
+            ],
+            requestBody: {
+                required: true,
+                content: {
+                    "application/json": {
+                        schema: authSchemas.RequisicaoRedefinirSenha
+                    }
+                }
+            },
+            responses: {
+                200: commonResponses[200]("#/components/schemas/RespostaRedefinirSenha"),
+                400: commonResponses[400](),
+                401: commonResponses[401](),
                 404: commonResponses[404](),
                 500: commonResponses[500]()
             }
