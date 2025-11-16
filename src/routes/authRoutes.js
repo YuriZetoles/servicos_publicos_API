@@ -19,6 +19,7 @@ router
     .post("/revoke", asyncWrapper(authController.revoke.bind(authController)))
     .post("/refresh", asyncWrapper(authController.refresh.bind(authController)))
     .post("/recover", strictRateLimit, asyncWrapper(authController.recuperaSenha.bind(authController)))
+    .patch("/password/reset", strictRateLimit, asyncWrapper(authController.atualizarSenhaToken.bind(authController)))
     .post("/introspect", asyncWrapper(authController.pass.bind(authController)))
     .post("/signup", strictRateLimit, asyncWrapper(usuarioController.criarComSenha.bind(usuarioController)))
 
