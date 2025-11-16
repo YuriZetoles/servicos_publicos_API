@@ -1,4 +1,5 @@
 // /src/utils/TokenUtil.js
+
 import jwt from 'jsonwebtoken';
 
 class TokenUtil {
@@ -7,7 +8,6 @@ class TokenUtil {
       jwt.sign(
         { id },
         process.env.JWT_SECRET_ACCESS_TOKEN,
-        //TODO: mudar expiration do access token
         { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION || '1d' },
         (err, token) => {
           if (err) {
@@ -43,7 +43,7 @@ class TokenUtil {
       jwt.sign(
         { id },
         process.env.JWT_SECRET_PASSWORD_RECOVERY,
-        { expiresIn: process.env.JWT_PASSWORD_RECOVERY_EXPIRATION || '30m' },
+        { expiresIn: process.env.JWT_PASSWORD_RECOVERY_EXPIRATION || '1h' },
         (err, token) => {
           if (err) {
             return reject(err);
@@ -51,6 +51,23 @@ class TokenUtil {
           resolve(token);
         }
       );
+    });
+  }
+
+  /**
+   * Decodifica e valida o token de recuperação de senha
+   * @param {string} token - Token de recuperação
+   * @param {string} secret - Secret para validar o token
+   * @returns {Promise<string>} ID do usuário
+   */
+  decodePasswordRecoveryToken(token, secret) {
+    return new Promise((resolve, reject) => {
+      jwt.verify(token, secret, (err, decoded) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(decoded.id);
+      });
     });
   }
 
