@@ -8,8 +8,10 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon server.js",
+    "dev:init": "node scripts/start-with-init.js --dev",
     "seed": "node src/seeds/seeds.js",
     "start": "node server.js",
+    "start:init": "node scripts/start-with-init.js",
     "test": "jest --coverage"
   },
   "dependencies": {

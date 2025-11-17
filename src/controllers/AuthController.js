@@ -120,9 +120,20 @@ class AuthController {
     // 1º validação estrutural - validar os campos passados por body
     const body = req.body || {};
 
-    // Validar apenas o email
-    const validatedBody = UsuarioUpdateSchema.parse(body);
-    const data = await this.service.recuperaSenha(validatedBody);
+    // Aceita tanto 'email' quanto 'identificador' (para compatibilidade)
+    const email = body.email || body.identificador;
+    
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'validation',
+        field: 'email',
+        details: [],
+        customMessage: 'Email válido é obrigatório para recuperação de senha.'
+      });
+    }
+
+    const data = await this.service.recuperaSenha({ email });
     return CommonResponse.success(res, data);
   }
 

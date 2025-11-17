@@ -176,10 +176,7 @@ class UsuarioService {
 
         //gerar senha hash
         if (parsedData.senha) {
-            const {
-                senha: senhaValidada
-            } = await AuthHelper.hashPassword(parsedData.senha);
-            parsedData.senha = senhaValidada;
+            parsedData.senha = await AuthHelper.hashPassword(parsedData.senha);
         }
 
         //chama o repositório
@@ -195,10 +192,7 @@ class UsuarioService {
         await this.validateEmail(parsedData.email);
 
         if (parsedData.senha) {
-            const {
-                senha: senhaValidada
-            } = await AuthHelper.hashPassword(parsedData.senha);
-            parsedData.senha = senhaValidada;
+            parsedData.senha = await AuthHelper.hashPassword(parsedData.senha);
         }
 
         parsedData.nivel_acesso = {
