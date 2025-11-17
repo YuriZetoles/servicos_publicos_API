@@ -39,7 +39,7 @@ services:
     volumes:
       - ./:/app:delegated
       - /app/node_modules
-    command: ["run", "dev"]
+    command: npm run dev:init
     depends_on:
       mongodb:
         condition: service_healthy

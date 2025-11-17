@@ -14,9 +14,4 @@ RUN npm ci
 
 COPY . .
 
-# Garantir permissão de execução para scripts
-RUN chmod +x /app/scripts/*.sh 2>/dev/null || true
-
-ENTRYPOINT [ "npm" ]
-CMD [ "start" ]
-
+CMD ["npm", "start"]
