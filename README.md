@@ -1,270 +1,214 @@
-# 🚀 Serviços Públicos API
+# 🚀 Serviços Públicos - API
 
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22+-green.svg)](https://nodejs.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-8.0+-blue.svg)](https://www.mongodb.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![Tests](https://img.shields.io/badge/Tests-553%20✅-brightgreen.svg)](https://jestjs.io/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+API REST para gestão de demandas públicas municipais desenvolvida com Node.js, Express e MongoDB.
 
 ## 📋 Sobre o Projeto
 
-O projeto **Serviços Públicos** é uma API REST desenvolvida para promover a participação cidadã, permitindo que munícipes registrem demandas diretamente às secretarias responsáveis. A plataforma oferece uma interface simples e acessível para envio de solicitações relacionadas a diversas áreas municipais como coleta de lixo, saneamento, iluminação pública, animais abandonados, entre outras.
+Plataforma que promove a participação cidadã permitindo que munícipes registrem demandas diretamente às secretarias responsáveis (coleta de lixo, saneamento, iluminação pública, etc).
 
-### 🎯 Objetivos Principais
-- ✅ Facilitar a comunicação entre cidadãos e governo municipal
-- ✅ Promover transparência no atendimento de demandas públicas
+**Objetivos:**
+- ✅ Facilitar comunicação cidadão-governo
+- ✅ Promover transparência
 - ✅ Otimizar processos administrativos
-- ✅ Garantir controle e rastreabilidade de solicitações
+- ✅ Garantir rastreabilidade
 
-## 📋 Funcionalidades
+## 🎯 Funcionalidades
 
 ### 👥 Gestão de Usuários
-- 🔐 Cadastro e autenticação de usuários
-- 👤 Perfis diferenciados (Cidadão, Operador, Secretário)
-- 🔑 Controle de acesso baseado em permissões
-- 📸 Upload de fotos de perfil
+- Cadastro e autenticação (JWT)
+- Perfis: Cidadão, Operador, Secretário, Admin
+- Upload de fotos de perfil
+- Recuperação de senha via email
 
 ### 📝 Gestão de Demandas
-- 📋 Criação e acompanhamento de demandas públicas
-- 📊 Controle de status (Aberta, Em Andamento, Resolvida, Devolvida)
-- 🖼️ Upload de imagens nas demandas
-- 📍 Geolocalização e endereçamento completo
-- 🏷️ Categorização por tipo de demanda
+- CRUD completo de demandas
+- Status: Aberta → Em Andamento → Resolvida/Devolvida
+- Upload de imagens (até 3 por demanda)
+- Geolocalização e endereçamento
 
 ### 🏢 Gestão Administrativa
-- 👥 Gerenciamento de secretarias municipais
-- 📋 Controle de tipos de demanda
-- 👤 Atribuição de demandas por secretários
-- 🔄 Devolução de demandas por operadores
-- 📈 Relatórios e estatísticas
+- Gerenciamento de secretarias
+- Categorização de demandas
+- Atribuição por secretários
+- Relatórios e estatísticas
 
-### 🛡️ Segurança e Performance
-- 🚦 Rate limiting para proteção contra abuso
-- 🔒 Autenticação JWT com refresh tokens
-- ✅ Validação rigorosa de dados com Zod
-- 📊 Logs estruturados para auditoria
-- 🐳 Containerização com Docker
+### 🛡️ Segurança
+- Rate limiting (7 req/min)
+- Autenticação JWT com refresh tokens
+- Validação rigorosa (Zod)
+- Logs estruturados
+- Containerização Docker
 
-## 🏗️ Arquitetura
+## 🚀 Quick Start
 
-### Tecnologias Principais
-- **Runtime**: Node.js 22+
-- **Framework**: Express.js
-- **Banco de Dados**: MongoDB com Mongoose ODM
-- **Autenticação**: JWT (JSON Web Tokens)
-- **Validação**: Zod schemas
-- **Armazenamento**: MinIO (S3-compatible)
-- **Documentação**: Swagger/OpenAPI
-- **Testes**: Jest com Supertest
-- **Containerização**: Docker & Docker Compose
+> **IMPORTANTE:** Execute os containers pelo **frontend**. Veja o [README do Frontend](../servicos-publicos-front/README.md).
 
-### Estrutura do Projeto
-```
-src/
-├── app.js                 # Configuração principal da aplicação
-├── server.js              # Inicialização do servidor
-├── config/
-│   └── dbConnect.js       # Conexão com MongoDB
-├── controllers/           # Controladores da API
-├── middlewares/           # Middlewares customizados
-├── models/               # Modelos Mongoose
-├── repository/           # Camada de acesso a dados
-├── routes/               # Definição das rotas
-├── services/             # Lógica de negócio
-├── utils/                # Utilitários e helpers
-└── docs/                 # Documentação Swagger
-```
+### Apenas para Desenvolvimento Local da API
 
-## 🚀 Instalação e Execução
+Se quiser rodar **apenas a API** isoladamente:
 
-### Pré-requisitos
-- Node.js 18+ e npm
-- MongoDB 8.0+
-- Docker (opcional, mas recomendado)
-
-### 1. Clone o Repositório
 ```bash
-git clone https://gitlab.fslab.dev/f-brica-de-software-ii-2025-1/servicos-publicos.git
-cd servicos-publicos
+# 1. Configure email
+nano .env
+# SENDER_EMAIL="seu@email.com"
+# SENDER_PASSWORD="senha-app"
+# MASTER_KEY="chave-gerada"
+
+# 2. Habilite emulação ARM64 (primeira vez)
+docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
+# 3. Inicie
+docker compose -f docker-compose-dev.yml up --build
+
+# 4. Popule banco
+docker compose -f docker-compose-dev.yml exec api npm run seed
+
+# 5. Teste
+docker compose -f docker-compose-dev.yml exec api npm test
 ```
-
-### 2. Instale as Dependências
-```bash
-npm install
-```
-
-### 3. Configure as Variáveis de Ambiente
-Copie o arquivo de exemplo e configure suas variáveis:
-```bash
-cp .env.example .env
-```
-
-**Variáveis obrigatórias:**
-```env
-# Banco de Dados
-DB_URL=mongodb://localhost:27017/servicos-publicos
-
-# JWT
-JWT_SECRET=sua-chave-secreta-aqui
-JWT_REFRESH_SECRET=sua-chave-refresh-aqui
-
-# MinIO (Armazenamento)
-MINIO_ENDPOINT=localhost
-MINIO_PORT=9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin
-MINIO_BUCKET=fs3-public-services
-
-# Email (opcional)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=seu-email@gmail.com
-EMAIL_PASS=sua-senha-app
-
-# Ambiente
-NODE_ENV=development
-```
-
-### 4. Execute os Seeds (Dados Iniciais)
-```bash
-npm run seed
-```
-
-### 5. Execute a Aplicação
-```bash
-# Desenvolvimento
-npm run dev
-
-# Produção
-npm start
-```
-
-## 🐳 Executando com Docker
-
-### Ambiente de Desenvolvimento
-```bash
-# Subir containers
-docker compose -f docker-compose-dev.yml up -d
-
-# Ver logs
-docker compose -f docker-compose-dev.yml logs -f
-
-# Parar containers
-docker compose -f docker-compose-dev.yml down
-```
-
-### Ambiente de Produção
-```bash
-# Subir containers
-docker compose up -d
-
-# Reconstruir e subir
-docker compose up --build --force-recreate
-```
-
-## 🧪 Testes
-
-### Executar Todos os Testes
-```bash
-npm test
-```
-
-### Executar com Cobertura
-```bash
-npm run test:coverage
-```
-
-### Executar Testes Específicos
-```bash
-# Testes de uma pasta específica
-npm test -- src/test/controllers
-
-# Testes de um arquivo específico
-npm test -- src/test/controllers/AuthController.test.js
-```
-
-**Status dos Testes:** ✅ 553 testes passando
 
 ## 📚 Documentação da API
 
-### Swagger UI
-Acesse a documentação interativa em: `http://localhost:5011/docs`
+### Acesso
+- **Swagger UI:** http://localhost:5011/docs
+- **Health Check:** http://localhost:5011/health
 
 ### Endpoints Principais
 
-#### Utilitários
-- `GET /` - Redirecionamento para documentação
-- `GET /docs` - Documentação Swagger UI
-- `GET /health` - Health check da aplicação
-
 #### Autenticação
-- `POST /login` - Login de usuário
-- `POST /refresh` - Renovar token de acesso
+```
+POST   /login              - Login
+POST   /refresh            - Renovar token
+POST   /logout             - Logout
+POST   /recover            - Recuperar senha
+PATCH  /password/reset     - Redefinir senha
+POST   /signup             - Cadastro público
+```
 
 #### Usuários
-- `GET /usuarios` - Listar usuários
-- `POST /usuarios` - Criar usuário
-- `GET /usuarios/:id` - Buscar usuário por ID
-- `PATCH /usuarios/:id` - Atualizar usuário
-- `DELETE /usuarios/:id` - Deletar usuário
+```
+GET    /usuarios           - Listar
+POST   /usuarios           - Criar
+GET    /usuarios/:id       - Buscar por ID
+PATCH  /usuarios/:id       - Atualizar
+DELETE /usuarios/:id       - Deletar
+```
 
 #### Demandas
-- `GET /demandas` - Listar demandas
-- `POST /demandas` - Criar demanda
-- `GET /demandas/:id` - Buscar demanda por ID
-- `PATCH /demandas/:id` - Atualizar demanda
-- `DELETE /demandas/:id` - Deletar demanda
+```
+GET    /demandas           - Listar
+POST   /demandas           - Criar
+GET    /demandas/:id       - Buscar por ID
+PATCH  /demandas/:id       - Atualizar
+DELETE /demandas/:id       - Deletar
+```
 
 #### Secretarias
-- `GET /secretarias` - Listar secretarias
-- `POST /secretarias` - Criar secretaria
-- `GET /secretarias/:id` - Buscar secretaria por ID
-- `PATCH /secretarias/:id` - Atualizar secretaria
-- `DELETE /secretarias/:id` - Deletar secretaria
+```
+GET    /secretarias        - Listar
+POST   /secretarias        - Criar
+GET    /secretarias/:id    - Buscar por ID
+PATCH  /secretarias/:id    - Atualizar
+DELETE /secretarias/:id    - Deletar
+```
 
 #### Tipos de Demanda
-- `GET /tipos-demanda` - Listar tipos de demanda
-- `POST /tipos-demanda` - Criar tipo de demanda
-- `GET /tipos-demanda/:id` - Buscar tipo por ID
-- `PATCH /tipos-demanda/:id` - Atualizar tipo
-- `DELETE /tipos-demanda/:id` - Deletar tipo
+```
+GET    /tipos-demanda      - Listar
+POST   /tipos-demanda      - Criar
+GET    /tipos-demanda/:id  - Buscar por ID
+PATCH  /tipos-demanda/:id  - Atualizar
+DELETE /tipos-demanda/:id  - Deletar
+```
 
 ## 🔒 Segurança
 
 ### Rate Limiting
-- **Limite**: 7 requisições por minuto por IP
-- **Bloqueio**: Status 429 (Too Many Requests)
-- **Cabeçalho**: `X-RateLimit-Remaining`
+- **Limite:** 7 requisições/minuto por IP
+- **Resposta:** Status 429
+- **Header:** `X-RateLimit-Remaining`
 
 ### Autenticação JWT
-- **Access Token**: Expira em 15 minutos
-- **Refresh Token**: Expira em 7 dias
-- **Rotas Protegidas**: Middleware de autenticação obrigatório
+- **Access Token:** Expira em 15 minutos
+- **Refresh Token:** Expira em 7 dias
+- **Rotas Protegidas:** Middleware obrigatório
 
-### Validação de Dados
-- **Schema Validation**: Zod para validação rigorosa
-- **Sanitização**: Dados limpos e seguros
-- **Tipos**: Validação de tipos e formatos
+### Validação (Zod)
+- Schema validation rigoroso
+- Sanitização de dados
+- Validação de tipos
+
+### Requisitos de Senha
+```regex
+/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+```
+- Mínimo 8 caracteres
+- 1 maiúscula, 1 minúscula
+- 1 número
+- 1 caractere especial (@, $, !, %, *, ?, &)
 
 ## 📊 Monitoramento
 
 ### Logs Estruturados
-- **Níveis**: info, warn, error
-- **Formato**: JSON estruturado
-- **Contexto**: Service, timestamp, requestId
+- Níveis: info, warn, error
+- Formato: JSON
+- Contexto: Service, timestamp, requestId
 
-### Health Checks
-- **Endpoint**: `GET /health`
-- **Status**: Verificação de conectividade do banco de dados
-- **Resposta**: JSON com status, database, timestamp e uptime
+### Health Check
+```bash
+curl http://localhost:5011/health
+```
 
-### Padrões de Código
-- ESLint para linting
-- Prettier para formatação
-- Commits convencionais
-- Testes obrigatórios para novas funcionalidades
+Resposta:
+```json
+{
+  "status": "healthy",
+  "database": "connected",
+  "timestamp": "2025-01-16T12:00:00.000Z",
+  "uptime": 3600
+}
+```
 
-## 📈 Scripts Disponíveis
+## 🧪 Testes
+
+```bash
+# Todos os testes
+docker compose -f docker-compose-dev.yml exec api npm test
+
+# Com cobertura
+docker compose -f docker-compose-dev.yml exec api npm run test:coverage
+
+# Watch mode
+docker compose -f docker-compose-dev.yml exec api npm run test:watch
+```
+
+**Resultado:** 553 testes passando ✅
+
+## 🏗️ Arquitetura
+
+```
+src/
+├── app.js              # Configuração Express
+├── server.js           # Inicialização
+├── config/
+│   └── dbConnect.js    # MongoDB
+├── controllers/        # Lógica de controle
+├── middlewares/        # Middlewares customizados
+├── models/            # Schemas Mongoose
+├── repository/        # Acesso a dados
+├── routes/            # Rotas
+├── services/          # Lógica de negócio
+├── utils/             # Utilitários
+├── seeds/             # Dados iniciais
+└── docs/              # Swagger
+```
+
+## � Scripts NPM
 
 ```json
 {
@@ -279,6 +223,19 @@ Acesse a documentação interativa em: `http://localhost:5011/docs`
 }
 ```
 
+## �️ Stack Tecnológica
+
+- **Runtime:** Node.js 22+
+- **Framework:** Express.js
+- **Banco:** MongoDB 8 com Mongoose ODM
+- **Auth:** JWT (access + refresh tokens)
+- **Validação:** Zod schemas
+- **Storage:** MinIO (S3-compatible)
+- **Docs:** Swagger/OpenAPI
+- **Testes:** Jest + Supertest
+- **Container:** Docker & Docker Compose
+- **Email:** Mailsender (custom service)
+
 ## 👥 Equipe
 
 | Nome | Função | E-mail |
@@ -287,3 +244,7 @@ Acesse a documentação interativa em: `http://localhost:5011/docs`
 | Luis Felipe Lopes | Analista | luis.felipe.lopes1275@gmail.com |
 | Danielle Silva de Melo | Analista | danielleesilva.4@gmail.com |
 | Yuri Ribeiro Zetoles | Analista | yurizetoles0123@gmail.com |
+
+## 📄 Licença
+
+MIT

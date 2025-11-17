@@ -1,6 +1,6 @@
 services:
   mongodb:
-    container_name: mongodb
+    container_name: mongodb-servicos
     image: mongo:8
     volumes:
       - vol-mongodb-servicos:/data/db
@@ -14,11 +14,22 @@ services:
     networks:
       - servicos-network
 
+  mailsender:
+    container_name: mailsender-servicos
+    image: ruanlopes1350/mailsender:latest
+    ports:
+      - 5016:5016
+    env_file:
+      - ./.env
+    restart: always
+    networks:
+      - servicos-network
+
   api:
-    container_name: api
+    container_name: api-servicos
     build: ./
     environment:
-      DB_URL: "mongodb://mongodb:27017/exemplo"
+      DB_URL: "mongodb://mongodb-servicos:27017/servicosPublicos"
       NODE_ENV: "development"
       TERM: "xterm"
     ports:
@@ -28,10 +39,12 @@ services:
     volumes:
       - ./:/app:delegated
       - /app/node_modules
-    command: ["run", "dev"]
+    command: npm run dev:init
     depends_on:
       mongodb:
         condition: service_healthy
+      mailsender:
+        condition: service_started
     networks:
       - servicos-network
 

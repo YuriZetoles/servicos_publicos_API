@@ -1,0 +1,19 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fundo com gradiente -->
+  <rect width="128" height="128" rx="24" fill="url(#gradient)"/>
+  
+  <!-- Letra V estilizada -->
+  <path d="M40 35L55 75H58L73 35H85L65 93H48L28 35H40Z" fill="white"/>
+  
+  <!-- Símbolo + -->
+  <rect x="88" y="48" width="8" height="24" rx="2" fill="#4FC3F7"/>
+  <rect x="80" y="56" width="24" height="8" rx="2" fill="#4FC3F7"/>
+  
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1E4D63"/>
+      <stop offset="50%" stop-color="#2C7A9B"/>
+      <stop offset="100%" stop-color="#4A9BB8"/>
+    </linearGradient>
+  </defs>
+</svg>

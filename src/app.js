@@ -43,6 +43,9 @@ app.use(expressFileUpload());
 // Habilitando o uso de urlencoded pelo express
 app.use(express.urlencoded({ extended: true }));
 
+// Servindo arquivos estáticos da pasta public (logo, etc)
+app.use('/public', express.static('public'));
+
 // Rate limiting para endpoints públicos (antes da autenticação)
 app.use('/api/auth', publicRateLimit);
 

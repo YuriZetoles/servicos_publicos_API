@@ -312,6 +312,40 @@ class UsuarioRepository {
         const documento = await this.modelUsuario.findOne(filtro, ['+senha', '+codigo_recupera_senha', '+exp_codigo_recupera_senha'])
         return documento;
     }
+
+    async buscarPorTokenUnico(tokenUnico) {
+        const filtro = {
+            tokenUnico
+        };
+        const documento = await this.modelUsuario.findOne(filtro)
+            .select('+tokenUnico +exp_codigo_recupera_senha +senha');
+        return documento;
+    }
+
+    async atualizarSenha(id, senhaHasheada) {
+        const usuario = await this.modelUsuario.findByIdAndUpdate(
+            id,
+            { 
+                senha: senhaHasheada,
+                tokenUnico: null,
+                codigo_recupera_senha: null,
+                exp_codigo_recupera_senha: null
+            },
+            { new: true }
+        );
+
+        if (!usuario) {
+            throw new CustomError({
+                statusCode: 404,
+                errorType: 'resourceNotFound',
+                field: 'Usuário',
+                details: [],
+                customMessage: messages.error.resourceNotFound('Usuário')
+            });
+        }
+
+        return usuario;
+    }
 }
 
 export default UsuarioRepository;

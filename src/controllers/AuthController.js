@@ -120,10 +120,55 @@ class AuthController {
     // 1º validação estrutural - validar os campos passados por body
     const body = req.body || {};
 
-    // Validar apenas o email
-    const validatedBody = UsuarioUpdateSchema.parse(body);
-    const data = await this.service.recuperaSenha(validatedBody);
+    // Aceita tanto 'email' quanto 'identificador' (para compatibilidade)
+    const email = body.email || body.identificador;
+    
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'validation',
+        field: 'email',
+        details: [],
+        customMessage: 'Email válido é obrigatório para recuperação de senha.'
+      });
+    }
+
+    const data = await this.service.recuperaSenha({ email });
     return CommonResponse.success(res, data);
+  }
+
+  /**
+   * Atualiza a senha do próprio usuário em um cenário NÃO autenticado
+   */
+  atualizarSenhaToken = async (req, res) => {
+    const tokenRecuperacao = req.query.token || req.params.token || null; // token de recuperação passado na URL
+    const senha = req.body.senha || null; // nova senha passada no body
+
+    // 1) Verifica se veio o token de recuperação
+    if (!tokenRecuperacao) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.UNAUTHORIZED.code,
+        errorType: 'unauthorized',
+        field: 'authentication',
+        details: [],
+        customMessage:
+          'Token de recuperação na URL como parâmetro ou query é obrigatório para troca da senha.'
+      });
+    }
+
+    // Validar a senha com o schema
+    const senhaSchema = UsuarioUpdateSchema.parse({ "senha": senha });
+
+    // atualiza a senha 
+    await this.service.atualizarSenhaToken(tokenRecuperacao, senhaSchema);
+
+    return CommonResponse.success(
+      res,
+      null,
+      HttpStatusCodes.OK.code,
+      'Senha atualizada com sucesso.',
+      { message: 'Senha atualizada com sucesso via token de recuperação.' },
+    );
   }
 
   /**
