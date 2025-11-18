@@ -1,11 +1,17 @@
-import app from './src/app.js'
+// server.js
+
 import "dotenv/config";
-import routes from './src/routes/index.js';
+import app from "./src/app.js";
+const port = process.env.API_PORT || 5011;
 
-const port = process.env.PORT || 5011; 
-
-routes(app)
-
-app.listen(port, () => {
-    console.log(`Servidor escutando em http://localhost:${port}`)
-})
+app.listen(port, (error) => {
+    if (error) {
+        console.error('Erro ao iniciar o servidor:', error);
+        process.exit(1);
+    }
+    if(process.env.NODE_ENV === "production"){
+        console.log(`Servidor escutando em https://luis-lopes-${port}.code.fslab.dev`)
+    } else {
+        console.log(`Servidor escutando em http://localhost:${port}`)
+    }
+});

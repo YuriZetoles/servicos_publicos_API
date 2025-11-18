@@ -6,7 +6,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 const BASE_URL = process.env.BASE_URL || "http://localhost:5011";
 
 // Logo 
-const LOGO_URL = `${BASE_URL}/public/logo.png`;
+const LOGO_URL = "https://objects.fslab.dev/fs3-public-services/614eb9ff-6eac-48bd-9e4c-4c5c2e7cce5a.png";
 const COR_PRIMARIA = "#2C7A9B"; // Cor principal do gradiente da logo
 
 const FOOTER_HTML = `

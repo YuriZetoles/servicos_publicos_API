@@ -69,7 +69,8 @@ const UsuarioSchema = z.object({
   cnh: z
     .string()
     .trim()
-    .regex(/^\d{11}$/, "A CNH deve conter 11 dígitos."),
+    .regex(/^\d{11}$/, "A CNH deve conter 11 dígitos.")
+    .optional(),
   data_nomeacao: z
     .string()
     .refine((val) => !val || DateHelper.isValidBrFormat(val), {
