@@ -32,6 +32,18 @@ class Usuario {
         type: String,
         unique: true
       },
+      email_verificado: {
+        type: Boolean,
+        default: false
+      },
+      token_verificacao_email: {
+        type: String,
+        select: false
+      },
+      exp_token_verificacao_email: {
+        type: Date,
+        select: false
+      },
       data_nascimento: {
         type: Date,
         required: true
@@ -41,7 +53,8 @@ class Usuario {
       },
       cnh: {
         type: String,
-        unique: true
+        unique: true,
+        sparse: true
       },
       data_nomeacao: {
         type: Date
