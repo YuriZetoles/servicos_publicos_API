@@ -14,10 +14,13 @@ import {
     asyncWrapper
 } from '../utils/helpers/index.js';
 import AuthHelper from '../utils/AuthHelper.js';
+import TokenUtil from '../utils/TokenUtil.js';
 import UsuarioRepository from '../repository/UsuarioRepository.js';
 import GrupoRepository from '../repository/GrupoRepository.js'
 import SecretariaRepository from '../repository/SecretariaRepository.js'
 import UploadService from './UploadService.js';
+import { enviarEmail } from '../utils/mailClient.js';
+import { emailBoasVindasMunicipe, emailBoasVindasColaborador } from '../utils/templates/emailTemplates.js';
 
 class UsuarioService {
     constructor() {
@@ -25,6 +28,7 @@ class UsuarioService {
         this.grupoRepository = new GrupoRepository;
         this.secretariaRepository = new SecretariaRepository();
         this.uploadService = new UploadService();
+        this.TokenUtil = TokenUtil;
     }
 
     async listar(req) {
@@ -174,13 +178,54 @@ class UsuarioService {
         //valida email único
         await this.validateEmail(parsedData.email);
 
-        //gerar senha hash
-        if (parsedData.senha) {
+        // O admin cadastra e o sistema envia email para definir senha
+        const isColaborador = parsedData.nivel_acesso?.operador || 
+                             parsedData.nivel_acesso?.secretario || 
+                             parsedData.nivel_acesso?.administrador;
+
+        if (isColaborador && parsedData.senha) {
+            delete parsedData.senha;
+        }
+
+        // Se não for colaborador e tiver senha, faz hash
+        if (!isColaborador && parsedData.senha) {
             parsedData.senha = await AuthHelper.hashPassword(parsedData.senha);
         }
 
-        //chama o repositório
+        // Criar o usuário no banco
         const data = await this.repository.criar(parsedData);
+
+        // Se for colaborador, gera token de recuperação e envia email
+        if (isColaborador) {
+            try {
+                // Gerar token único para definir senha
+                const tokenUnico = await this.TokenUtil.generatePasswordRecoveryToken(data._id);
+                const expMs = Date.now() + 24 * 60 * 60 * 1000; // 24 horas de expiração
+
+                // Atualiza usuário com o token
+                await this.repository.atualizar(data._id, {
+                    tokenUnico,
+                    exp_codigo_recupera_senha: new Date(expMs)
+                });
+
+                // Envia email de boas-vindas com link para definir senha
+                const linkDefinirSenha = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/nova-senha?token=${tokenUnico}`;
+                const emailData = emailBoasVindasColaborador({
+                    nome: data.nome,
+                    email: data.email,
+                    linkDefinirSenha,
+                    cargo: data.cargo || null
+                });
+                
+                await enviarEmail(emailData);
+                
+                console.log(`Email de definição de senha enviado para colaborador: ${data.email}`);
+            } catch (error) {
+                console.error('Erro ao enviar email para colaborador:', error);
+                // Não lança erro para não bloquear o cadastro
+            }
+        }
+
         return data;
     }
 
@@ -202,12 +247,32 @@ class UsuarioService {
             administrador: false
         };
 
+        // Gerar token de verificação de email
+        const tokenVerificacao = await AuthHelper.generateRandomToken();
+        parsedData.token_verificacao_email = tokenVerificacao;
+        parsedData.exp_token_verificacao_email = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
+        parsedData.email_verificado = false;
+
         const grupo = await this.grupoRepository.buscarPorNome("Municipe");
         if (grupo) {
             parsedData.grupo = grupo._id;
         }
 
         const data = await this.repository.criar(parsedData);
+
+        // Envia email de verificação para o munícipe
+        try {
+            const linkVerificacao = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verificar-email?token=${tokenVerificacao}`;
+            const emailData = emailBoasVindasMunicipe({
+                nome: data.nome,
+                email: data.email,
+                linkVerificacao
+            });
+            await enviarEmail(emailData);
+        } catch (error) {
+            console.error('Erro ao enviar email de verificação:', error);
+            // Não lança erro para não bloquear o cadastro
+        }
 
         delete data.senha
 
