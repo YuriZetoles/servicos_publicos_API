@@ -2,6 +2,7 @@
 
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 
 class AuthHelper {
     static decodeToken(token) {
@@ -20,6 +21,10 @@ class AuthHelper {
 
     static async comparePassword(password, hash) {
         return await bcrypt.compare(password, hash);
+    }
+
+    static async generateRandomToken(length = 32) {
+        return crypto.randomBytes(length).toString('hex');
     }
 }
 
