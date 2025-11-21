@@ -220,6 +220,32 @@ class AuthController {
     );
   };
 
+  /**
+   * Verificar email do usuário
+   */
+  verificarEmail = async (req, res) => {
+    const { token } = req.query;
+    
+    if (!token) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'validationError',
+        field: 'token',
+        details: [],
+        customMessage: 'Token de verificação não fornecido.'
+      });
+    }
+
+    const data = await this.service.verificarEmail(token);
+    
+    return CommonResponse.success(
+      res,
+      data,
+      HttpStatusCodes.OK.code,
+      'Email verificado com sucesso! Você já pode fazer login.'
+    );
+  };
+
 }
 
 export default AuthController;

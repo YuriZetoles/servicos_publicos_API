@@ -13,7 +13,7 @@ import {
 import tokenUtil from '../utils/TokenUtil.js';
 import bcrypt from 'bcrypt';
 import { enviarEmail } from '../utils/mailClient.js';
-import { emailRecover } from '../utils/templates/emailTemplates.js';
+import { emailRecover, emailBoasVindasMunicipe } from '../utils/templates/emailTemplates.js';
 import AuthHelper from '../utils/AuthHelper.js';
 
 import UsuarioRepository from "../repository/UsuarioRepository.js";
@@ -57,6 +57,24 @@ class AuthService {
                 field: 'Senha',
                 details: [],
                 customMessage: messages.error.unauthorized('Credenciais inválidas')
+            })
+        }
+
+        console.log('Login attempt - User:', {
+            email: userEncontrado.email,
+            nivel_acesso: userEncontrado.nivel_acesso,
+            email_verificado: userEncontrado.email_verificado,
+            isMunicipe: userEncontrado.nivel_acesso?.municipe
+        });
+
+        // Verificar se o email foi verificado (apenas para munícipes)
+        if (userEncontrado.nivel_acesso?.municipe && !userEncontrado.email_verificado) {
+            throw new CustomError({
+                statusCode: 403,
+                errorType: 'emailNotVerified',
+                field: 'Email',
+                details: [],
+                customMessage: 'Email não verificado. Por favor, verifique seu email antes de fazer login.'
             })
         }
 
@@ -284,6 +302,82 @@ class AuthService {
         }
 
         return { message: 'Senha atualizada com sucesso.' };
+    }
+
+    // Verificar email do usuário usando token
+    async verificarEmail(token) {
+        console.log('Verificação de email - Token recebido:', token);
+        
+        // Buscar usuário pelo token de verificação
+        const usuario = await this.repository.buscarPorTokenVerificacao(token);
+        
+        console.log('Usuário encontrado:', usuario ? {
+            id: usuario._id,
+            email: usuario.email,
+            token_verificacao_email: usuario.token_verificacao_email,
+            exp_token_verificacao_email: usuario.exp_token_verificacao_email,
+            email_verificado: usuario.email_verificado
+        } : 'null');
+        
+        if (!usuario) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
+                errorType: 'notFound',
+                field: 'Token',
+                details: [],
+                customMessage: 'Token de verificação inválido ou já utilizado.'
+            });
+        }
+
+        // Verificar se o token expirou
+        const dataExpiracao = usuario.get('exp_token_verificacao_email', null, { getters: false });
+        const dataAtual = new Date();
+        
+        console.log('   Verificação de expiração:');
+        console.log('  - Data de expiração (original):', dataExpiracao);
+        console.log('  - Data atual:', dataAtual);
+        console.log('  - Token expirado?', dataExpiracao < dataAtual);
+
+        if (dataExpiracao < dataAtual) {
+            console.log('Token expirado, gerando novo token e reenviando email...');
+            
+            // Gerar novo token
+            const novoToken = await AuthHelper.generateRandomToken();
+            const novaExpiracao = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
+            
+            // Atualizar no banco
+            await this.repository.atualizarTokenVerificacao(usuario._id, novoToken, novaExpiracao);
+            
+            // Enviar novo email
+            const linkVerificacao = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verificar-email?token=${novoToken}`;
+            const emailData = emailBoasVindasMunicipe({
+                nome: usuario.nome,
+                email: usuario.email,
+                linkVerificacao
+            });
+            
+            await enviarEmail(emailData);
+            
+            console.log('Novo email de verificação enviado para:', usuario.email);
+            
+            throw new CustomError({
+                statusCode: HttpStatusCodes.UNAUTHORIZED.code,
+                errorType: 'tokenExpired',
+                field: 'Token',
+                details: [],
+                customMessage: 'Token de verificação expirado. Enviamos um novo link para seu email. Verifique sua caixa de entrada.'
+            });
+        }
+
+        // Atualizar usuário: marcar email como verificado e limpar token
+        const usuarioAtualizado = await this.repository.atualizarVerificacaoEmail(usuario._id);
+        
+        console.log('Email verificado com sucesso para:', usuarioAtualizado.email);
+
+        return {
+            message: 'Email verificado com sucesso!',
+            email: usuarioAtualizado.email
+        };
     }
 
 }
