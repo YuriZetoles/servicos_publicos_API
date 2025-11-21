@@ -53,14 +53,18 @@ Plataforma que promove a participação cidadã permitindo que munícipes regist
 Se quiser rodar **apenas a API** isoladamente:
 
 ```bash
-# 1. Configure email
-nano .env
-# SENDER_EMAIL="seu@email.com"
-# SENDER_PASSWORD="senha-app"
-# MASTER_KEY="chave-gerada"
+# 1. Configure credenciais de email
+# 1.1 Gere senha de aplicativo Gmail: https://myaccount.google.com/apppasswords
+# 1.2 Cadastre no Mailsender: https://ruan-silva-3001.code.fslab.dev/cadastro
+#     - Nome: Nome do projeto
+#     - Email: Seu email Gmail
+#     - Senha: Senha de aplicativo gerada
+# 1.3 Copie a API Key gerada
 
-# 2. Habilite emulação ARM64 (primeira vez)
-docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+# 2. Configure variáveis de ambiente
+nano .env
+# URL_MAIL_SERVICE="https://ruan-silva-5016.code.fslab.dev/api/emails/send"
+# MAIL_API_KEY="sua-api-key-copiada-do-mailsender"
 
 # 3. Inicie
 docker compose -f docker-compose-dev.yml up --build
