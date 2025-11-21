@@ -22,5 +22,6 @@ router
     .patch("/password/reset", strictRateLimit, asyncWrapper(authController.atualizarSenhaToken.bind(authController)))
     .post("/introspect", asyncWrapper(authController.pass.bind(authController)))
     .post("/signup", strictRateLimit, asyncWrapper(usuarioController.criarComSenha.bind(usuarioController)))
+    .get("/verificar-email", asyncWrapper(authController.verificarEmail.bind(authController)))
 
 export default router;
