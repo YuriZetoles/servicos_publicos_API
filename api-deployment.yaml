@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.37.0 (fb0539e64)
+  labels:
+    io.kompose.service: api
+  name: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: api
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.37.0 (fb0539e64)
+      labels:
+        io.kompose.service: api
+    spec:
+      containers:
+        - envFrom:
+            - configMapRef:
+                name: env
+          image: api
+          name: api-servicos
+          ports:
+            - containerPort: 5011
+              protocol: TCP
+      restartPolicy: Always

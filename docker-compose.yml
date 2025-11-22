@@ -14,16 +14,6 @@ services:
     networks:
       - servicos-network
 
-  mailsender:
-    container_name: mailsender-servicos
-    image: ruanlopes1350/mailsender:latest
-    ports:
-      - 5016:5016
-    env_file:
-      - ./.env
-    restart: unless-stopped
-    networks:
-      - servicos-network
   
   api:
     container_name: api-servicos
@@ -38,8 +28,6 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-      mailsender:
-        condition: service_started
     networks:
       - servicos-network
     restart: unless-stopped

@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongodb-servicos-env
+data:
+  API_PORT: "5011"
+  BASE_URL: http://localhost:5011
+
+  DB_URL_TEST: mongodb://mongodb-servicos:27017/servicosPublicos_teste
+  DEBUGLOG: "true"
+  FRONTEND_URL: http://localhost:3000
+  JWT_ACCESS_TOKEN_EXPIRATION: 2m
+  JWT_PASSWORD_RECOVERY_EXPIRATION: 1h
+  JWT_REFRESH_TOKEN_EXPIRATION: 3d
+  JWT_SECRET_ACCESS_TOKEN: ajdjfkenlcdlf
+  JWT_SECRET_PASSWORD_RECOVERY: senha_recuperacao_secret_key_32chars_min
+  JWT_SECRET_REFRESH_TOKEN: kjakjfjfekff
+  MAIL_API_KEY: sua-api-key-gerada-no-cadastro
+  MINIO_ACCESS_KEY: sua-chave-de-acesso
+  MINIO_BUCKET_FOTOS: seu-bucket-de-fotos
+  MINIO_ENDPOINT: localhost
+  MINIO_PORT: "9000"
+  MINIO_SECRET_KEY: sua-chave-secreta
+  MINIO_USE_SSL: "false"
+  NODE_ENV: development
+  SINGLE_SESSION_REFRESH_TOKEN: "false"
+  URL_MAIL_SERVICE: https://ruan-silva-5016.code.fslab.dev/api/emails/send
+  
+  DB_URL: mongodb://servicospublicos:example@mongodb-servicos:27017/?authSource=admin
+  MONGO_INITDB_ROOT_USERNAME: servicospublicos
+  MONGO_INITDB_ROOT_PASSWORD: example
+
+  

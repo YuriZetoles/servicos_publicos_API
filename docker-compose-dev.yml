@@ -14,17 +14,6 @@ services:
     networks:
       - servicos-network
 
-  mailsender:
-    container_name: mailsender-servicos
-    image: ruanlopes1350/mailsender:latest
-    ports:
-      - 5016:5016
-    env_file:
-      - ./.env
-    restart: always
-    networks:
-      - servicos-network
-
   api:
     container_name: api-servicos
     build: ./
