@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: servicos-mongodb-publicos
+  name: vol-servicos-mongodb-publicos
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1000Mi
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: servicos-mongodb-publicos
+  name: servicos-mongodb-publicos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: servicos-mongodb-publicos
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: servicos-mongodb-publicos
+    spec:
+      containers:
+        - image: mongo:8
+          livenessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - db.adminCommand('ping')
+            failureThreshold: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          name: servicos-mongodb-publicos
+          ports:
+            - containerPort: 27017
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: servicos-publicos-env
+          volumeMounts:
+            - mountPath: /data/db
+              name: vol-servicos-mongodb-publicos
+      restartPolicy: Always
+      volumes:
+        - name: vol-servicos-mongodb-publicos
+          persistentVolumeClaim:
+            claimName: vol-servicos-mongodb-publicos
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: servicos-mongodb-publicos
+  name: servicos-mongodb-publicos
+spec:
+  type: ClusterIP
+  ports:
+    - name: "27017"
+      port: 27017
+      targetPort: 27017
+  selector:
+    io.kompose.service: servicos-mongodb-publicos
