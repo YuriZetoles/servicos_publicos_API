@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: servicos-api-publicos
+  name: servicos-api-publicos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: servicos-api-publicos
+  template:
+    metadata:
+      labels:
+        io.kompose.service: servicos-api-publicos
+    spec:
+      restartPolicy: Always
+      
+      securityContext:
+        fsGroup: 1000
+      
+      containers:
+        - name: servicos-api-publicos
+          image: yurizetoles/servicos_publicos_api:latest
+          imagePullPolicy: Always
+          
+          ports:
+            - containerPort: 5011
+              protocol: TCP
+          
+          envFrom:
+            - configMapRef:
+                name: servicos-publicos-env
+          
+          resources: {}
+
+          # Liveness Probe - verifica se o container está vivo
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5011
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          
+          # Readiness Probe - verifica se o container está pronto para receber tráfego
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5011
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
+          
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: servicos-api-publicos
+  name: servicospublicos-api
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: 5011
+    protocol: TCP
+  selector:
+    io.kompose.service: servicos-api-publicos
