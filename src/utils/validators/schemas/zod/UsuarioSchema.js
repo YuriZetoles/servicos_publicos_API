@@ -105,11 +105,10 @@ const UsuarioSchema = z.object({
     )
     .optional(),
   grupo: z
-    .array(
-      z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
-        message: "ID inválido",
-      })
-    )
+    .string()
+    .refine((id) => mongoose.Types.ObjectId.isValid(id), {
+      message: "ID de grupo inválido",
+    })
     .optional(),
 });
 
