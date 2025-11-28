@@ -41,7 +41,7 @@ app.use(express.json());
 app.use(expressFileUpload());
 
 // Configuração para o proxy confiar no cliente no ambiente do code server
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
 
 // Habilitando o uso de urlencoded pelo express
 app.use(express.urlencoded({ extended: true }));
