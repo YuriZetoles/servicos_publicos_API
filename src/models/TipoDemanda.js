@@ -37,8 +37,7 @@ class TipoDemanda {
                 ref: 'usuarios'
             }],
             subdescricao: {
-                type: String,
-                required: [true, "A subdescrição da demanda é obrigatória!"]
+                type: String
             },
             tipo: {
                 type: String,

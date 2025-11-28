@@ -24,10 +24,8 @@ const TipoDemandaSchema = z.object({
     .transform((val) => val.trim()),
   subdescricao: z
     .string()
-    .refine((val) => val.trim().length > 0, {
-      message: "Subdescrição é obrigatória",
-    })
-    .transform((val) => val.trim()),
+    .trim()
+    .optional(),
   icone: z
     .string()
     .refine((val) => !val || /\.(jpg|jpeg|png|gif|svg)$/i.test(val), {

@@ -42,7 +42,7 @@ export const authRateLimit = rateLimit({
 // Rate limiter mais restritivo para operações sensíveis (login, upload, etc.)
 export const strictRateLimit = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutos
-  max: 10, // Limite de 10 requisições por janela
+  max: 15, // Limite de 15 requisições por janela
   message: {
     message: 'Muitas tentativas. Tente novamente em 5 minutos.',
     data: null,
