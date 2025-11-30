@@ -18,10 +18,10 @@ async function seedGrupo() {
           dominio: "localhost",
           ativo: true,
           buscar: true,
-          enviar: false,
+          enviar: true,
           substituir: true,
           modificar: true,
-          excluir: false,
+          excluir: true,
         },
         {
           rota: "grupos",
@@ -41,7 +41,7 @@ async function seedGrupo() {
           enviar: true,
           substituir: true,
           modificar: true,
-          excluir: false,
+          excluir: true,
         },
         {
           rota: "secretaria",
@@ -77,7 +77,7 @@ async function seedGrupo() {
           enviar: true,
           substituir: true,
           modificar: true,
-          excluir: false,
+          excluir: true,
         },
         {
           rota: "grupos",
@@ -97,7 +97,7 @@ async function seedGrupo() {
           enviar: true,
           substituir: true,
           modificar: true,
-          excluir: false,
+          excluir: true,
         },
         {
           rota: "secretaria",

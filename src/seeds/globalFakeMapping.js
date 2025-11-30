@@ -12,6 +12,7 @@ import loadModels from "./loadModels.js";
 import {
   estadosBrasil
 } from "../models/Usuario.js";
+import { getEnderecoVilhena } from "./data/vilhenaData.js";
 
 const fakeMappings = {
   common: {
@@ -73,17 +74,7 @@ const fakeMappings = {
     portaria_nomeacao: () =>
       `PORTARIA/${faker.number.int({ min: 1000, max: 9999 })}`,
     senha: () => fakebr.internet.password(),
-    endereco: {
-      logradouro: () => fakebr.address.streetName(),
-      cep: () => fakebr.address.zipCode(),
-      bairro: () => fakebr.address.county(),
-      numero: () => Math.floor(Math.random() * 9000) + 1000,
-      complemento: () => fakebr.address.secondaryAddress(),
-      cidade: () => fakebr.address.city(),
-      estado: () => {
-        return estadosBrasil[Math.floor(Math.random() * estadosBrasil.length)];
-      }
-    },
+    endereco: () => getEnderecoVilhena(),
     tokenUnico: () => "",
     accesstoken: () => "",
     refreshtoken: () => "",
@@ -143,13 +134,16 @@ const fakeMappings = {
     usuarios: () => [{
       _id: new mongoose.Types.ObjectId().toString()
     }],
-    endereco: {
-      logradouro: fakebr.address.streetName(),
-      cep: fakebr.address.zipCode(),
-      bairro: fakebr.address.county(),
-      numero: (Math.floor(Math.random() * 9999) + 1000),
-      complemento: fakebr.address.secondaryAddress()
-    }
+    endereco: () => {
+      const enderecoCompleto = getEnderecoVilhena();
+      return {
+        logradouro: enderecoCompleto.logradouro,
+        cep: enderecoCompleto.cep,
+        bairro: enderecoCompleto.bairro,
+        numero: enderecoCompleto.numero,
+        complemento: enderecoCompleto.complemento,
+      };
+    },
   },
 
   Grupo: {

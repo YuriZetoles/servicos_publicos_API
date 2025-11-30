@@ -35,6 +35,7 @@ openssl rand -base64 48
 - `MONGO_INITDB_ROOT_PASSWORD`
 
 **Verificar URLs:**
+
 ```yaml
 BASE_URL: "https://servicospublicos-api.app.fslab.dev"
 FRONTEND_URL: "https://servicospublicos.app.fslab.dev"
@@ -44,18 +45,18 @@ DB_URL: "mongodb://servicospublicos:SENHA@servicos-mongodb-publicos:27017/servic
 ---
 
 ## 🐋 Passo 2: Build e Push da Imagem
-
 ```bash
 # Build
-docker compose build
+cd /home/yuri/Documentos/fabrica/servicos-publicos-api
+docker build -t yurizetoles/servicos_publicos_api:latest .
 
 # Push
 docker push yurizetoles/servicos_publicos_api:latest
 
 # Verificar
+```bash
 docker images | grep servicos_publicos_api
 ```
-
 ---
 
 ## 🚀 Passo 3: Deploy no Cluster
@@ -144,9 +145,16 @@ kubectl logs -f deployment/servicos-api-publicos
 
 ## 🔄 Atualizar Deployment
 
+docker compose build
+docker push yurizetoles/servicos_publicos_api:latest
+kubectl rollout restart deployment/servicos-api-publicos
+kubectl rollout status deployment/servicos-api-publicos
+```
 ### Atualizar imagem
 ```bash
-docker compose build
+# Rebuild e push com tag (ex.: latest ou semver)
+cd /home/yuri/Documentos/fabrica/servicos-publicos-api
+docker build -t yurizetoles/servicos_publicos_api:latest .
 docker push yurizetoles/servicos_publicos_api:latest
 kubectl rollout restart deployment/servicos-api-publicos
 kubectl rollout status deployment/servicos-api-publicos
