@@ -46,11 +46,11 @@ async function seedDemanda() {
     descricao: "Poste de luz quebrado na esquina.",
     link_imagem: globalFakeMapping.link_imagem(),
     endereco: {
-      logradouro: "Rua das Flores",
-      cep: "12345-678",
-      bairro: "Jardim Luz",
-      numero: "100",
-      complemento: "Perto do ponto de ônibus"
+      logradouro: "Avenida Capitão Castro",
+      cep: "76980-000",
+      bairro: "Centro",
+      numero: "850",
+      complemento: "Próximo à praça"
     },
     usuarios: [municipeFixo._id],
     secretarias: [secretariaFixa]
@@ -63,10 +63,10 @@ async function seedDemanda() {
     descricao: "Buraco enorme na rua após a chuva.",
     link_imagem: globalFakeMapping.link_imagem(),
     endereco: {
-      logradouro: "Avenida Central",
-      cep: "87654-321",
-      bairro: "Centro",
-      numero: "250",
+      logradouro: "Rua Tucanos",
+      cep: "76985-000",
+      bairro: "Alto dos Parecis",
+      numero: "320",
       complemento: "Em frente ao mercado"
     },
     usuarios: [municipeFixo._id, operadorFixo._id],
@@ -96,13 +96,7 @@ async function seedDemanda() {
       link_imagem: globalFakeMapping.link_imagem(),
       descricao: globalFakeMapping.descricao(),
       link_imagem_resolucao: globalFakeMapping.link_imagem_resolucao(),
-      endereco: {
-        logradouro: globalFakeMapping.endereco.logradouro(),
-        cep: globalFakeMapping.endereco.cep(),
-        bairro: globalFakeMapping.endereco.bairro(),
-        numero: globalFakeMapping.endereco.numero(),
-        complemento: globalFakeMapping.endereco.complemento()
-      },
+      endereco: globalFakeMapping.endereco(),
       usuarios: [usuarioAleatorio._id],
       secretarias: [secretariaAleatoria._id]
     });
