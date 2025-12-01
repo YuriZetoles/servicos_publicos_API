@@ -30,7 +30,8 @@ class Demanda {
                 type: String
             },
             link_imagem: {
-                type: String
+                type: [String],
+                default: []
             },
             descricao: {
                 type: String
@@ -42,7 +43,8 @@ class Demanda {
                 type: String
             },
             link_imagem_resolucao: {
-                type: String
+                type: [String],
+                default: []
             },
             endereco: {
                 logradouro: {

@@ -144,7 +144,7 @@ class DemandaController {
     }
 
     /**
-     * Faz upload de uma foto para um usuário.
+     * Faz upload de uma ou múltiplas fotos para uma demanda.
      */
     async fotoUpload(req, res, next) {
         const {
@@ -165,8 +165,9 @@ class DemandaController {
             });
         }
 
-        const file = req.files?.file;
-        if (!file) {
+        // Aceita múltiplos arquivos ou um único
+        const files = req.files?.files || req.files?.file;
+        if (!files) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'validationError',
@@ -176,16 +177,16 @@ class DemandaController {
         }
 
         const {
-            fileName,
-            metadata
-        } = await this.service.processarFoto(id, file, normalizedTipo, req);
+            urls,
+            metadados
+        } = await this.service.processarFotos(id, files, normalizedTipo, req);
 
         return CommonResponse.success(res, {
-            message: 'Arquivo enviado e salvo com sucesso.',
+            message: 'Arquivo(s) enviado(s) e salvo(s) com sucesso.',
             dados: {
-                [`link_imagem${normalizedTipo === "resolucao" ? "_resolucao" : ""}`]: fileName
+                [`link_imagem${normalizedTipo === "resolucao" ? "_resolucao" : ""}`]: urls
             },
-            metadados: metadata
+            metadados
         });
     }
 

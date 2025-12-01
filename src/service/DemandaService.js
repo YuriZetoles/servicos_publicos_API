@@ -532,9 +532,10 @@ class DemandaService {
     }
 
     /**
-     * Processa e faz upload da foto para MinIO, atualiza a demanda e retorna metadados.
+     * Processa e faz upload de foto(s) para MinIO, atualiza a demanda e retorna metadados.
+     * Suporta upload único ou múltiplo.
      */
-    async processarFoto(demandaId, file, tipo, req) {
+    async processarFotos(demandaId, files, tipo, req) {
         // Verificar permissões antes de processar upload
         const usuario = await this.userRepository.buscarPorID(req.user_id);
         const nivel = usuario?.nivel_acesso;
@@ -573,13 +574,13 @@ class DemandaService {
 
         // Define dinamicamente o campo a ser atualizado
         const campo = tipo === "resolucao" ? "link_imagem_resolucao" : "link_imagem";
-        const imagemAntiga = demanda[campo];
+        const imagensAntigas = demanda[campo] || [];
 
-        // Usa o método centralizado que substitui a imagem (upload nova + delete antiga)
-        const { url, metadata } = await this.uploadService.substituirFoto(file, imagemAntiga);
+        // Usa o método para múltiplas imagens que substitui todas (upload novas + delete antigas)
+        const { urls, metadados } = await this.uploadService.substituirMultiplasFotos(files, imagensAntigas);
 
         const dados = {
-            [campo]: url
+            [campo]: urls
         };
 
         DemandaUpdateSchema.parse(dados);
@@ -587,19 +588,23 @@ class DemandaService {
         try {
             await this.atualizarFoto(demandaId, dados, req);
         } catch (error) {
-            // Se falhar ao atualizar DB, deletar do MinIO
-            await this.uploadService.deleteFoto(url);
+            // Se falhar ao atualizar DB, deletar todas as novas do MinIO
+            for (const url of urls) {
+                await this.uploadService.deleteFoto(url).catch(err => 
+                    console.error('Erro ao deletar arquivo durante rollback:', err)
+                );
+            }
             throw error;
         }
 
         return {
-            fileName: url,
-            metadata
+            urls,
+            metadados
         };
     }
 
     /**
-     * Deleta a foto de uma demanda.
+     * Deleta todas as fotos de uma demanda (solicitação ou resolução).
      */
     async deletarFoto(demandaId, tipo, req) {
         const usuario = await this.userRepository.buscarPorID(req.user_id);
@@ -638,24 +643,30 @@ class DemandaService {
         }
 
         const campo = tipo === "resolucao" ? "link_imagem_resolucao" : "link_imagem";
-        const fileName = demanda[campo];
+        const imagens = demanda[campo] || [];
 
-        if (!fileName) {
+        if (!imagens || imagens.length === 0) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.NOT_FOUND.code,
                 errorType: 'notFound',
                 field: campo,
-                customMessage: `Imagem de ${tipo} não encontrada.`
+                customMessage: `Nenhuma imagem de ${tipo} encontrada.`
             });
         }
 
-        // Atualizar no banco primeiro
-        const dados = { [campo]: "" };
+        // Atualizar no banco primeiro (limpar array)
+        const dados = { [campo]: [] };
         DemandaUpdateSchema.parse(dados);
         await this.repository.atualizar(demandaId, dados);
 
-        // Deletar do MinIO
-        await this.uploadService.deleteFoto(fileName);
+        // Deletar todas do MinIO
+        for (const imagem of imagens) {
+            if (imagem && imagem !== "") {
+                await this.uploadService.deleteFoto(imagem).catch(err =>
+                    console.error('Erro ao deletar imagem:', err)
+                );
+            }
+        }
     }
 
 }
