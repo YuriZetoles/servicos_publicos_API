@@ -55,11 +55,13 @@ const DemandaSchema = z.object({
     .string()
     .min(2, "A descrição não pode ser vazia."),
   link_imagem: z
-    .string()
-    .refine((val) => val === "" || /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(val), {
-      message: "Deve ser um link de imagem com extensão válida (jpg, png, etc)."
-    })
-    .optional(),
+    .array(
+      z.string().refine((val) => val === "" || /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(val), {
+        message: "Deve ser um link de imagem com extensão válida (jpg, png, etc)."
+      })
+    )
+    .optional()
+    .default([]),
   motivo_devolucao: z
     .string()
     .optional(),
@@ -67,11 +69,13 @@ const DemandaSchema = z.object({
     .string()
     .optional(),
   link_imagem_resolucao: z
-    .string()
-    .refine((val) => val === "" || /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(val), {
-      message: "Deve ser um link de imagem com extensão válida (jpg, png, etc)."
-    })
-    .optional(),
+    .array(
+      z.string().refine((val) => val === "" || /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(val), {
+        message: "Deve ser um link de imagem com extensão válida (jpg, png, etc)."
+      })
+    )
+    .optional()
+    .default([]),
   endereco: enderecoSchema,
   secretarias: z.array(
       z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {

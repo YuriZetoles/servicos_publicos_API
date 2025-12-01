@@ -18,6 +18,18 @@ export const authRateLimit = rateLimit({
   },
   standardHeaders: true, // Retorna rate limit info nos headers `RateLimit-*`
   legacyHeaders: false, // Desabilita headers `X-RateLimit-*`
+  // Extrai o IP real do cliente, ignorando IPs internos do cluster/proxy
+  keyGenerator: (req) => {
+    // X-Forwarded-For contém: "IP_real_cliente, IP_proxy1, IP_proxy2"
+    // Pegamos o PRIMEIRO IP da lista (IP real do cliente)
+    const forwarded = req.headers['x-forwarded-for'];
+    if (forwarded) {
+      const ips = forwarded.split(',').map(ip => ip.trim());
+      return ips[0]; // Retorna o IP original do cliente
+    }
+    // Fallback para outros headers comuns
+    return req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress || 'unknown';
+  },
   // Handler personalizado para erros de rate limit
   handler: (req, res) => {
     return CommonResponse.error(
@@ -53,6 +65,15 @@ export const strictRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Extrai o IP real do cliente, ignorando IPs internos do cluster/proxy
+  keyGenerator: (req) => {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (forwarded) {
+      const ips = forwarded.split(',').map(ip => ip.trim());
+      return ips[0];
+    }
+    return req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress || 'unknown';
+  },
   handler: (req, res) => {
     return CommonResponse.error(
       res,
@@ -82,6 +103,15 @@ export const uploadRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Extrai o IP real do cliente, ignorando IPs internos do cluster/proxy
+  keyGenerator: (req) => {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (forwarded) {
+      const ips = forwarded.split(',').map(ip => ip.trim());
+      return ips[0];
+    }
+    return req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress || 'unknown';
+  },
   handler: (req, res) => {
     return CommonResponse.error(
       res,
@@ -111,6 +141,15 @@ export const publicRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Extrai o IP real do cliente, ignorando IPs internos do cluster/proxy
+  keyGenerator: (req) => {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (forwarded) {
+      const ips = forwarded.split(',').map(ip => ip.trim());
+      return ips[0];
+    }
+    return req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress || 'unknown';
+  },
   handler: (req, res) => {
     return CommonResponse.error(
       res,
