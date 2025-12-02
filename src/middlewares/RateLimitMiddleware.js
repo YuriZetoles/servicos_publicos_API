@@ -4,6 +4,13 @@ import rateLimit from 'express-rate-limit';
 import CommonResponse from '../utils/helpers/CommonResponse.js';
 import HttpStatusCodes from '../utils/helpers/HttpStatusCodes.js';
 
+// Helper para extrair IP do cliente considerando proxy
+function getClientIdentifier(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) return forwarded.split(',')[0].trim();
+  return req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress || 'unknown';
+}
+
 // Rate limiter geral para todas as rotas autenticadas
 export const authRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
@@ -18,6 +25,8 @@ export const authRateLimit = rateLimit({
   },
   standardHeaders: true, // Retorna rate limit info nos headers `RateLimit-*`
   legacyHeaders: false, // Desabilita headers `X-RateLimit-*`
+  keyGenerator: getClientIdentifier,
+  validate: { trustProxy: false },
   // Handler personalizado para erros de rate limit
   handler: (req, res) => {
     return CommonResponse.error(
@@ -53,6 +62,8 @@ export const strictRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: getClientIdentifier,
+  validate: { trustProxy: false },
   handler: (req, res) => {
     return CommonResponse.error(
       res,
@@ -82,6 +93,8 @@ export const uploadRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: getClientIdentifier,
+  validate: { trustProxy: false },
   handler: (req, res) => {
     return CommonResponse.error(
       res,
@@ -111,6 +124,8 @@ export const publicRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: getClientIdentifier,
+  validate: { trustProxy: false },
   handler: (req, res) => {
     return CommonResponse.error(
       res,
