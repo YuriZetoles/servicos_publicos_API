@@ -4,24 +4,6 @@ import rateLimit from 'express-rate-limit';
 import CommonResponse from '../utils/helpers/CommonResponse.js';
 import HttpStatusCodes from '../utils/helpers/HttpStatusCodes.js';
 
-// Função helper para extrair IP do cliente
-function getClientIdentifier(req) {
-  const forwarded = req.headers['x-forwarded-for'];
-  const realIp = req.headers['x-real-ip'];
-  
-  if (forwarded) {
-    const ips = forwarded.split(',').map(ip => ip.trim());
-    return ips[0]; // IP real do cliente
-  }
-  
-  if (realIp) {
-    return realIp;
-  }
-  
-  // Fallback para IP da conexão (mesmo que interno)
-  return req.ip || req.socket.remoteAddress || 'unknown';
-}
-
 // Rate limiter geral para todas as rotas autenticadas
 export const authRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
@@ -36,7 +18,6 @@ export const authRateLimit = rateLimit({
   },
   standardHeaders: true, // Retorna rate limit info nos headers `RateLimit-*`
   legacyHeaders: false, // Desabilita headers `X-RateLimit-*`
-  keyGenerator: getClientIdentifier,
   // Handler personalizado para erros de rate limit
   handler: (req, res) => {
     return CommonResponse.error(
@@ -72,7 +53,6 @@ export const strictRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: getClientIdentifier,
   handler: (req, res) => {
     return CommonResponse.error(
       res,
@@ -102,7 +82,6 @@ export const uploadRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: getClientIdentifier,
   handler: (req, res) => {
     return CommonResponse.error(
       res,
@@ -122,9 +101,16 @@ export const uploadRateLimit = rateLimit({
 export const publicRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 50, // Limite de 50 requisições por janela
+  message: {
+    message: 'Muitas requisições. Tente novamente em 15 minutos.',
+    data: null,
+    errors: [{
+      path: 'rate_limit',
+      message: 'Limite de requisições públicas excedido.'
+    }]
+  },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: getClientIdentifier,
   handler: (req, res) => {
     return CommonResponse.error(
       res,
