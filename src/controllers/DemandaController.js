@@ -191,7 +191,7 @@ class DemandaController {
     }
 
     /**
-     * Deleta a foto de uma demanda.
+     * Deleta todas as fotos de um tipo (solicitação ou resolução) de uma demanda.
      */
     async fotoDelete(req, res, next) {
         const { id, tipo } = req.params;
@@ -212,7 +212,7 @@ class DemandaController {
         await this.service.deletarFoto(id, normalizedTipo, req);
 
         return CommonResponse.success(res, {
-            message: 'Foto deletada com sucesso.'
+            message: `Todas as fotos de ${normalizedTipo} foram deletadas com sucesso.`
         });
     }
 

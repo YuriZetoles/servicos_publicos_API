@@ -477,6 +477,20 @@ class DemandaService {
 
         await this.ensureDemandaExists(id);
 
+        // Deletar todas as imagens do MinIO antes de deletar a demanda
+        const imagensSolicitacao = demanda.link_imagem || [];
+        const imagensResolucao = demanda.link_imagem_resolucao || [];
+        const todasImagens = [...imagensSolicitacao, ...imagensResolucao];
+
+        // Deletar cada imagem do bucket
+        for (const imagem of todasImagens) {
+            if (imagem && imagem !== "") {
+                await this.uploadService.deleteFoto(imagem).catch(err =>
+                    console.error('Erro ao deletar imagem durante exclusão da demanda:', err)
+                );
+            }
+        }
+
         const data = await this.repository.deletar(id);
         return data;
     }
@@ -576,7 +590,7 @@ class DemandaService {
         const campo = tipo === "resolucao" ? "link_imagem_resolucao" : "link_imagem";
         const imagensAntigas = demanda[campo] || [];
 
-        // Usa o método para múltiplas imagens que substitui todas (upload novas + delete antigas)
+        // Substitui todas as imagens (upload novas + delete antigas)
         const { urls, metadados } = await this.uploadService.substituirMultiplasFotos(files, imagensAntigas);
 
         const dados = {
@@ -605,6 +619,9 @@ class DemandaService {
 
     /**
      * Deleta todas as fotos de uma demanda (solicitação ou resolução).
+     * @param {string} demandaId - ID da demanda.
+     * @param {string} tipo - Tipo da imagem ("solicitacao" ou "resolucao").
+     * @param {Object} req - Request object.
      */
     async deletarFoto(demandaId, tipo, req) {
         const usuario = await this.userRepository.buscarPorID(req.user_id);
