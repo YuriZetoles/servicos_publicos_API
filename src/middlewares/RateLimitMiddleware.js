@@ -26,7 +26,7 @@ export const authRateLimit = rateLimit({
   standardHeaders: true, // Retorna rate limit info nos headers `RateLimit-*`
   legacyHeaders: false, // Desabilita headers `X-RateLimit-*`
   keyGenerator: getClientIdentifier,
-  validate: { trustProxy: false },
+  validate: { trustProxy: false, xForwardedForHeader: false },
   // Handler personalizado para erros de rate limit
   handler: (req, res) => {
     return CommonResponse.error(
@@ -63,7 +63,7 @@ export const strictRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: getClientIdentifier,
-  validate: { trustProxy: false },
+  validate: { trustProxy: false, xForwardedForHeader: false },
   handler: (req, res) => {
     return CommonResponse.error(
       res,
@@ -94,7 +94,7 @@ export const uploadRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: getClientIdentifier,
-  validate: { trustProxy: false },
+  validate: { trustProxy: false, xForwardedForHeader: false },
   handler: (req, res) => {
     return CommonResponse.error(
       res,
@@ -125,7 +125,7 @@ export const publicRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: getClientIdentifier,
-  validate: { trustProxy: false },
+  validate: { trustProxy: false, xForwardedForHeader: false },
   handler: (req, res) => {
     return CommonResponse.error(
       res,
