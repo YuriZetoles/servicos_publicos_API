@@ -24,12 +24,22 @@ export const authRateLimit = rateLimit({
     // X-Forwarded-For contém: "IP_real_cliente, IP_proxy1, IP_proxy2"
     // Pegamos o PRIMEIRO IP da lista (IP real do cliente)
     const forwarded = req.headers['x-forwarded-for'];
+    const realIp = req.headers['x-real-ip'];
+    const userAgent = req.headers['user-agent'] || '';
+    
     let clientIp;
     if (forwarded) {
       const ips = forwarded.split(',').map(ip => ip.trim());
       clientIp = ips[0]; // Retorna o IP original do cliente
+    } else if (realIp) {
+      clientIp = realIp;
     } else {
-      clientIp = req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress || 'unknown';
+      // Se não tem header de proxy, usa combinação de IP + User-Agent para diferenciar
+      clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+      // Adiciona hash do user-agent para diferenciar clientes mesmo com IP igual
+      if (clientIp === '10.87.0.10' || clientIp.startsWith('10.') || clientIp.startsWith('172.')) {
+        return `${clientIp}-${Buffer.from(userAgent).toString('base64').substring(0, 20)}`;
+      }
     }
     // Usa ipKeyGenerator para normalizar IPv6 corretamente
     return ipKeyGenerator({ ip: clientIp });
@@ -72,12 +82,20 @@ export const strictRateLimit = rateLimit({
   // Extrai o IP real do cliente, ignorando IPs internos do cluster/proxy
   keyGenerator: (req) => {
     const forwarded = req.headers['x-forwarded-for'];
+    const realIp = req.headers['x-real-ip'];
+    const userAgent = req.headers['user-agent'] || '';
+    
     let clientIp;
     if (forwarded) {
       const ips = forwarded.split(',').map(ip => ip.trim());
       clientIp = ips[0];
+    } else if (realIp) {
+      clientIp = realIp;
     } else {
-      clientIp = req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress || 'unknown';
+      clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+      if (clientIp === '10.87.0.10' || clientIp.startsWith('10.') || clientIp.startsWith('172.')) {
+        return `${clientIp}-${Buffer.from(userAgent).toString('base64').substring(0, 20)}`;
+      }
     }
     return ipKeyGenerator({ ip: clientIp });
   },
@@ -113,12 +131,20 @@ export const uploadRateLimit = rateLimit({
   // Extrai o IP real do cliente, ignorando IPs internos do cluster/proxy
   keyGenerator: (req) => {
     const forwarded = req.headers['x-forwarded-for'];
+    const realIp = req.headers['x-real-ip'];
+    const userAgent = req.headers['user-agent'] || '';
+    
     let clientIp;
     if (forwarded) {
       const ips = forwarded.split(',').map(ip => ip.trim());
       clientIp = ips[0];
+    } else if (realIp) {
+      clientIp = realIp;
     } else {
-      clientIp = req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress || 'unknown';
+      clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+      if (clientIp === '10.87.0.10' || clientIp.startsWith('10.') || clientIp.startsWith('172.')) {
+        return `${clientIp}-${Buffer.from(userAgent).toString('base64').substring(0, 20)}`;
+      }
     }
     return ipKeyGenerator({ ip: clientIp });
   },
@@ -141,25 +167,25 @@ export const uploadRateLimit = rateLimit({
 export const publicRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 50, // Limite de 50 requisições por janela
-  message: {
-    message: 'Muitas requisições. Tente novamente em 15 minutos.',
-    data: null,
-    errors: [{
-      path: 'rate_limit',
-      message: 'Limite de requisições públicas excedido.'
-    }]
-  },
   standardHeaders: true,
   legacyHeaders: false,
   // Extrai o IP real do cliente, ignorando IPs internos do cluster/proxy
   keyGenerator: (req) => {
     const forwarded = req.headers['x-forwarded-for'];
+    const realIp = req.headers['x-real-ip'];
+    const userAgent = req.headers['user-agent'] || '';
+    
     let clientIp;
     if (forwarded) {
       const ips = forwarded.split(',').map(ip => ip.trim());
       clientIp = ips[0];
+    } else if (realIp) {
+      clientIp = realIp;
     } else {
-      clientIp = req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress || 'unknown';
+      clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+      if (clientIp === '10.87.0.10' || clientIp.startsWith('10.') || clientIp.startsWith('172.')) {
+        return `${clientIp}-${Buffer.from(userAgent).toString('base64').substring(0, 20)}`;
+      }
     }
     return ipKeyGenerator({ ip: clientIp });
   },
