@@ -588,10 +588,10 @@ class DemandaService {
 
         // Define dinamicamente o campo a ser atualizado
         const campo = tipo === "resolucao" ? "link_imagem_resolucao" : "link_imagem";
-        const imagensAntigas = demanda[campo] || [];
+        const imagensExistentes = demanda[campo] || [];
 
-        // Substitui todas as imagens (upload novas + delete antigas)
-        const { urls, metadados } = await this.uploadService.substituirMultiplasFotos(files, imagensAntigas);
+        // Adiciona novas imagens mantendo as existentes (max 10)
+        const { urls, metadados } = await this.uploadService.adicionarFotos(files, imagensExistentes, 10);
 
         const dados = {
             [campo]: urls
