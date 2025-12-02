@@ -1,9 +1,26 @@
 // src/middlewares/RateLimitMiddleware.js
 
 import rateLimit from 'express-rate-limit';
-import { ipKeyGenerator } from 'express-rate-limit';
 import CommonResponse from '../utils/helpers/CommonResponse.js';
 import HttpStatusCodes from '../utils/helpers/HttpStatusCodes.js';
+
+// Função helper para extrair IP do cliente
+function getClientIdentifier(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  const realIp = req.headers['x-real-ip'];
+  
+  if (forwarded) {
+    const ips = forwarded.split(',').map(ip => ip.trim());
+    return ips[0]; // IP real do cliente
+  }
+  
+  if (realIp) {
+    return realIp;
+  }
+  
+  // Fallback para IP da conexão (mesmo que interno)
+  return req.ip || req.socket.remoteAddress || 'unknown';
+}
 
 // Rate limiter geral para todas as rotas autenticadas
 export const authRateLimit = rateLimit({
@@ -19,31 +36,7 @@ export const authRateLimit = rateLimit({
   },
   standardHeaders: true, // Retorna rate limit info nos headers `RateLimit-*`
   legacyHeaders: false, // Desabilita headers `X-RateLimit-*`
-  // Extrai o IP real do cliente, ignorando IPs internos do cluster/proxy
-  keyGenerator: (req) => {
-    // X-Forwarded-For contém: "IP_real_cliente, IP_proxy1, IP_proxy2"
-    // Pegamos o PRIMEIRO IP da lista (IP real do cliente)
-    const forwarded = req.headers['x-forwarded-for'];
-    const realIp = req.headers['x-real-ip'];
-    const userAgent = req.headers['user-agent'] || '';
-    
-    let clientIp;
-    if (forwarded) {
-      const ips = forwarded.split(',').map(ip => ip.trim());
-      clientIp = ips[0]; // Retorna o IP original do cliente
-    } else if (realIp) {
-      clientIp = realIp;
-    } else {
-      // Se não tem header de proxy, usa combinação de IP + User-Agent para diferenciar
-      clientIp = req.ip || req.socket.remoteAddress || 'unknown';
-      // Adiciona hash do user-agent para diferenciar clientes mesmo com IP igual
-      if (clientIp === '10.87.0.10' || clientIp.startsWith('10.') || clientIp.startsWith('172.')) {
-        return `${clientIp}-${Buffer.from(userAgent).toString('base64').substring(0, 20)}`;
-      }
-    }
-    // Usa ipKeyGenerator para normalizar IPv6 corretamente
-    return ipKeyGenerator({ ip: clientIp });
-  },
+  keyGenerator: getClientIdentifier,
   // Handler personalizado para erros de rate limit
   handler: (req, res) => {
     return CommonResponse.error(
@@ -79,26 +72,7 @@ export const strictRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  // Extrai o IP real do cliente, ignorando IPs internos do cluster/proxy
-  keyGenerator: (req) => {
-    const forwarded = req.headers['x-forwarded-for'];
-    const realIp = req.headers['x-real-ip'];
-    const userAgent = req.headers['user-agent'] || '';
-    
-    let clientIp;
-    if (forwarded) {
-      const ips = forwarded.split(',').map(ip => ip.trim());
-      clientIp = ips[0];
-    } else if (realIp) {
-      clientIp = realIp;
-    } else {
-      clientIp = req.ip || req.socket.remoteAddress || 'unknown';
-      if (clientIp === '10.87.0.10' || clientIp.startsWith('10.') || clientIp.startsWith('172.')) {
-        return `${clientIp}-${Buffer.from(userAgent).toString('base64').substring(0, 20)}`;
-      }
-    }
-    return ipKeyGenerator({ ip: clientIp });
-  },
+  keyGenerator: getClientIdentifier,
   handler: (req, res) => {
     return CommonResponse.error(
       res,
@@ -128,26 +102,7 @@ export const uploadRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  // Extrai o IP real do cliente, ignorando IPs internos do cluster/proxy
-  keyGenerator: (req) => {
-    const forwarded = req.headers['x-forwarded-for'];
-    const realIp = req.headers['x-real-ip'];
-    const userAgent = req.headers['user-agent'] || '';
-    
-    let clientIp;
-    if (forwarded) {
-      const ips = forwarded.split(',').map(ip => ip.trim());
-      clientIp = ips[0];
-    } else if (realIp) {
-      clientIp = realIp;
-    } else {
-      clientIp = req.ip || req.socket.remoteAddress || 'unknown';
-      if (clientIp === '10.87.0.10' || clientIp.startsWith('10.') || clientIp.startsWith('172.')) {
-        return `${clientIp}-${Buffer.from(userAgent).toString('base64').substring(0, 20)}`;
-      }
-    }
-    return ipKeyGenerator({ ip: clientIp });
-  },
+  keyGenerator: getClientIdentifier,
   handler: (req, res) => {
     return CommonResponse.error(
       res,
@@ -169,26 +124,7 @@ export const publicRateLimit = rateLimit({
   max: 50, // Limite de 50 requisições por janela
   standardHeaders: true,
   legacyHeaders: false,
-  // Extrai o IP real do cliente, ignorando IPs internos do cluster/proxy
-  keyGenerator: (req) => {
-    const forwarded = req.headers['x-forwarded-for'];
-    const realIp = req.headers['x-real-ip'];
-    const userAgent = req.headers['user-agent'] || '';
-    
-    let clientIp;
-    if (forwarded) {
-      const ips = forwarded.split(',').map(ip => ip.trim());
-      clientIp = ips[0];
-    } else if (realIp) {
-      clientIp = realIp;
-    } else {
-      clientIp = req.ip || req.socket.remoteAddress || 'unknown';
-      if (clientIp === '10.87.0.10' || clientIp.startsWith('10.') || clientIp.startsWith('172.')) {
-        return `${clientIp}-${Buffer.from(userAgent).toString('base64').substring(0, 20)}`;
-      }
-    }
-    return ipKeyGenerator({ ip: clientIp });
-  },
+  keyGenerator: getClientIdentifier,
   handler: (req, res) => {
     return CommonResponse.error(
       res,
