@@ -88,7 +88,7 @@ class UsuarioService {
         // Secretário: limita a listagem às secretarias do usuário logado
         if (nivel.secretario) {
             const secretariasDoLogado = (usuarioLogado?.secretarias).map(s => s._id?.toString?.() || s.toString());
-            
+
             // Força o filtro por secretarias do usuário logado
             req.query.secretaria = secretariasDoLogado;
 
@@ -97,7 +97,7 @@ class UsuarioService {
             // Secretário só pode ver:
             // 1. Operadores da mesma secretaria
             // 2. Ele mesmo (quando pede por secretarios)
-            
+
             // Se pediu especificamente por secretarios, retorna apenas o próprio usuário
             if (requestedNivel === 'secretario') {
                 const unico = await this.repository.buscarPorID(usuarioID);
@@ -179,9 +179,9 @@ class UsuarioService {
         await this.validateEmail(parsedData.email);
 
         // O admin cadastra e o sistema envia email para definir senha
-        const isColaborador = parsedData.nivel_acesso?.operador || 
-                             parsedData.nivel_acesso?.secretario || 
-                             parsedData.nivel_acesso?.administrador;
+        const isColaborador = parsedData.nivel_acesso?.operador ||
+            parsedData.nivel_acesso?.secretario ||
+            parsedData.nivel_acesso?.administrador;
 
         if (isColaborador && parsedData.senha) {
             delete parsedData.senha;
@@ -195,35 +195,31 @@ class UsuarioService {
         // Criar o usuário no banco
         const data = await this.repository.criar(parsedData);
 
-        // Se for colaborador, gera token de recuperação e envia email
+        // Se for colaborador, gera token de recuperação e envia email em background
         if (isColaborador) {
-            try {
-                // Gerar token único para definir senha
-                const tokenUnico = await this.TokenUtil.generatePasswordRecoveryToken(data._id);
-                const expMs = Date.now() + 24 * 60 * 60 * 1000; // 24 horas de expiração
+            // Gerar token único para definir senha
+            const tokenUnico = await this.TokenUtil.generatePasswordRecoveryToken(data._id);
+            const expMs = Date.now() + 24 * 60 * 60 * 1000; // 24 horas de expiração
 
-                // Atualiza usuário com o token
-                await this.repository.atualizar(data._id, {
-                    tokenUnico,
-                    exp_codigo_recupera_senha: new Date(expMs)
-                });
+            // Atualiza usuário com o token
+            await this.repository.atualizar(data._id, {
+                tokenUnico,
+                exp_codigo_recupera_senha: new Date(expMs)
+            });
 
-                // Envia email de boas-vindas com link para definir senha
-                const linkDefinirSenha = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/nova-senha?token=${tokenUnico}`;
-                const emailData = emailBoasVindasColaborador({
-                    nome: data.nome,
-                    email: data.email,
-                    linkDefinirSenha,
-                    cargo: data.cargo || null
-                });
-                
-                await enviarEmail(emailData);
-                
-                console.log(`Email de definição de senha enviado para colaborador: ${data.email}`);
-            } catch (error) {
-                console.error('Erro ao enviar email para colaborador:', error);
-                // Não lança erro para não bloquear o cadastro
-            }
+            // Envia email de boas-vindas com link para definir senha (em background)
+            const linkDefinirSenha = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/nova-senha?token=${tokenUnico}`;
+            const emailData = emailBoasVindasColaborador({
+                nome: data.nome,
+                email: data.email,
+                linkDefinirSenha,
+                cargo: data.cargo || null
+            });
+
+            // Envio em background - não aguarda resposta
+            enviarEmail(emailData)
+                .then(() => console.log(`Email de definição de senha enviado para colaborador: ${data.email}`))
+                .catch((error) => console.error('Erro ao enviar email para colaborador:', error));
         }
 
         return data;
@@ -260,19 +256,18 @@ class UsuarioService {
 
         const data = await this.repository.criar(parsedData);
 
-        // Envia email de verificação para o munícipe
-        try {
-            const linkVerificacao = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verificar-email?token=${tokenVerificacao}`;
-            const emailData = emailBoasVindasMunicipe({
-                nome: data.nome,
-                email: data.email,
-                linkVerificacao
-            });
-            await enviarEmail(emailData);
-        } catch (error) {
-            console.error('Erro ao enviar email de verificação:', error);
-            // Não lança erro para não bloquear o cadastro
-        }
+        // Envia email de verificação para o munícipe em background (não bloqueia o cadastro)
+        const linkVerificacao = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verificar-email?token=${tokenVerificacao}`;
+        const emailData = emailBoasVindasMunicipe({
+            nome: data.nome,
+            email: data.email,
+            linkVerificacao
+        });
+
+        // Envio em background - não aguarda resposta
+        enviarEmail(emailData)
+            .then(() => console.log(`Email de verificação enviado para: ${data.email}`))
+            .catch((error) => console.error('Erro ao enviar email de verificação:', error));
 
         delete data.senha
 
@@ -341,7 +336,7 @@ class UsuarioService {
         const data = await this.repository.atualizar(id, parsedData);
         return data;
     }
-    
+
     // ================================
     // MÉTODOS UTILITÁRIOS
     // ================================

@@ -232,6 +232,115 @@ class UploadService {
 
         await this.uploadRepository.deleteFile(key);
     }
+
+    /**
+     * Processa múltiplas fotos de uma vez.
+     * @param {Array|Object} files - Array de arquivos ou objeto com arquivos do express-fileupload.
+     * @returns {Promise<Array>} - Array de { url, metadata }
+     */
+    async processarMultiplasFotos(files) {
+        // Normaliza para array se vier como objeto
+        const filesArray = Array.isArray(files) ? files : [files];
+        
+        const resultados = [];
+        
+        for (const file of filesArray) {
+            try {
+                const resultado = await this.processarFoto(file);
+                resultados.push(resultado);
+            } catch (error) {
+                // Se falhar em alguma, deletar todas as já processadas
+                for (const { url } of resultados) {
+                    await this.deleteFoto(url).catch(err => 
+                        logger.warn('Falha ao deletar arquivo durante rollback', { url, error: err.message })
+                    );
+                }
+                throw error;
+            }
+        }
+        
+        return resultados;
+    }
+
+    /**
+     * Substitui múltiplas fotos: faz upload das novas e deleta as antigas que não estão mais presentes.
+     * @param {Array|Object} files - Array de arquivos ou objeto com arquivos do express-fileupload.
+     * @param {Array<string>} imagensAntigas - Array de URLs das imagens antigas.
+     * @returns {Promise<Object>} - { urls: Array<string>, metadados: Array<Object> }
+     */
+    async substituirMultiplasFotos(files, imagensAntigas = []) {
+        // 1. Faz upload das novas imagens
+        const resultados = await this.processarMultiplasFotos(files);
+        
+        const urls = resultados.map(r => r.url);
+        const metadados = resultados.map(r => r.metadata);
+        
+        // 2. Deleta as imagens antigas que não estão mais no array (em background)
+        if (imagensAntigas && Array.isArray(imagensAntigas) && imagensAntigas.length > 0) {
+            for (const imagemAntiga of imagensAntigas) {
+                if (imagemAntiga && imagemAntiga !== "") {
+                    this.deleteFotoComRetry(imagemAntiga);
+                }
+            }
+        }
+        
+        return { urls, metadados };
+    }
+
+    /**
+     * Adiciona novas fotos a um array existente (sem deletar as antigas).
+     * @param {Array|Object} files - Array de arquivos ou objeto com arquivos do express-fileupload.
+     * @param {Array<string>} imagensExistentes - Array de URLs das imagens existentes.
+     * @param {number} maxImages - Número máximo de imagens permitidas (padrão: 10).
+     * @returns {Promise<Object>} - { urls: Array<string>, metadados: Array<Object> }
+     */
+    async adicionarFotos(files, imagensExistentes = [], maxImages = 10) {
+        const imagensExistentesArray = Array.isArray(imagensExistentes) ? imagensExistentes : [];
+        
+        // Normaliza para array
+        const filesArray = Array.isArray(files) ? files : [files];
+        
+        // Valida limite
+        const totalAposUpload = imagensExistentesArray.length + filesArray.length;
+        if (totalAposUpload > maxImages) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'files',
+                customMessage: `Limite de ${maxImages} imagens excedido. Você tem ${imagensExistentesArray.length} e está tentando adicionar ${filesArray.length}.`
+            });
+        }
+        
+        // Processa novas imagens
+        const resultados = await this.processarMultiplasFotos(files);
+        const novasUrls = resultados.map(r => r.url);
+        const metadados = resultados.map(r => r.metadata);
+        
+        // Combina com as existentes
+        const urls = [...imagensExistentesArray, ...novasUrls];
+        
+        return { urls, metadados };
+    }
+
+    /**
+     * Remove fotos específicas de um array e deleta do storage.
+     * @param {Array<string>} urlsParaRemover - Array de URLs para remover.
+     * @param {Array<string>} imagensExistentes - Array de URLs existentes.
+     * @returns {Promise<Array<string>>} - Array atualizado sem as URLs removidas.
+     */
+    async removerFotos(urlsParaRemover, imagensExistentes) {
+        const urlsParaRemoverSet = new Set(urlsParaRemover);
+        const urlsRestantes = imagensExistentes.filter(url => !urlsParaRemoverSet.has(url));
+        
+        // Deleta as imagens removidas (em background)
+        for (const url of urlsParaRemover) {
+            if (url && url !== "") {
+                this.deleteFotoComRetry(url);
+            }
+        }
+        
+        return urlsRestantes;
+    }
 }
 
 export default UploadService;

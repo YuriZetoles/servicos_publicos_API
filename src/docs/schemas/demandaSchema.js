@@ -123,7 +123,7 @@ demandaSchemas.DemandaPost.example = await generateExample(demandaSchemas.Demand
 demandaSchemas.DemandaPatch.example = await generateExample(demandaSchemas.DemandaPatch, null, demandaMongooseSchema);
 
 /**
- * Schemas personalizados para upload/download de foto de usuário, não há como automatizar
+ * Schemas personalizados para upload/download de foto de demanda, não há como automatizar
  */
 demandaSchemas.DemandaFotoPayload = {
   type: "object",
@@ -131,46 +131,64 @@ demandaSchemas.DemandaFotoPayload = {
     message: {
       type: "string",
       description: "Mensagem de sucesso da operação de upload",
-      example: "Arquivo recebido e usuário atualizado com sucesso."
+      example: "Arquivo(s) enviado(s) e salvo(s) com sucesso."
     },
     dados: {
       type: "object",
-      description: "Dados atualizados do usuário",
+      description: "Dados atualizados da demanda",
       properties: {
         link_imagem: {
-          type: "string",
-          description: "Nome do arquivo de foto salvo",
-          example: "c25069f4-d07b-4836-97a1-2c600b67f9f2.jpg"
+          type: "array",
+          description: "Array de URLs das fotos da demanda (solicitação)",
+          items: {
+            type: "string"
+          },
+          example: [
+            "http://localhost:9000/bucket/c25069f4-d07b-4836-97a1-2c600b67f9f2.jpg",
+            "http://localhost:9000/bucket/a15932b3-e08c-5d47-bc72-3d7f8a539abc.jpg"
+          ]
+        },
+        link_imagem_resolucao: {
+          type: "array",
+          description: "Array de URLs das fotos da demanda (resolução)",
+          items: {
+            type: "string"
+          },
+          example: [
+            "http://localhost:9000/bucket/f39182c4-b19d-6e58-cd83-4e8g9b640def.jpg"
+          ]
         }
-      },
-      required: ["link_imagem"]
+      }
     },
     metadados: {
-      type: "object",
-      description: "Informações técnicas sobre o arquivo enviado",
-      properties: {
-        fileName: {
-          type: "string",
-          example: "c25069f4-d07b-4836-97a1-2c600b67f9f2.jpg"
+      type: "array",
+      description: "Array de informações técnicas sobre os arquivos enviados",
+      items: {
+        type: "object",
+        properties: {
+          fileName: {
+            type: "string",
+            example: "c25069f4-d07b-4836-97a1-2c600b67f9f2.jpg"
+          },
+          fileExtension: {
+            type: "string",
+            example: "jpg"
+          },
+          fileSize: {
+            type: "integer",
+            example: 121421
+          },
+          md5: {
+            type: "string",
+            example: "1bd822a4b1ca3c6224b5be5ef330ebdf"
+          }
         },
-        fileExtension: {
-          type: "string",
-          example: "jpg"
-        },
-        fileSize: {
-          type: "integer",
-          example: 121421
-        },
-        md5: {
-          type: "string",
-          example: "1bd822a4b1ca3c6224b5be5ef330ebdf"
-        }
-      },
-      required: ["fileName", "fileExtension", "fileSize", "md5"]
+        required: ["fileName", "fileExtension", "fileSize", "md5"]
+      }
     }
   },
   required: ["message", "dados", "metadados"],
-  description: "Payload de resultado de upload de foto de usuário"
+  description: "Payload de resultado de upload de foto(s) de demanda"
 };
 
 export default demandaSchemas;
