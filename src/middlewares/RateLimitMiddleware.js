@@ -51,7 +51,7 @@ export const authRateLimit = rateLimit({
 // Rate limiter mais restritivo para operações sensíveis (login, upload, etc.)
 export const strictRateLimit = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutos
-  max: 15, // Limite de 15 requisições por janela
+  max: 25, // Limite de 25 requisições por janela
   message: {
     message: 'Muitas tentativas. Tente novamente em 5 minutos.',
     data: null,
@@ -82,13 +82,13 @@ export const strictRateLimit = rateLimit({
 // Rate limiter específico para uploads (mais restritivo)
 export const uploadRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
-  max: 20, // Limite de 20 uploads por hora
+  max: 100, // Limite de 100 uploads por hora
   message: {
     message: 'Limite de uploads excedido. Tente novamente em 1 hora.',
     data: null,
     errors: [{
       path: 'upload_limit',
-      message: 'Limite de uploads por hora excedido. Máximo 20 uploads/hora.'
+      message: 'Limite de uploads por hora excedido. Máximo 100 uploads/hora.'
     }]
   },
   standardHeaders: true,
@@ -103,7 +103,7 @@ export const uploadRateLimit = rateLimit({
       'upload_limit',
       [{
         path: 'upload_limit',
-        message: 'Limite de uploads por hora excedido. Máximo 20 uploads/hora.'
+        message: 'Limite de uploads por hora excedido. Máximo 100 uploads/hora.'
       }],
       'Limite de uploads excedido. Tente novamente em 1 hora.'
     );
