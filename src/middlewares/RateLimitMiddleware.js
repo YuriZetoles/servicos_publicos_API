@@ -82,13 +82,13 @@ export const strictRateLimit = rateLimit({
 // Rate limiter específico para uploads (mais restritivo)
 export const uploadRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
-  max: 40, // Limite de 40 uploads por hora
+  max: 100, // Limite de 100 uploads por hora
   message: {
     message: 'Limite de uploads excedido. Tente novamente em 1 hora.',
     data: null,
     errors: [{
       path: 'upload_limit',
-      message: 'Limite de uploads por hora excedido. Máximo 20 uploads/hora.'
+      message: 'Limite de uploads por hora excedido. Máximo 100 uploads/hora.'
     }]
   },
   standardHeaders: true,
@@ -103,7 +103,7 @@ export const uploadRateLimit = rateLimit({
       'upload_limit',
       [{
         path: 'upload_limit',
-        message: 'Limite de uploads por hora excedido. Máximo 20 uploads/hora.'
+        message: 'Limite de uploads por hora excedido. Máximo 100 uploads/hora.'
       }],
       'Limite de uploads excedido. Tente novamente em 1 hora.'
     );
