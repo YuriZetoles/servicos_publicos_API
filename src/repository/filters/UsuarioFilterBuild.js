@@ -1,5 +1,6 @@
 // /src/repository/filters/UsuarioFilterBuild.js
 
+import mongoose from "mongoose";
 import Usuario from "../../models/Usuario.js";
 import Secretaria from "../../models/Secretaria.js";
 import UsuarioRepository from "../UsuarioRepository.js";
@@ -74,21 +75,31 @@ class UsuarioFilterBuild {
   async comSecretaria(secretaria) {
     if (secretaria) {
       if (Array.isArray(secretaria)) {
+        // Se é um array, usa diretamente como IDs
         this.filtros.secretarias = {
           $in: secretaria
         };
       } else {
-        const secretariaEncontrado = await this.secretariaRepository.buscarPorNome(secretaria);
+        // Se é uma string, verifica se é um ObjectId válido
+        if (mongoose.Types.ObjectId.isValid(secretaria)) {
+          // É um ObjectId válido, usa diretamente
+          this.filtros.secretarias = {
+            $in: [secretaria]
+          };
+        } else {
+          // Não é um ObjectId, tenta buscar por nome
+          const secretariaEncontrado = await this.secretariaRepository.buscarPorNome(secretaria);
 
-        const secretariasIDs = secretariaEncontrado ?
-          Array.isArray(secretariaEncontrado) ?
-          secretariaEncontrado.map((g) => g._id) :
-          [secretariaEncontrado._id] :
-          [];
+          const secretariasIDs = secretariaEncontrado ?
+            Array.isArray(secretariaEncontrado) ?
+            secretariaEncontrado.map((g) => g._id) :
+            [secretariaEncontrado._id] :
+            [];
 
-        this.filtros.secretarias = {
-          $in: secretariasIDs
-        };
+          this.filtros.secretarias = {
+            $in: secretariasIDs
+          };
+        }
       }
     }
 

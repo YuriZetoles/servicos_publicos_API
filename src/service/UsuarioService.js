@@ -153,17 +153,8 @@ class UsuarioService {
                     return isOperador && compartilhaSecretaria;
                 });
 
-                // Garantir que o próprio secretário apareça no resultado
-                const containsSelf = resultado.docs.some(d => String(d._id) === String(usuarioID));
-                if (!containsSelf) {
-                    const self = await this.repository.buscarPorID(usuarioID);
-                    const selfObj = typeof self.toObject === 'function' ? self.toObject() : self;
-                    // Inserir o próprio usuário no topo dos resultados
-                    resultado.docs.unshift(selfObj);
-                    resultado.totalDocs = (resultado.totalDocs || 0) + 1;
-                } else {
-                    resultado.totalDocs = resultado.docs.length;
-                }
+                // Atualiza o total de documentos após a filtragem
+                resultado.totalDocs = resultado.docs.length;
             }
 
             return resultado;

@@ -41,12 +41,16 @@ export const UsuarioQuerySchema = z.object({
         .refine((val) => !val || ["municipe", "secretario", "secretário", "munícipe", "operador", "administrador"].includes(val), {
             message: "Nível de acesso inválido."
         }),
-    secretarias: z
-        .string()
-        .optional()
-        .refine((val) => !val || mongoose.Types.ObjectId.isValid(val), {
-            message: "Secretaria inválida. Tente novamente!",
-        }),
+    secretaria: z
+        .union([
+            z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
+                message: "Secretaria inválida. Tente novamente!",
+            }),
+            z.array(z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
+                message: "Secretaria inválida. Tente novamente!",
+            }))
+        ])
+        .optional(),
     ativo: z
         .preprocess(
             (val) => {
