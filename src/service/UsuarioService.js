@@ -87,7 +87,14 @@ class UsuarioService {
 
         // Secretário: limita a listagem às secretarias do usuário logado
         if (nivel.secretario) {
-            const secretariasDoLogado = (usuarioLogado?.secretarias).map(s => s._id?.toString?.() || s.toString());
+            const secretariasDoLogado = (usuarioLogado?.secretarias || []).map(s => {
+                if (s && typeof s === 'object' && s._id) {
+                    return s._id.toString();
+                }
+                return s?.toString?.() || String(s);
+            });
+            
+            console.log('Secretarias do usuário logado:', secretariasDoLogado);
 
             // Força o filtro por secretarias do usuário logado
             req.query.secretaria = secretariasDoLogado;
@@ -135,8 +142,14 @@ class UsuarioService {
             if (resultado && Array.isArray(resultado.docs)) {
                 resultado.docs = resultado.docs.filter(doc => {
                     const isOperador = !!(doc.nivel_acesso && doc.nivel_acesso.operador);
-                    const secretariasDoc = (doc?.secretarias || []).map(s => s._id?.toString?.() || s.toString());
+                    const secretariasDoc = (doc?.secretarias || []).map(s => {
+                        if (s && typeof s === 'object' && s._id) {
+                            return s._id.toString();
+                        }
+                        return s?.toString?.() || String(s);
+                    });
                     const compartilhaSecretaria = secretariasDoc.some(sec => secretariasDoLogado.includes(sec));
+                    console.log(`Operador ${doc?.nome}: secretarias=${secretariasDoc.join(',')}, compartilha=${compartilhaSecretaria}`);
                     return isOperador && compartilhaSecretaria;
                 });
 
