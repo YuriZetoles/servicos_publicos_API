@@ -28,9 +28,9 @@ describe('Modelo demanda', () => {
         resolucao: "Em avaliação pela equipe técnica.",
         feedback: 4,
         avaliacao_resolucao: "Rápido e eficiente.",
-        link_imagem: "https://exemplo.com/imagem1.jpg",
+        link_imagem: ["https://exemplo.com/imagem1.jpg"],
         motivo_devolucao: "Endereço incompleto.",
-        link_imagem_resolucao: "https://exemplo.com/imagem_resolucao.jpg",
+        link_imagem_resolucao: ["https://exemplo.com/imagem_resolucao.jpg"],
         endereco: {
             logradouro: "Rua das Flores",
             cep: "12345-678",
@@ -51,9 +51,9 @@ describe('Modelo demanda', () => {
     expect(demandaSalva.resolucao).toBe("Em avaliação pela equipe técnica.");
     expect(demandaSalva.feedback).toBe(4);
     expect(demandaSalva.avaliacao_resolucao).toBe("Rápido e eficiente.");
-    expect(demandaSalva.link_imagem).toBe("https://exemplo.com/imagem1.jpg");
+    expect(demandaSalva.link_imagem).toEqual(["https://exemplo.com/imagem1.jpg"]);
     expect(demandaSalva.motivo_devolucao).toBe("Endereço incompleto.");
-    expect(demandaSalva.link_imagem_resolucao).toBe("https://exemplo.com/imagem_resolucao.jpg");
+    expect(demandaSalva.link_imagem_resolucao).toEqual(["https://exemplo.com/imagem_resolucao.jpg"]);
     expect(demandaSalva.endereco.bairro).toBe("Centro");
     });
 })
