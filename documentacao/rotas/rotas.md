@@ -22,21 +22,110 @@ O nosso sistema tem como objetivo, possibilitar uma comunicação entre a prefei
 - Retorno da página principal de acordo com o tipo de usuário que fizer o login no sistema.
 - Em caso de erro, mensagem de erro: "E-mail já cadastrado" ou "Dados inválidos".
 
-### 1.2 POST  /register
+### 1.2 POST /signup
 
 #### Caso de Uso
 - Permitir que novos usuários se cadastrem no sistema para acessar as funcionalidades do aplicativo, criando uma conta com suas informações pessoais.
 
 #### Regras de Negócio
-- Validação de Dados: Verificar se os campos obrigatórios (nome, e-mail, senha, telefone) 
+- Validação de Dados: Verificar se os campos obrigatórios (nome, e-mail, senha, telefone, grupo) 
 - Exclusividade de Identificadores: Verificar que campos únicos, como e-mail ou CPF/CNPJ, não estejam já cadastrados.
-- Status Inicial: Definir um status inicial para o novo usuári
+- Status Inicial: Definir um status inicial para o novo usuário
 - Criptografia de Senha: Armazenar a senha de forma segura.
+- Campo grupo: Deve ser uma string singular representando o perfil (Munícipe, Secretário, Operador, Administrador)
 
 #### Resultado Esperado
 - Criação bem-sucedida de uma nova conta de usuário, armazenando todos os dados fornecidos com segurança.
 - Retorno da página inicial logada com todas as funcionalidades do sistema disponíveis ao usuário.
 - Em caso de falha, retorno de mensagens de erro específicas (ex.: "E-mail já cadastrado", "Senha fora do padrão").
+
+### 1.3 POST /logout
+
+#### Caso de Uso
+- Permitir que usuários autenticados encerrem sua sessão no sistema.
+
+#### Regras de Negócio
+- O usuário deve estar autenticado (token válido).
+- A sessão do usuário é revogada.
+- Todos os tokens associados à sessão são invalidados.
+
+#### Resultado Esperado
+- O sistema retorna confirmação de logout e o usuário é desconectado.
+
+### 1.4 POST /revoke
+
+#### Caso de Uso
+- Revogar um ou mais tokens de acesso, invalidando sessões específicas.
+
+#### Regras de Negócio
+- O usuário deve estar autenticado.
+- Os tokens informados são marcados como revogados.
+
+#### Resultado Esperado
+- Confirmação de revogação dos tokens.
+
+### 1.5 POST /refresh
+
+#### Caso de Uso
+- Renovar o token de acesso usando um refresh token válido.
+
+#### Regras de Negócio
+- Um refresh token válido deve ser enviado.
+- Um novo token de acesso é gerado.
+- O refresh token pode ser rotacionado.
+
+#### Resultado Esperado
+- Retorno de um novo token de acesso (e opcionalmente um novo refresh token).
+
+### 1.6 POST /recover
+
+#### Caso de Uso
+- Iniciar o processo de recuperação de senha para usuários que esqueceram sua senha.
+
+#### Regras de Negócio
+- O e-mail do usuário deve ser informado.
+- Um e-mail de recuperação com token é enviado.
+- Este endpoint possui rate limiting rigoroso.
+
+#### Resultado Esperado
+- Confirmação de que o e-mail de recuperação foi enviado.
+
+### 1.7 PATCH /password/reset
+
+#### Caso de Uso
+- Redefinir a senha do usuário usando um token de recuperação válido.
+
+#### Regras de Negócio
+- Um token de recuperação válido deve ser fornecido.
+- A nova senha deve seguir os requisitos de segurança.
+- Este endpoint possui rate limiting rigoroso.
+
+#### Resultado Esperado
+- Confirmação de que a senha foi redefinida com sucesso.
+
+### 1.8 POST /introspect
+
+#### Caso de Uso
+- Validar e introspeccionar um token, retornando informações sobre sua validade e payload.
+
+#### Regras de Negócio
+- O token deve ser enviado no header de autorização.
+- O sistema valida o token e retorna suas informações.
+
+#### Resultado Esperado
+- Retorno das informações do token (claims, validade, etc).
+
+### 1.9 GET /verificar-email
+
+#### Caso de Uso
+- Verificar e confirmar o e-mail de um usuário durante o processo de signup.
+
+#### Regras de Negócio
+- Um token de verificação deve ser fornecido como query parameter.
+- O e-mail é confirmado e o usuário ativado.
+
+#### Resultado Esperado
+- Confirmação de que o e-mail foi verificado com sucesso.
 
 
 ## 2. Demandas
@@ -71,85 +160,134 @@ O nosso sistema tem como objetivo, possibilitar uma comunicação entre a prefei
 ### 2.3 POST /demandas
 
 #### Caso de Uso
-- Permitir que um usuario, do tipo munícipe crie uma nova demanda, informando os dados necessários.
+- Permitir que um usuario do tipo munícipe crie uma nova demanda, informando os dados necessários.
 
 #### Regras de Negócio
-- Os dados da requisição (body) e deve conter os dados válidos.
+- Os dados da requisição (body) devem conter todos os campos obrigatórios válidos.
 - Caso algum campo obrigatório esteja ausente ou inválido, a validação Zod impedirá a criação e retornará um erro 400.
-- A demanda é criada com status inicial ("pendente") e *vinculada a uma secretaria (Millestone 3)*.
+- A demanda é criada com status inicial "Em aberto".
+- O munícipe é automaticamente associado como criador da demanda (adicionado ao array "usuarios").
+- A secretaria é automaticamente vinculada com base no tipo da demanda.
+- Operadores não podem criar demandas através desta rota.
+- Os campos "feedback", "avaliacao_resolucao", "resolucao", "motivo_devolucao" e "link_imagem_resolucao" são removidos automaticamente ao criar.
+- Arrays de imagens (link_imagem, link_imagem_resolucao) aceitam múltiplas URLs.
 
 #### Resultado Esperado
 - O sistema registra a nova demanda e retorna uma confirmação de criação com os dados fornecidos, além do ID gerado automaticamente.
+- Status inicial é "Em aberto".
 
-### 2.4 PATCH /demandas/:id e PUT /demandas/:id
+### 2.4 PATCH /demandas/:id
 
 #### Caso de Uso
-- Atualizar informações de uma demanda existente. Pode ser uma atualização parcial (PATCH) ou total (PUT).
+- Atualizar informações de uma demanda existente.
 
 #### Regras de Negócio
 - O ID da demanda é validado (DemandaIdSchema).
-- Os dados enviados devem seguir ser válidos (DemandaUpdateSchema).
-- Campos internos como tipo e data são excluídos da resposta por segurança ou consistência.
+- Os dados enviados devem seguir o DemandaUpdateSchema.
+- Apenas munícipes e administradores podem atualizar demandas.
+- Os campos "tipo" e "data" são removidos automaticamente (não podem ser alterados).
+- Os campos "resolucao", "motivo_devolucao" e "link_imagem_resolucao" são removidos automaticamente.
 - A atualização só é realizada se a demanda existir.
+- Os arrays de imagens (link_imagem) podem ser atualizados com múltiplas URLs.
 
 #### Resultado Esperado
-- O sistema atualiza os campos da demanda e retorna uma mensagem de sucesso junto com os novos dados modificados, exceto os campos ocultados.
+- O sistema atualiza os campos da demanda e retorna uma mensagem de sucesso junto com os novos dados modificados, exceto os campos ocultados (tipo, data).
 
 ### 2.5 DELETE /demandas/:id
 
 #### Caso de Uso
-- Excluir uma demanda registrada no sistema, geralmente por decisão administrativa ou erro de criação.
+- Excluir uma demanda registrada no sistema, geralmente por decisão do criador ou administrador.
 
 #### Regras de Negócio
 - O ID informado na URL é validado pelo DemandaIdSchema.
 - Caso o ID não seja fornecido ou seja inválido, o sistema retorna um erro personalizado informando a necessidade do ID.
 - Se a demanda existir, ela será excluída do banco de dados.
+- A exclusão mantém a integridade referencial com outras coleções.
 
 #### Resultado Esperado
 - O sistema remove a demanda e retorna uma mensagem de confirmação informando que a exclusão foi concluída com sucesso, junto com os dados da demanda que foi excluída.
 
-### 2.6 PATCH /demandas/:id/atribuir *(Millestone 3)*
+### 2.6 PATCH /demandas/:id/atribuir
 
 #### Caso de Uso
-- Permitir que um usuario do tipo operador responsável por uma secretaria atribua uma demanda a um operador para execução.
+- Permitir que um secretário (responsável por uma secretaria) atribua uma demanda a um ou mais operadores para execução.
 
 #### Regras de Negócio
 - O ID da demanda é validado (DemandaIdSchema).
-- O corpo da requisição deve conter o ID do operador que irá executar a demanda.
-- Apenas usuários com permissão (secretaria ou administrador) podem atribuir.
-- A demanda deve estar em status "pendente" para ser atribuída.
-- Atribuir uma demanda muda o status para "em andamento".
+- O corpo da requisição deve conter um array "usuarios" com IDs de operadores.
+- Apenas secretários podem atribuir demandas.
+- O secretário só pode atribuir demandas vinculadas à sua secretaria.
+- Todos os usuários no array devem ser do tipo "operador" (validação obrigatória).
+- O array de usuarios não pode estar vazio.
+- Usuários munícipes já associados à demanda são mantidos automaticamente na lista.
+- Atribuir uma demanda muda o status de "Em aberto" para "Em andamento".
+- A operação valida as permissões e secretarias antes de atribuir.
 
 #### Resultado Esperado
-- O sistema atualiza a demanda com o operador designado e retorna uma mensagem confirmando a atribuição com sucesso, incluindo o nome ou ID do operador.
+- O sistema atualiza a demanda com os operadores designados, retornando uma mensagem confirmando a atribuição com sucesso, incluindo os dados atualizados da demanda.
 
-### 2.7 PATCH /demandas/:id/resolver *(Millestone 3)*
+### 2.7 PATCH /demandas/:id/resolver
 
 #### Caso de Uso
-- Permitir que o operador responsável pela demanda marque-a como concluída, indicando que a execução foi finalizada.
+- Permitir que o operador responsável pela demanda marque-a como concluída, indicando que a execução foi finalizada com evidência.
 
 #### Regras de Negócio
 - O ID da demanda é validado (DemandaIdSchema).
-- A demanda deve estar atribuída ao operador que está tentando resolvê-la.
-- O operador deve enviar uma imagem de comprovação e descrição da execução.
-- A mudança de status vai de “em andamento” para “concluída”.
+- A demanda deve estar em status "Em andamento".
+- Apenas operadores podem resolver demandas.
+- O operador deve enviar documentação da execução (descrição na propriedade "resolucao").
+- Imagens de comprovação são salvas em "link_imagem_resolucao" como array de URLs.
+- A mudança de status vai de "Em andamento" para "Concluída".
+- A resolução é permanente; uma demanda resolvida não pode ser modificada.
 
 #### Resultado Esperado
-- A demanda é atualizada com o status “concluída”, salvando a imagem e a descrição do serviço realizado. O sistema retorna uma mensagem de sucesso com os dados atualizados da demanda.
+- A demanda é atualizada com o status "Concluída", salvando a descrição e as imagens de comprovação. O sistema retorna uma mensagem de sucesso com os dados atualizados da demanda.
 
-### 2.8 PATCH /demandas/:id/devolver *(Millestone 3)*
+### 2.8 PATCH /demandas/:id/devolver
 
 #### Caso de Uso
-- Permitir que o operador devolva uma demanda que foi atribuída a ele, caso não possa executar por algum motivo.
+- Permitir que operadores ou secretários devolvam uma demanda, revertendo-a ao status "Em aberto" para reavaliação.
 
 #### Regras de Negócio
 - O ID da demanda é validado (DemandaIdSchema).
-- A devolução só pode ser feita se o operador estiver vinculado à demanda.
-- A demanda deve estar em status "em andamento".
-- Após a devolução, o status volta para “pendente” e o campo operador é removido.
+- Operadores podem devolver demandas atribuídas a eles, removendo-se da lista de usuarios.
+- Secretários podem recusar demandas (devolver com status "Recusada") e devem fornecer "motivo_rejeicao".
+- Se for secretário devolvendo (recusando), o campo "motivo_rejeicao" é obrigatório.
+- A demanda deve estar em status "Em andamento" para ser devolvida por operador.
+- Após devolução por operador, a demanda volta para "Em aberto".
+- Após recusa por secretário, a demanda fica com status "Recusada" com motivo registrado.
 
 #### Resultado Esperado
-- A demanda é desatribuída do operador, o status volta para “pendente” e o sistema retorna uma mensagem confirmando a devolução da demanda.
+- A demanda é desatribuída do operador (se aplicável) ou recusada com motivo (se secretário), e o sistema retorna uma mensagem confirmando a devolução com os dados atualizados da demanda.
+
+### 2.9 POST /demandas/:id/foto/:tipo
+
+#### Caso de Uso
+- Permitir upload de imagens para uma demanda, diferenciando entre imagens da criação (tipo: "criacao") e imagens de resolução (tipo: "resolucao").
+
+#### Regras de Negócio
+- O ID da demanda é validado (DemandaIdSchema).
+- O parâmetro "tipo" deve ser "criacao" ou "resolucao".
+- Um arquivo de imagem deve ser enviado; caso contrário, retorna erro 400.
+- O arquivo é processado e armazenado, atualizando o array correspondente (link_imagem ou link_imagem_resolucao).
+- Apenas usuários com permissão podem fazer upload (validado via AuthMiddleware e AuthPermission).
+
+#### Resultado Esperado
+- Upload realizado com sucesso, retornando mensagem de sucesso e dados atualizados da demanda com a nova URL da imagem no array correspondente.
+
+### 2.10 DELETE /demandas/:id/foto/:tipo
+
+#### Caso de Uso
+- Permitir remoção de imagens de uma demanda.
+
+#### Regras de Negócio
+- O ID da demanda é validado (DemandaIdSchema).
+- O parâmetro "tipo" deve ser "criacao" ou "resolucao".
+- A imagem é removida do array correspondente (link_imagem ou link_imagem_resolucao).
+- Apenas usuários com permissão podem deletar imagens.
+
+#### Resultado Esperado
+- Imagem removida com sucesso, retornando mensagem de sucesso e dados atualizados da demanda.
 
 ## 3. Secretarias
 
@@ -190,10 +328,10 @@ O nosso sistema tem como objetivo, possibilitar uma comunicação entre a prefei
 #### Resultado Esperado
 - A nova secretaria é criada com sucesso no banco e retorna os dados da secretaria recém-criada, incluindo seu ID.
 
-### 3.4 PATCH /secretaria/:id e PUT /secretaria/:id
+### 3.4 PATCH /secretaria/:id
 
 #### Caso de Uso
-- Permitir que o administrador do sistema atualize parcialmente ou totalmente os dados de uma secretaria existente.
+- Permitir que o administrador do sistema atualize os dados de uma secretaria existente.
 
 #### Regras de Negócio
 - O ID da secretaria deve ser válido (SecretariaIDSchema).
@@ -215,18 +353,6 @@ O nosso sistema tem como objetivo, possibilitar uma comunicação entre a prefei
 
 #### Resultado Esperado
 - A secretaria é excluída do banco de dados e o sistema retorna uma mensagem de sucesso confirmando a exclusão e os dados da secretraia excluída.
-
-### 3.6 GET /secretaria/:id/demandas *(Millestone 3)*
-
-#### Caso de Uso
-- Permitir que uma secretaria visualize todas as demandas vinculadas a ela, independentemente do status (pendente, em andamento, concluída).
-
-#### Regras de Negócio
-- O ID da secretaria informado deve ser válido.
-- A listagem retorna apenas demandas que possuem o campo secretaria igual ao ID fornecido.
-
-#### Resultado Esperado
-- O sistema retorna uma lista com todas as demandas atribuídas à secretaria informada, podendo incluir informações como status, título, descrição, operador responsável (se houver), e datas de criação e conclusão.
 
 ## 4. Tipos de Demanda
 
@@ -267,10 +393,10 @@ O nosso sistema tem como objetivo, possibilitar uma comunicação entre a prefei
 #### Resultado Esperado
 - O tipo de demanda é criado com sucesso e retorna os dados do registro recém-criado, incluindo seu ID.
 
-### 4.4 PATCH /tipoDemanda/:id e PUT /tipoDemanda/:id
+### 4.4 PATCH /tipoDemanda/:id
 
 #### Caso de Uso
-- Permitir que o administrador atualize parcialmente ou totalmente os dados de um tipo de demanda existente.
+- Permitir que o administrador atualize os dados de um tipo de demanda existente.
 
 #### Regras de Negócio
 - O ID deve ser validado com o TipoDemandaIDSchema.
@@ -292,6 +418,33 @@ O nosso sistema tem como objetivo, possibilitar uma comunicação entre a prefei
 
 #### Resultado Esperado
 - O tipo de demanda é removido com sucesso do banco de dados e o sistema retorna uma mensagem de sucesso e os dados do TipoDemanda excluído.
+
+### 4.6 POST /tipoDemanda/:id/foto
+
+#### Caso de Uso
+- Permitir upload de um ícone/imagem para um tipo de demanda.
+
+#### Regras de Negócio
+- O ID do tipo de demanda é validado (TipoDemandaIDSchema).
+- Um arquivo de imagem deve ser enviado; caso contrário, retorna erro 400.
+- O arquivo é processado e armazenado, atualizando o campo de imagem do tipo de demanda.
+- Apenas administradores podem fazer upload de ícones para tipos de demanda.
+
+#### Resultado Esperado
+- Upload realizado com sucesso, retornando mensagem de sucesso e dados atualizados do tipo de demanda com a nova URL da imagem.
+
+### 4.7 DELETE /tipoDemanda/:id/foto
+
+#### Caso de Uso
+- Permitir remoção do ícone/imagem de um tipo de demanda.
+
+#### Regras de Negócio
+- O ID do tipo de demanda é validado (TipoDemandaIDSchema).
+- A imagem é removida do armazenamento e do registro do tipo de demanda.
+- Apenas administradores podem deletar ícones de tipos de demanda.
+
+#### Resultado Esperado
+- Imagem removida com sucesso, retornando mensagem de sucesso e dados atualizados do tipo de demanda sem a imagem.
 
 ## 5. Usuários
 
@@ -322,7 +475,7 @@ O nosso sistema tem como objetivo, possibilitar uma comunicação entre a prefei
 #### Resultado Esperado
 - Usuário criado com sucesso, retornando os dados do usuário criado, sem a senha.
 
-### 5.3 PATCH /usuarios/:id e PUT /usuarios/:id
+### 5.3 PATCH /usuarios/:id
 
 #### Caso de Uso
 - Atualizar os dados de um usuário existente.
@@ -362,15 +515,166 @@ O nosso sistema tem como objetivo, possibilitar uma comunicação entre a prefei
 #### Resultado Esperado
 - Upload realizado com sucesso, retornando mensagem de sucesso, link para a foto e metadados do arquivo.
 
-### 5.6 GET /usuarios/:id/foto
+### 5.6 DELETE /usuarios/:id/foto
 
 #### Caso de Uso
-- Permitir download ou visualização da foto de perfil do usuário.
+- Permitir que o usuário remova sua foto de perfil.
+
+#### Regras de Negócio
+- O ID do usuário deve ser validado.
+- A foto é removida do armazenamento e do registro do usuário.
+- Apenas o próprio usuário ou administrador podem remover sua foto.
+
+#### Resultado Esperado
+- Imagem removida com sucesso, retornando mensagem de sucesso e dados do usuário sem a foto.
+
+## 6. Grupos
+
+### 6.1 GET /grupos e GET /grupos/:id
+
+#### Caso de Uso
+- Listar todos os grupos disponíveis no sistema ou consultar um grupo específico pelo ID.
+
+#### Regras de Negócio
+- Se o parâmetro id for passado, deve ser validado.
+- Apenas usuários autenticados podem consultar grupos.
+- A listagem retorna grupos disponíveis para consulta.
+
+#### Resultado Esperado
+- Retorna uma lista de grupos ou um grupo específico com seus dados (nome, descrição, permissões).
+
+### 6.2 POST /grupos
+
+#### Caso de Uso
+- Criar um novo grupo de usuários no sistema.
+
+#### Regras de Negócio
+- Apenas administradores podem criar grupos.
+- Os dados recebidos devem incluir nome e descrição do grupo.
+- O nome do grupo deve ser único.
+- Permissões devem ser válidas e existentes.
+
+#### Resultado Esperado
+- Grupo criado com sucesso, retornando os dados do grupo recém-criado, incluindo seu ID.
+
+### 6.3 PATCH /grupos/:id
+
+#### Caso de Uso
+- Atualizar os dados de um grupo existente.
+
+#### Regras de Negócio
+- O ID do grupo deve ser validado.
+- Apenas administradores podem atualizar grupos.
+- O nome do grupo não pode ser duplicado.
+- As permissões devem ser válidas.
+
+#### Resultado Esperado
+- O grupo é atualizado com sucesso e o sistema retorna os dados atualizados.
+
+### 6.4 DELETE /grupos/:id
+
+#### Caso de Uso
+- Excluir um grupo do sistema.
 
 #### Regras de Negócio
 - O ID deve ser validado.
-- Se o usuário não possuir foto, retorna erro 404.
-- O arquivo é enviado com o content-type adequado conforme extensão.
+- Apenas administradores podem deletar grupos.
+- Grupos com usuários associados podem ter restrições de exclusão.
 
 #### Resultado Esperado
-- Imagem da foto do usuário é enviada no response com o cabeçalho correto.
+- Grupo excluído com sucesso, com mensagem confirmando a exclusão.
+
+## 7. Permissões e Controle de Acesso (RBAC)
+
+### 7.1 Hierarquia de Perfis
+
+O sistema implementa controle de acesso baseado em papéis (RBAC) com a seguinte hierarquia:
+
+| Perfil | Descrição | Permissões |
+|--------|-----------|-----------|
+| Administrador | Acesso total ao sistema | Todas as operações em todos os recursos |
+| Secretário | Gerencia demandas de sua secretaria | Atribuir operadores, recusar demandas, visualizar demandas da secretaria |
+| Operador | Executa demandas atribuídas | Resolver demandas, devolver demandas, visualizar demandas atribuídas |
+| Munícipe | Cria e acompanha demandas | Criar demandas, atualizar suas demandas, visualizar suas demandas |
+
+### 7.2 Controle de Acesso por Rota
+
+#### Demandas
+- GET /demandas: Todos os perfis (filtrado por permissões)
+  - Administrador: Todas as demandas
+  - Secretário: Demandas de suas secretarias
+  - Operador: Demandas atribuídas a ele
+  - Munícipe: Suas demandas
+  
+- GET /demandas/:id: Acesso condicional
+  - Secretário: Apenas demandas de suas secretarias
+  - Operador: Apenas se atribuído na demanda
+  - Munícipe: Apenas suas demandas
+  
+- POST /demandas: Apenas munícipes
+  - Operadores são bloqueados
+  
+- PATCH /demandas/:id: Munícipes e administradores
+  
+- PATCH /demandas/:id/atribuir: Apenas secretários
+  - Validação de secretaria obrigatória
+  
+- PATCH /demandas/:id/resolver: Apenas operadores
+  
+- PATCH /demandas/:id/devolver: Operadores e secretários
+  - Operadores: removem a si mesmos
+  - Secretários: recusam com motivo obrigatório
+  
+- DELETE /demandas/:id: Munícipes e administradores
+
+#### Rota /demandas/meus
+- Filtra automaticamente baseado no perfil e nas secretarias do usuário
+- Munícipe: Retorna apenas suas demandas
+- Secretário: Retorna demandas de suas secretarias
+- Operador: Retorna demandas atribuídas a ele (dentro de suas secretarias)
+
+### 7.3 Validações de Dados
+
+#### Campos Obrigatórios por Operação
+
+**POST /demandas (Criação):**
+- tipo (enum: Coleta, Iluminação, Saneamento, Árvores, Animais, Pavimentação)
+- descricao
+- endereco.logradouro
+- endereco.bairro
+- endereco.numero
+- endereco.cidade
+- endereco.estado
+
+**PATCH /demandas/:id/atribuir:**
+- usuarios[] (array não vazio, todos do tipo operador)
+
+**PATCH /demandas/:id/devolver:**
+- motivo_rejeicao (obrigatório se secretário)
+- motivo_devolucao (optional se operador)
+
+**PATCH /demandas/:id/resolver:**
+- resolucao (descrição da execução)
+- link_imagem_resolucao[] (array de URLs de comprovação)
+
+### 7.4 Status de Demanda
+
+| Status | Descrição | Transições Válidas |
+|--------|-----------|-------------------|
+| Em aberto | Demanda criada, aguardando atribuição | -> Em andamento (atribuir) |
+| Em andamento | Demanda atribuída a operador | -> Concluída (resolver), -> Recusada (secretário devolver), -> Em aberto (operador devolver) |
+| Concluída | Demanda resolvida e comprovada | Final (não há transições) |
+| Recusada | Demanda recusada pelo secretário | Final (não há transições) |
+
+### 7.5 Arrays de Imagens
+
+- link_imagem: Imagens da demanda criada
+  - Tipo: Array de strings (URLs)
+  - Quantidade: 0 ou mais URLs
+  - Formato: JPG, PNG
+  
+- link_imagem_resolucao: Imagens de comprovação da resolução
+  - Tipo: Array de strings (URLs)
+  - Quantidade: 0 ou mais URLs
+  - Obrigatório ao resolver: Sim (pelo menos uma imagem recomendada)
+  - Formato: JPG, PNG
