@@ -57,7 +57,8 @@ describe('Rotas de demanda', () => {
       descricao: "testando",
       feedback: 5,
       avaliacao_resolucao: "Excelente atendimento",
-      link_imagem_resolucao: fakebr.internet.url() + "/" + uuid() + ".jpg",
+      link_imagem: [fakebr.internet.url() + "/" + uuid() + ".jpg"],
+      link_imagem_resolucao: [fakebr.internet.url() + "/" + uuid() + ".jpg"],
       endereco: {
         logradouro: "Rua Nova",
         cep: "98765-432",
@@ -85,7 +86,7 @@ describe('Rotas de demanda', () => {
       resolucao: "Teste de criação",
       feedback: 5,
       avaliacao_resolucao: "Excelente atendimento",
-      link_imagem_resolucao: "https://via.placeholder.com/200.png",
+      link_imagem_resolucao: ["https://via.placeholder.com/200.png"],
       endereco: {
         logradouro: "Rua Nova",
         cep: "98765-432",
@@ -127,7 +128,8 @@ describe('Rotas de demanda', () => {
       feedback: 5,
       descricao: "tests",
       avaliacao_resolucao: "Excelente atendimento",
-      link_imagem_resolucao: fakebr.internet.url() + "/" + uuid() + ".jpg",
+      link_imagem: [fakebr.internet.url() + "/" + uuid() + ".jpg"],
+      link_imagem_resolucao: [fakebr.internet.url() + "/" + uuid() + ".jpg"],
       endereco: {
         logradouro: "Rua Nova",
         cep: "98765-432",

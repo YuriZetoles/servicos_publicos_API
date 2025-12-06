@@ -78,6 +78,7 @@ describe('Rotas de usuário', () => {
       email: generateRandomEmail(),
       cpf: generateRandomCPF(),
       senha: "Senha@123",
+      data_nascimento: "15/03/1990",
       celular: "11999999999",
       cnh: generateRandomCNH(),
       endereco: {
@@ -133,6 +134,7 @@ describe('Rotas de usuário', () => {
       email: generateRandomEmail(),
       cpf: generateRandomCPF(),
       senha: "Senha@123",
+      data_nascimento: "15/03/1990",
       celular: "11999999999",
       cnh: generateRandomCNH(),
       endereco: {
