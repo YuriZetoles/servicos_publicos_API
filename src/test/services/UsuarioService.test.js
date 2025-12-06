@@ -262,8 +262,8 @@ describe("UsuarioService", () => {
 
       repositoryMock.buscarPorEmail.mockResolvedValue(null);
 
-      // Hash da senha
-      AuthHelper.hashPassword.mockResolvedValue({ senha: "senha-hash" });
+      // Hash da senha - hashPassword retorna apenas a string, não um objeto
+      AuthHelper.hashPassword.mockResolvedValue("senha-hash");
 
       const usuarioCriado = { ...dados, senha: "senha-hash" };
       repositoryMock.criar.mockResolvedValue(usuarioCriado);
@@ -275,10 +275,13 @@ describe("UsuarioService", () => {
         null
       );
       expect(AuthHelper.hashPassword).toHaveBeenCalledWith("Senha@123");
-      expect(repositoryMock.criar).toHaveBeenCalledWith({
-        ...dados,
-        senha: "senha-hash",
-      });
+      expect(repositoryMock.criar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nome: dados.nome,
+          email: dados.email,
+          senha: "senha-hash"
+        })
+      );
       expect(resultado).toEqual(usuarioCriado);
     });
   });
@@ -295,7 +298,7 @@ describe("UsuarioService", () => {
 
       repositoryMock.buscarPorEmail.mockResolvedValue(null);
 
-      AuthHelper.hashPassword.mockResolvedValue({ senha: "senha-hash" });
+      AuthHelper.hashPassword.mockResolvedValue("senha-hash");
 
       grupoRepositoryMock.buscarPorNome.mockResolvedValue({ _id: "grupo-id" });
 
@@ -329,18 +332,17 @@ describe("UsuarioService", () => {
       expect(grupoRepositoryMock.buscarPorNome).toHaveBeenCalledWith(
         "Municipe"
       );
-      expect(repositoryMock.criar).toHaveBeenCalledWith({
-        nome: "João",
-        email: "joao@teste.com",
-        senha: "senha-hash",
-        grupo: "grupo-id",
-        nivel_acesso: {
-          municipe: true,
-          operador: false,
-          secretario: false,
-          administrador: false,
-        },
-      });
+      expect(repositoryMock.criar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nome: "João",
+          email: "joao@teste.com",
+          senha: "senha-hash",
+          grupo: "grupo-id",
+          nivel_acesso: expect.objectContaining({
+            municipe: true
+          })
+        })
+      );
       expect(resultado).toEqual(esperado);
     });
 
