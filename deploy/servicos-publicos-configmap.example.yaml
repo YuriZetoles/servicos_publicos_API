@@ -1,3 +1,5 @@
+# CONFIGMAP EXAMPLE - API Serviços Públicos
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -5,44 +7,43 @@ metadata:
   labels:
     io.kompose.service: servicos-publicos
 data:
-  # Porta da API
+  # SERVIDOR
   APP_PORT: "5011"
+  NODE_ENV: "production"
+  DEBUGLOG: "false"
 
   # URLs
   BASE_URL: "https://servicospublicos-api.app.fslab.dev"
   FRONTEND_URL: "https://servicospublicos.app.fslab.dev"
+  SWAGGER_PROD_URL: "https://servicospublicos-api.app.fslab.dev"
+  SWAGGER_DEV_URL: "https://servicospublicos-api.app.fslab.dev"
 
-  # MongoDB URLs
-  DB_URL: "mongodb://mongodb-servicos:27017/servicosPublicos"
-  DB_URL_TEST: "mongodb://mongodb-servicos:27017/servicosPublicos_teste"
+  # MONGODB
+  # Formato: mongodb://USUARIO:SENHA@HOST:PORTA/DATABASE?authSource=admin
+  DB_URL: "mongodb://<USUARIO>:<SENHA>@servicos-mongodb-publicos:27017/servicosPublicos?authSource=admin"
+  DB_URL_TEST: "mongodb://<USUARIO>:<SENHA>@servicos-mongodb-publicos:27017/servicosPublicosTest?authSource=admin"
+  MONGO_INITDB_DATABASE: "servicosPublicos"
+  MONGO_INITDB_ROOT_USERNAME: "<GERAR_USUARIO>"
+  MONGO_INITDB_ROOT_PASSWORD: "<GERAR_SENHA_SEGURA>"
 
-  # Ambiente
-  NODE_ENV: "production"
-  DEBUGLOG: "false"
-
-  # JWT Configurações (exemplo)
+  # JWT - GERAR: openssl rand -base64 48
   JWT_ACCESS_TOKEN_EXPIRATION: "15m"
   JWT_PASSWORD_RECOVERY_EXPIRATION: "1h"
   JWT_REFRESH_TOKEN_EXPIRATION: "7d"
-  JWT_SECRET_ACCESS_TOKEN: "<REPLACE_WITH_SECURE_VALUE>"
-  JWT_SECRET_PASSWORD_RECOVERY: "<REPLACE_WITH_SECURE_VALUE>"
-  JWT_SECRET_REFRESH_TOKEN: "<REPLACE_WITH_SECURE_VALUE>"
+  JWT_SECRET_ACCESS_TOKEN: "<GERAR_COM_OPENSSL>"
+  JWT_SECRET_PASSWORD_RECOVERY: "<GERAR_COM_OPENSSL>"
+  JWT_SECRET_REFRESH_TOKEN: "<GERAR_COM_OPENSSL>"
   SINGLE_SESSION_REFRESH_TOKEN: "false"
 
-  # Mail Service (exemplo)
-  URL_MAIL_SERVICE: "https://seu-servico-mailsender.exemplo/api/emails/send"
-  MAIL_API_KEY: "<REPLACE_WITH_MAIL_API_KEY>"
+  # MAIL SERVICE
+  URL_MAIL_SERVICE: "https://mailsender-backend.app.fslab.dev/api/emails/send"
+  MAIL_API_KEY: "<GERAR_API_KEY>"
 
-  # MinIO Configurações (exemplo)
-  MINIO_ENDPOINT: "minio.exemplo"
+  # MINIO (Armazenamento de Arquivos)
+  MINIO_ENDPOINT: "objects.fslab.dev"
   MINIO_PORT: "443"
   MINIO_USE_SSL: "true"
-  MINIO_BUCKET_FOTOS: "seu-bucket-de-fotos"
-  MINIO_ACCESS_KEY: "<REPLACE_WITH_MINIO_ACCESS_KEY>"
-  MINIO_SECRET_KEY: "<REPLACE_WITH_MINIO_SECRET_KEY>"
-
-  # MongoDB Init (exemplo)
-  MONGO_INITDB_DATABASE: "servicosPublicos"
-  MONGO_INITDB_ROOT_USERNAME: "<REPLACE_WITH_MONGO_ROOT_USER>"
-  MONGO_INITDB_ROOT_PASSWORD: "<REPLACE_WITH_MONGO_ROOT_PASSWORD>"
+  MINIO_BUCKET_FOTOS: "fs3-public-services"
+  MINIO_ACCESS_KEY: "<GERAR_MINIO_ACCESS>"
+  MINIO_SECRET_KEY: "<GERAR_MINIO_SECRET>"
 
