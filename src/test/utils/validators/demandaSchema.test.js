@@ -18,21 +18,21 @@ const validDemanda = {
     cidade: "Vilhena",
     estado: "RO",
   },
-  usuarios: [{ id: validObjectId() }],
-  secretarias: [{ id: validObjectId() }],
+  usuarios: [validObjectId()],
+  secretarias: [validObjectId()],
   resolucao: "Resolvido com sucesso.",
   feedback: 4,
   avaliacao_resolucao: "Ótima",
-  link_imagem: "https://exemplo.com/imagem.jpg",
+  link_imagem: ["https://exemplo.com/imagem.jpg"],
   motivo_devolucao: "Dados incompletos",
-  link_imagem_resolucao: "https://exemplo.com/imagem_resolucao.png",
+  link_imagem_resolucao: ["https://exemplo.com/imagem_resolucao.png"],
 };
 
 describe("DemandaSchema", () => {
   it("rejeita link_imagem_resolucao com extensão inválida", () => {
     const invalid = {
       ...validDemanda,
-      link_imagem_resolucao: "https://exemplo.com/arquivo.docx",
+      link_imagem_resolucao: ["https://exemplo.com/arquivo.docx"],
     };
     const result = DemandaSchema.safeParse(invalid);
     expect(result.success).toBe(false);
@@ -85,7 +85,7 @@ describe("DemandaSchema", () => {
   it("rejeita link_imagem_resolucao com extensão inválida", () => {
     const invalid = {
       ...validDemanda,
-      link_imagem_resolucao: "https://exemplo.com/arquivo.exe",
+      link_imagem_resolucao: ["https://exemplo.com/arquivo.exe"],
     };
 
     const result = DemandaSchema.safeParse(invalid);

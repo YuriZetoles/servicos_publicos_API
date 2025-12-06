@@ -50,14 +50,14 @@ describe('UsuarioSchema', () => {
   });
 
   it('deve falhar se grupo contiver ID inválido', () => {
-    const invalido = { ...dadosBase, grupo: ['1234'] };
+    const invalido = { ...dadosBase, grupo: '1234' };
     const result = UsuarioSchema.safeParse(invalido);
     expect(result.success).toBe(false);
-    expect(result.error.issues[0].message).toBe("ID inválido");
+    expect(result.error.issues[0].message).toBe("ID de grupo inválido");
   });
 
   it('deve validar grupo com IDs válidos', () => {
-    const valido = { ...dadosBase, grupo: ['507f1f77bcf86cd799439011'] };
+    const valido = { ...dadosBase, grupo: '507f1f77bcf86cd799439011' };
     expect(UsuarioSchema.safeParse(valido).success).toBe(true);
   });
 

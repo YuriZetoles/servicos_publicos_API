@@ -75,13 +75,15 @@ describe('DateHelper', () => {
     it('deve considerar mês e dia no cálculo da idade', () => {
       const hoje = new Date();
       const dia = hoje.getDate();
-      const mes = hoje.getMonth() + 1;
-      const ano18AtrasDepois = hoje.getFullYear() - 18;
+      const mesAtual = hoje.getMonth(); // 0-11
+      const mesUsuario = mesAtual + 1; // 1-12
+      const ano18AtrasAniversarioPassed = hoje.getFullYear() - 18;
 
-      // Se ainda não fez aniversário esse ano
-      const mesDepois = mes === 12 ? 1 : mes + 1;
-      const dataNaoFezAniversario = `${String(dia).padStart(2, '0')}/${String(mesDepois).padStart(2, '0')}/${ano18AtrasDepois}`;
-      expect(DateHelper.isMaiorDeIdade(dataNaoFezAniversario)).toBe(false);
+      // Data onde o aniversário JÁ PASSOU esse ano (mês anterior)
+      const mesPassed = mesUsuario === 1 ? 12 : mesUsuario - 1;
+      const anoMesPassed = mesPassed === 12 ? ano18AtrasAniversarioPassed - 1 : ano18AtrasAniversarioPassed;
+      const dataJaFezAniversario = `${String(dia).padStart(2, '0')}/${String(mesPassed).padStart(2, '0')}/${anoMesPassed}`;
+      expect(DateHelper.isMaiorDeIdade(dataJaFezAniversario)).toBe(true);
     });
 
     it('deve retornar false para valores inválidos', () => {
