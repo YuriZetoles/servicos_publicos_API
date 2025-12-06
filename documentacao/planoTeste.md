@@ -9,6 +9,7 @@
 | Data       | Versão | Descrição                  | Autor(a)                                            |
 | ---------- | ------ | -------------------------- | --------------------------------------------------- |
 | 27/05/2025 | 1.0    | Primeira versão da API     | \[Matheus Lucas Batista e Giullia Beatriz Charotti] |
+| 06/12/2025 | 1.1    | Versão Atualizada e em Produção da API | \[Luis Felipe Lopes] |
 
 ## 1 - Introdução
 
@@ -65,17 +66,132 @@ Existe um documento demonstrando quando e como aplicar as validações:
 
 ## 4 - Casos de Teste
 
-Os casos de teste serão implementados ao longo do desenvolvimento, organizados em arquivos complementares. De forma geral, serão considerados cenários de sucesso, cenários de falha e as regras de negócio associadas a cada funcionalidade.
+Os casos de teste são implementados usando Jest e Supertest, organizados em múltiplos níveis:
+
+### Cobertura de Testes Atual
+
+- Total de testes: 641
+- Taxa de sucesso: 100%
+- Cobertura geral: ~80%
+
+### Tipos de Testes Implementados
+
+**Testes Unitários - Validação de Schemas (Zod)**
+- Arquivo: src/test/utils/validators/
+- Cobertura:
+  - DemandaSchema: Validação de tipos de demanda, enums de status, arrays de imagens
+  - UsuarioSchema: Validação de grupo (singular), dados obrigatórios, enums de acesso
+  - SecretariaSchema: Validação de secretarias e relacionamentos
+  - TipoDemandaSchema: Validação de tipos e enumerações
+
+**Testes de Integração - Rotas**
+- Arquivo: src/test/routes/
+- Cobertura:
+  - demandaRoutes.test.js (19 testes):
+    - GET /demandas, GET /demandas/:id
+    - POST /demandas (incluindo arrays de imagens)
+    - PATCH /demandas/:id
+    - DELETE /demandas/:id
+    - Validação de tipos e campos obrigatórios
+    - Arrays de imagens múltiplas
+    
+  - usuarioRoutes.test.js: Testes de grupo singular, validação de dados obrigatórios
+  - secretariaRoutes.test.js: Operações CRUD de secretarias
+  - tipoDemandaRoutes.test.js: Operações CRUD de tipos
+
+**Testes de Serviço - Lógica de Negócio**
+- Arquivo: src/test/services/
+- Cobertura DemandaService (53 testes):
+  - Listagem com filtros por perfil (munícipe, operador, secretário, administrador)
+  - Criação de demandas apenas por munícipes
+  - Atualização com restrições de campos
+  - Atribuição com validação de operadores
+  - Devolução com motivos (operador e secretário)
+  - Resolução com comprovação
+  - Permissões granulares por secretaria
+  - Filtros automáticos em /demandas/meus
+
+### Testes Específicos por Funcionalidade
+
+**Permissões (28 novos testes em demandaService)**
+
+1. Busca por ID (7 testes):
+   - Secretário acessa demanda de sua secretaria
+   - Secretário não acessa demanda de outra secretaria
+   - Operador acessa apenas demandas atribuídas
+   - Munícipe acessa apenas suas demandas
+   - Administrador acessa qualquer demanda
+
+2. Atribuição (3 testes):
+   - Secretário não atribui usuário munícipe
+   - Secretário não atribui de outra secretaria
+   - Mantém munícipes existentes ao atribuir operadores
+
+3. Devolução (3 testes):
+   - Secretário devolve com motivo obrigatório
+   - Operador devolve removendo a si mesmo
+   - Validação de permissões
+
+4. Criação (2 testes):
+   - Operadores bloqueados
+   - Munícipes com secretaria automática
+
+5. Atualização (3 testes):
+   - Munícipes podem atualizar
+   - Operadores bloqueados
+   - Campos tipo e data protegidos
+
+6. Resolução (2 testes):
+   - Operadores resolvem demandas
+   - Munícipes bloqueados
+
+7. Listar com filtros (3 testes):
+   - /demandas/meus filtra por perfil
+   - Secretário vê apenas sua secretaria
+   - Operador vê apenas demandas atribuídas
+
+**Arrays de Imagens (5 novos testes em demandaRoutes)**
+
+- POST com múltiplas imagens
+- POST com array vazio
+- POST com link_imagem_resolucao múltiplo
+- PATCH atualizando arrays
+- Validação de extensões (JPG, PNG, WEBP, SVG, GIF)
+
+**Validação de Schemas (26 novos testes em UsuarioSchema e demandaSchema)**
+
+- Grupo como relacionamento singular (não array)
+- Status enum validation
+- Campos obrigatórios
+- Email validation
+- Arrays de secretarias
+- ObjectId validation
 
 ## 5 - Estratégia de Teste
 
 A estratégia de teste adotada neste projeto busca garantir a qualidade funcional e estrutural do sistema por meio da aplicação de testes em múltiplos níveis, alinhados ao ciclo de desenvolvimento.
 
-**Testes Unitários**: Cobertura de 70%, focando no comportamento isolado das funções e regras de negócio.
-**Testes de Integração**: Verificam a interação entre as camadas e a integração com banco de dados.
+**Testes Unitários**: Cobertura atual de ~80%, focando no comportamento isolado das funções, validações de schema e regras de negócio.
+- Testes de Schema (Zod): Validação de estrutura de dados
+- Testes de Service: Lógica de negócio em isolamento (com mocks de repositórios)
+
+**Testes de Integração**: Verificam a interação entre as camadas (rotas, controllers, services) e a integração com banco de dados em memória.
+- Testes de Rotas: Fluxos completos de requisição/resposta
+- Teste de Permissões: Validação de RBAC em cada endpoint
+
 **Testes Manuais**: Utilizam Swagger ou Postman para validar fluxos principais durante o desenvolvimento.
 
-Cada funcionalidade terá seu plano de teste específico, com critérios de aceitação, cenários de sucesso e de falha.
+### Métricas Atuais de Cobertura
+
+| Componente | % Statements | % Branch | % Functions | % Lines |
+|-----------|-------------|----------|------------|---------|
+| DemandaService.js | 72.24% | 61.24% | 77.61% | 71.59% |
+| UsuarioService.js | 67.27% | 55.88% | 59.09% | 67.08% |
+| Services (média) | 73.55% | 62.0% | 74.43% | 73.76% |
+| Schemas (Zod) | 92.3% | 100% | 86.36% | 94.44% |
+| Overall | ~80% | ~75% | ~80% | ~82% |
+
+Cada funcionalidade tem seu plano de teste específico, com critérios de aceitação, cenários de sucesso e de falha, conforme detalhado na seção 4.
 
 ## 6 - Ambiente e Ferramentas
 
@@ -101,7 +217,20 @@ Os testes serão feitos no ambiente de desenvolvimento, com as mesmas configura�
 
 Uma funcionalidade será considerada **pronta** quando:
 
-* Passar por todos os testes definidos;
-* Não apresentar bugs com severidade maior que moderada;
-* Estiver validada pela equipe.
+- Passar por todos os testes definidos (100% de sucesso)
+- Manter cobertura de testes em pelo menos 70%
+- Implementar validações de schema com Zod
+- Implementar controle de acesso (RBAC) apropriado
+- Não apresentar bugs com severidade maior que moderada
+- Estar validada pela equipe
+- Documentação de rotas e testes atualizada
+
+### Status Atual
+
+O projeto atinge:
+- 641 testes passando (100% de sucesso)
+- Cobertura geral de ~80%
+- Todos os cenários críticos de demandas testados (arrays, permissões, transições de estado)
+- Documentação de rotas atualizada conforme implementação real
+
 
