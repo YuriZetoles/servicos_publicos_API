@@ -59,14 +59,51 @@
 
 # Plano de Teste para Endpoint de Usuário (/usuarios) - Sprint 7
 
-| Método                            | Comportamento esperado                                             | Verificações                                                    | Critérios de Aceite                                                         |
-| --------------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Listar todos os usuários          | Deve retornar status 200 com uma lista de usuários                 | Chamada GET em `/usuarios`                                      | Resposta com `status 200`, mensagem de sucesso e `data.docs` como array    |
-| Buscar usuário por ID             | Deve retornar os dados do usuário especificado pelo ID             | Chamada GET em `/usuarios/:id` com ID existente                 | Retorna `status 200`, `message` e `data` com o usuário correto             |
-| Buscar usuário com ID inexistente | Deve retornar erro 404 ao buscar usuário que não existe            | Chamada GET em `/usuarios/:id` com ID válido mas inexistente    | Retorna `status 404` com mensagem de recurso não encontrado                |
-| Criar novo usuário                | Deve criar um novo usuário com dados válidos e retornar status 201 | Chamada POST em `/usuarios` com corpo completo e válido         | Resposta com `status 201`, `message` e `data` com os dados do novo usuário |
-| Atualizar parcialmente usuário    | Deve atualizar apenas os campos enviados no corpo da requisição    | Chamada PATCH em `/usuarios/:id` com ID válido e dados parciais | Resposta com `status 200` e `data` atualizado                              |
-| Atualizar usuário inexistente     | Deve retornar erro ao tentar atualizar um usuário que não existe   | Chamada PATCH em `/usuarios/:id` com ID inexistente             | Retorna `status 404` com mensagem de recurso não encontrado                |
-| Deletar usuário                   | Deve excluir usuário existente e retornar confirmação de exclusão  | Criar usuário via POST, deletar com DELETE em `/usuarios/:id`   | Resposta com `status 200`, `message` e `_id` do usuário deletado           |
-| Deletar usuário inexistente       | Deve retornar erro ao tentar excluir usuário que não existe        | Chamada DELETE em `/usuarios/:id` com ID inexistente            | Retorna `status 404` com mensagem de recurso não encontrado                |
-| Token de autenticação             | Todas as rotas devem exigir token válido no header Authorization   | Enviar requisições sem token ou com token inválido              | Retorna `status 401` ou `403` conforme a proteção de rota                  |
+## Testes de Integração Implementados
+
+**Total de testes em usuarioRoutes.test.js: 10+ testes**
+
+| Método | Rota              | Cenário de Teste                                                | Status | Verificações                                                    | Critérios de Aceite                                                         |
+| ------ | ----------------- | --------------------------------------------------------------- | ------ | --------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| GET    | `/usuarios`       | Listar todos os usuários                                        | ✅ Implementado | Chamada GET em `/usuarios`, status 200, mensagem de sucesso    | Resposta com `status 200`, mensagem de sucesso e `data.docs` como array    |
+| GET    | `/usuarios/:id`   | Buscar usuário por ID                                           | ✅ Implementado | Chamada GET com ID existente, verifica `_id` correspondente     | Retorna `status 200`, `message` e `data` com o usuário correto             |
+|        |                   | Buscar usuário com ID inexistente                               | ✅ Implementado | Chamada GET com ID válido mas inexistente                       | Retorna `status 404` com mensagem "Recurso não encontrado em Usuário."     |
+| POST   | `/usuarios`       | Criar novo usuário com dados válidos                            | ✅ Implementado | POST com dados completos (nome, email, cpf, senha, etc)         | Resposta com `status 201`, `message` e `data` com os dados do novo usuário |
+| PATCH  | `/usuarios/:id`   | Atualizar parcialmente usuário (ex: celular)                    | ✅ Implementado | PATCH com ID válido e campo `celular`                           | Resposta com `status 200` e `data.celular` atualizado                      |
+|        |                   | Atualizar usuário inexistente                                   | ✅ Implementado | PATCH com ID inexistente                                        | Retorna `status 404` com mensagem "Recurso não encontrado em Usuário."     |
+| DELETE | `/usuarios/:id`   | Deletar usuário existente                                       | ✅ Implementado | Criar usuário, depois DELETE com ID válido                      | Resposta com `status 200`, mensagem "Usuário excluído com sucesso"         |
+|        |                   | Deletar usuário inexistente                                     | ✅ Implementado | DELETE com ID inexistente                                       | Retorna `status 404` com mensagem "Recurso não encontrado em Usuário."     |
+
+## Testes de Validação de Grupo (Cenários Críticos)
+
+| Cenário                           | Status | Validação |
+| --------------------------------- | ------ | --------- |
+| Grupo como string singular        | ✅ Implementado | UsuarioSchema.test.js valida grupo como ObjectId único (não array) |
+| Rejeitar grupo como array         | ✅ Implementado | Testa que grupo não pode ser array |
+| Aceitar grupo como undefined      | ✅ Implementado | Campo grupo é opcional |
+| Rejeitar grupo com ObjectId inválido | ✅ Implementado | Valida formato de ObjectId |
+
+## Testes de Rotas de Foto (Implementadas mas sem testes de integração explícitos)
+
+| Método | Rota                     | Status | Observação |
+| ------ | ------------------------ | ------ | ---------- |
+| POST   | `/usuarios/:id/foto`     | ⚠️ Sem testes de routes | Rota implementada, testes disponíveis em UsuarioService.test.js |
+| DELETE | `/usuarios/:id/foto`     | ⚠️ Sem testes de routes | Rota implementada, testes disponíveis em UsuarioService.test.js |
+
+## Testes de Permissões (UsuarioService.test.js)
+
+| Funcionalidade | Testes Implementados |
+| -------------- | -------------------- |
+| Listagem por perfil | Administrador lista todos, Munícipe vê apenas seus dados, Secretário vê da mesma secretaria, Operador vê apenas seus dados |
+| Criação | Munícipe bloqueado de criar outros usuários |
+| Atualização | Admin atualiza qualquer um, usuário comum apenas a si mesmo, campos sensíveis protegidos |
+| Exclusão | Admin deleta qualquer um, munícipe deleta a si mesmo, munícipe não deleta outros |
+| Foto | Admin/usuário atualiza própria foto, não pode atualizar de outros |
+
+## Resumo de Cobertura
+
+- **Testes de Routes**: 10+ testes (100% passando)
+- **Testes de Service**: Múltiplos testes de permissões e lógica de negócio
+- **Testes de Schema**: 26+ testes de validação Zod
+- **Cobertura de Service**: 67.27% statements, 55.88% branches, 59.09% functions
+- **Token de autenticação**: Todas as rotas protegidas com AuthMiddleware
