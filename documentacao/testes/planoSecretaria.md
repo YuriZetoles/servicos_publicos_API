@@ -67,14 +67,26 @@
 
 # Plano de teste de Secretaria Endpoint (Sprint 7)
 
-| Método | Rota              | Funcionalidade                                  | Comportamento Esperado                                                           | Verificações                                                     | Critérios de Aceite                                                                              |
-| ------ | ----------------- | ----------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| GET    | `/secretaria`     | Listar todas as secretarias                     | Deve retornar um array com as secretarias cadastradas                            | Requisição com token válido                                      | Retorna status `200`, mensagem `"Requisição bem-sucedida"` e lista de secretarias                |
-| GET    | `/secretaria/:id` | Buscar uma secretaria pelo ID                   | Deve retornar a secretaria correspondente ao ID                                  | Requisição com token válido e ID existente                       | Retorna status `200`, mensagem `"Requisição bem-sucedida"` e secretaria com `_id` correspondente |
-| GET    | `/secretaria/:id` | Buscar secretaria por ID inexistente            | Deve retornar erro de recurso não encontrado                                     | Requisição com ID inexistente                                    | Retorna status `404` e mensagem `"Recurso não encontrado em Secretaria."`                        |
-| POST   | `/secretaria`     | Criar nova secretaria com dados válidos         | Deve cadastrar a secretaria e retornar os dados da nova secretaria               | Requisição com `body` válido e token                             | Retorna status `201`, mensagem de sucesso, e os dados da secretaria criada                       |
-| POST   | `/secretaria`     | Criar nova secretaria com nome já existente     | Deve retornar erro de nome duplicado                                             | Envio de duas requisições consecutivas com o mesmo nome          | Segunda requisição retorna status `400` e mensagem `"Nome já cadastrado."`                       |
-| PATCH  | `/secretaria/:id` | Atualizar parcialmente uma secretaria existente | Deve atualizar o campo especificado (ex: `sigla`) e retornar o objeto atualizado | Requisição com token válido, ID existente e campo parcial válido | Retorna status `200` e campo atualizado no objeto retornado                                      |
-| PATCH  | `/secretaria/:id` | Atualizar secretaria inexistente                | Deve retornar erro de recurso não encontrado                                     | Requisição com ID válido mas não existente                       | Retorna status `404` e mensagem `"Recurso não encontrado em Secretaria."`                        |
-| DELETE | `/secretaria/:id` | Deletar uma secretaria existente                | Deve deletar a secretaria e retornar confirmação                                 | Requisição com ID válido de uma secretaria recém criada          | Retorna status `200`, mensagem `"Secretaria excluída com sucesso."`, e `_id` correspondente      |
-| DELETE | `/secretaria/:id` | Deletar secretaria inexistente                  | Deve retornar erro de recurso não encontrado                                     | Requisição com ID válido que não existe                          | Retorna status `404` e mensagem `"Recurso não encontrado em Secretaria."`                        |
+## Testes de Integração Implementados
+
+**Total de testes em secretariaRoutes.test.js: 10 testes**
+
+| Método | Rota              | Funcionalidade                                  | Status | Comportamento Esperado                                                           | Critérios de Aceite                                                                              |
+| ------ | ----------------- | ----------------------------------------------- | ------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| GET    | `/secretaria`     | Listar todas as secretarias                     | ✅ Implementado | Deve retornar um array com as secretarias cadastradas                            | Retorna status `200`, mensagem `"Requisição bem-sucedida"` e lista de secretarias                |
+| GET    | `/secretaria/:id` | Buscar uma secretaria pelo ID                   | ✅ Implementado | Deve retornar a secretaria correspondente ao ID                                  | Retorna status `200`, mensagem `"Requisição bem-sucedida"` e secretaria com `_id` correspondente |
+| GET    | `/secretaria/:id` | Buscar secretaria por ID inexistente            | ✅ Implementado | Deve retornar erro de recurso não encontrado                                     | Retorna status `404` e mensagem `"Recurso não encontrado em Secretaria."`                        |
+| POST   | `/secretaria`     | Criar nova secretaria com dados válidos         | ✅ Implementado | Deve cadastrar a secretaria e retornar os dados da nova secretaria               | Retorna status `201`, mensagem de sucesso, e os dados da secretaria criada                       |
+| POST   | `/secretaria`     | Criar nova secretaria com nome já existente     | ✅ Implementado | Deve retornar erro de nome duplicado                                             | Segunda requisição retorna status `400` e mensagem `"Nome já cadastrado."`                       |
+| PATCH  | `/secretaria/:id` | Atualizar parcialmente uma secretaria existente | ✅ Implementado | Deve atualizar o campo especificado (ex: `sigla`) e retornar o objeto atualizado | Retorna status `200` e campo atualizado no objeto retornado                                      |
+| PATCH  | `/secretaria/:id` | Atualizar secretaria inexistente                | ✅ Implementado | Deve retornar erro de recurso não encontrado                                     | Retorna status `404` e mensagem `"Recurso não encontrado em Secretaria."`                        |
+| DELETE | `/secretaria/:id` | Deletar uma secretaria existente                | ✅ Implementado | Deve deletar a secretaria e retornar confirmação                                 | Retorna status `200`, mensagem `"Secretaria excluída com sucesso."`, e `_id` correspondente      |
+| DELETE | `/secretaria/:id` | Deletar secretaria inexistente                  | ✅ Implementado | Deve retornar erro de recurso não encontrado                                     | Retorna status `404` e mensagem `"Recurso não encontrado em Secretaria."`                        |
+
+## Resumo de Cobertura
+
+- **Testes de Routes**: 10 testes (100% passando)
+- **Testes de Service**: 100% de cobertura em SecretariaService
+- **Testes de Repository**: 86.66% statements, 78.78% branches, 88.88% functions
+- **Operações CRUD**: Completamente testadas (Create, Read, Update, Delete)
+- **Validações**: Nome duplicado, ID inexistente, campos obrigatórios

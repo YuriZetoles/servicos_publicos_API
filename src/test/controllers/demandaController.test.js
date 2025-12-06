@@ -350,9 +350,9 @@ describe("DemandaController", ()=> {
       const mockMetadata = { tamanho: 1024 };
 
       jest.spyOn(DemandaIdSchema, 'parse').mockReturnValue('123');
-      controller.service.processarFoto = jest.fn().mockResolvedValue({
-        fileName: mockFileName,
-        metadata: mockMetadata
+      controller.service.processarFotos = jest.fn().mockResolvedValue({
+        urls: [mockFileName],
+        metadados: mockMetadata
       });
       jest.spyOn(CommonResponse, 'success').mockImplementation((res, payload) => {
         res.status(200).json(payload);
@@ -361,11 +361,11 @@ describe("DemandaController", ()=> {
       await controller.fotoUpload(req, res, next);
 
       expect(DemandaIdSchema.parse).toHaveBeenCalledWith('123');
-      expect(controller.service.processarFoto).toHaveBeenCalledWith('123', req.files.file, 'solicitacao', req);
+      expect(controller.service.processarFotos).toHaveBeenCalledWith('123', req.files.file, 'solicitacao', req);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
-        message: 'Arquivo enviado e salvo com sucesso.',
-        dados: { link_imagem: mockFileName },
+        message: 'Arquivo(s) enviado(s) e salvo(s) com sucesso.',
+        dados: { link_imagem: [mockFileName] },
         metadados: mockMetadata
       });
     });

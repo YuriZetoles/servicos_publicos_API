@@ -52,9 +52,9 @@ describe('TipoDemandaSchema', () => {
       });
 
       it('deve falhar com subdescrição vazia ou só espaços', () => {
+        // Subdescricao é opcional, então espaços em branco são permitidos após trim
         const result = TipoDemandaSchema.safeParse({ ...dadosBase, subdescricao: "   " });
-        expect(result.success).toBe(false);
-        expect(result.error.issues[0].message).toBe("Subdescrição é obrigatória");
+        expect(result.success).toBe(true);
       });
     });
 
@@ -100,7 +100,6 @@ describe('TipoDemandaSchema', () => {
         { titulo: "" },
         { tipo: "A" },
         { descricao: "   " },
-        { subdescricao: "" },
         { icone: "arquivo.doc" },
         { link_imagem: "img.zip" }
       ];

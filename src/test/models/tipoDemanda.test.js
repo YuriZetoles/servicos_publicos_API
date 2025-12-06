@@ -175,23 +175,22 @@ describe("Modelo TipoDemanda", () => {
     expect(salva.icone).toBe("");
   });
 
-  it("Deve retornar erro ao criar demanda sem subdescrição", async () => {
-    const demanda = new TipoDemanda({
-      titulo: "Demanda",
-      descricao: "desc",
-      icone: "https://exemplo.com/imagem.png",
-      tipo: "geral"
-    });
-
-    let error;
-    try {
-      await demanda.save();
-    } catch (err) {
-      error = err;
-    }
-
-    expect(error.errors.subdescricao.message).toBe("A subdescrição da demanda é obrigatória!");
-  });
+  // Teste removido: subdescricao agora é opcional na API
+  // it("Deve retornar erro ao criar demanda sem subdescrição", async () => {
+  //   const demanda = new TipoDemanda({
+  //     titulo: "Demanda",
+  //     descricao: "desc",
+  //     icone: "https://exemplo.com/imagem.png",
+  //     tipo: "geral"
+  //   });
+  //   let error;
+  //   try {
+  //     await demanda.save();
+  //   } catch (err) {
+  //     error = err;
+  //   }
+  //   expect(error.errors.subdescricao.message).toBe("A subdescrição da demanda é obrigatória!");
+  // });
 
   it("Deve retornar erro ao criar demanda sem tipo", async () => {
     const demanda = new TipoDemanda({

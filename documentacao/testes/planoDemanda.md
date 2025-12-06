@@ -82,14 +82,41 @@
 
 # Plano de teste para `Demanda Endpoint` (Sprint 7)
 
-| Método | Rota            | Cenário de Teste                             | Verificações                                                                             | Critérios de Aceite                                              |
-| ------ | --------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| GET    | `/demandas`     | Listar todas as demandas                     | Resposta 200, mensagem "Requisição bem-sucedida", corpo com lista de demandas            | Requisição retorna lista de demandas com sucesso                 |
-| GET    | `/demandas/:id` | Buscar demanda por ID válido                 | Resposta 200, mensagem "Requisição bem-sucedida", ID correspondente no corpo da resposta | Retorna demanda correta pelo ID fornecido                        |
-|        |                 | Buscar demanda com ID inexistente            | Resposta 404, mensagem "Recurso não encontrado em Demanda."                              | Erro apropriado exibido para recurso inexistente                 |
-| POST   | `/demandas`     | Criar nova demanda com dados válidos         | Resposta 201, corpo contém os dados da nova demanda                                      | Demanda criada com sucesso                                       |
-|        |                 | Criar nova demanda com dados inválidos       | Resposta 400, mensagem de erro de validação com contagem de campos inválidos             | Campos obrigatórios devem ser validados corretamente             |
-| PATCH  | `/demandas/:id` | Atualizar parcialmente uma demanda existente | Resposta 200, campo atualizado refletido na resposta                                     | Atualização parcial realizada com sucesso                        |
-|        |                 | Atualizar demanda com ID inexistente         | Resposta 404, mensagem "Recurso não encontrado em Demanda."                              | Exibe erro ao tentar atualizar recurso que não existe            |
-| DELETE | `/demandas/:id` | Deletar uma demanda existente                | Resposta 200, mensagem "Demanda excluída com sucesso!", ID correspondente no corpo       | Exclusão da demanda realizada com sucesso                        |
-|        |                 | Deletar demanda com ID inexistente           | Resposta 404, mensagem "Recurso não encontrado em Demanda."                              | Erro apropriado exibido ao tentar deletar recurso que não existe |
+## Testes de Integração Implementados
+
+**Total de testes em demandaRoutes.test.js: 19 testes**
+
+| Método | Rota            | Cenário de Teste                             | Status | Verificações                                                                             | Critérios de Aceite                                              |
+| ------ | --------------- | -------------------------------------------- | ------ | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| GET    | `/demandas`     | Listar todas as demandas                     | ✅ Implementado | Resposta 200, mensagem "Requisição bem-sucedida", corpo com lista de demandas            | Requisição retorna lista de demandas com sucesso                 |
+| GET    | `/demandas/:id` | Buscar demanda por ID válido                 | ✅ Implementado | Resposta 200, mensagem "Requisição bem-sucedida", ID correspondente no corpo da resposta | Retorna demanda correta pelo ID fornecido                        |
+|        |                 | Buscar demanda com ID inexistente            | ✅ Implementado | Resposta 404, mensagem "Recurso não encontrado em Demanda."                              | Erro apropriado exibido para recurso inexistente                 |
+| POST   | `/demandas`     | Criar nova demanda com dados válidos         | ✅ Implementado | Resposta 201, corpo contém os dados da nova demanda, tipo = "Coleta"                     | Demanda criada com sucesso                                       |
+|        |                 | Criar nova demanda com dados inválidos       | ✅ Implementado | Resposta 400, mensagem "Erro de validação. 5 campo(s) inválido(s)."                      | Campos obrigatórios devem ser validados corretamente             |
+|        |                 | Criar com múltiplas imagens em link_imagem   | ✅ Implementado | Resposta 201, array link_imagem com 3 URLs, validação de array                           | Aceita arrays com múltiplas URLs de imagens                      |
+|        |                 | Criar com array vazio de imagens            | ✅ Implementado | Resposta 201, link_imagem = [], length = 0                                               | Aceita array vazio sem erro                                      |
+|        |                 | Criar com múltiplas imagens de resolução     | ✅ Implementado | Resposta 201, link_imagem_resolucao com 2 URLs                                           | Aceita array de imagens de comprovação                           |
+|        |                 | Criar com status padrão "Em aberto"          | ✅ Implementado | Resposta 201, validação de status padrão aplicado pelo model                             | Status inicial automaticamente "Em aberto"                       |
+|        |                 | Validar tipo de demanda válido               | ✅ Implementado | Resposta 201, tipo "Coleta" aceito                                                       | Tipos válidos: Coleta, Iluminação, Saneamento, etc               |
+|        |                 | Rejeitar tipo de demanda inválido            | ✅ Implementado | Resposta 400, mensagem de erro de validação                                              | Apenas tipos do enum são aceitos                                 |
+|        |                 | Rejeitar demanda sem logradouro              | ✅ Implementado | Resposta 400, erro de validação                                                          | Campo logradouro obrigatório                                     |
+|        |                 | Rejeitar demanda sem bairro                  | ✅ Implementado | Resposta 400, erro de validação                                                          | Campo bairro obrigatório                                         |
+|        |                 | Rejeitar demanda sem descrição               | ✅ Implementado | Resposta 400, erro de validação                                                          | Campo descrição obrigatório                                      |
+| PATCH  | `/demandas/:id` | Atualizar demanda com ID inexistente         | ✅ Implementado | Resposta 404, mensagem "Recurso não encontrado em Demanda."                              | Exibe erro ao tentar atualizar recurso que não existe            |
+|        |                 | Atualizar array de imagens                   | ✅ Implementado | Resposta 200, link_imagem atualizado com novas URLs                                      | Permite atualização de arrays de imagens                         |
+| DELETE | `/demandas/:id` | Deletar uma demanda existente                | ✅ Implementado | Resposta 200, mensagem "Demanda excluída com sucesso!", ID correspondente retornado      | Exclusão da demanda realizada com sucesso                        |
+|        |                 | Deletar demanda com ID inválido              | ✅ Implementado | Resposta 404, mensagem "Recurso não encontrado em Demanda."                              | Erro apropriado exibido ao tentar deletar recurso que não existe |
+
+## Testes de Rotas de Foto (Implementadas mas não testadas explicitamente)
+
+| Método | Rota                           | Status | Observação |
+| ------ | ------------------------------ | ------ | ---------- |
+| POST   | `/demandas/:id/foto/:tipo`     | ⚠️ Sem testes de integração | Rota implementada, testes de service disponíveis |
+| DELETE | `/demandas/:id/foto/:tipo`     | ⚠️ Sem testes de integração | Rota implementada, testes de service disponíveis |
+
+## Resumo de Cobertura
+
+- **Testes de Routes**: 19 testes (100% passando)
+- **Testes de Service**: 53 testes (incluindo 28 testes de permissões)
+- **Testes de Schema**: 26 testes de validação Zod
+- **Cobertura de Service**: 72.24% statements, 61.24% branches, 77.61% functions

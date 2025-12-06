@@ -61,14 +61,33 @@
 
 # Plano de teste para `TipoDemanda Endpoint` (Sprint 7)
 
-| Funcionalidade                     | Comportamento Esperado                                        | Cenários/Testes                                                                                                  | Critérios de Aceite                     |
-| ---------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| Listar tipos de demanda            | Deve retornar uma lista de tipos de demanda cadastrados       | - Requisição GET `/tipoDemanda` com token válido<br>- Resposta 200 com mensagem "Requisição bem-sucedida"        | Status 200 e lista no corpo da resposta |
-| Obter tipoDemanda por ID           | Deve retornar tipoDemanda correspondente ao ID                | - Requisição GET `/tipoDemanda/:id` com ID válido e token<br>- Resposta 200 com objeto correspondente            | Status 200 e objeto correto no corpo    |
-| Obter tipoDemanda por ID inválido  | Deve retornar erro quando ID não existe                       | - Requisição GET `/tipoDemanda/:idInvalido` com token<br>- Resposta 404 com mensagem "Recurso não encontrado"    | Status 404 com mensagem de erro         |
-| Criar novo tipoDemanda             | Deve criar um novo tipoDemanda com dados válidos              | - Requisição POST `/tipoDemanda` com corpo válido e token<br>- Resposta 201 com dados criados                    | Status 201 e dados criados no corpo     |
-| Criar tipoDemanda com título vazio | Deve retornar erro de validação                               | - Requisição POST `/tipoDemanda` com título vazio e token<br>- Resposta 400 com mensagem de erro de validação    | Status 400 e mensagem de erro           |
-| Atualizar tipoDemanda              | Deve atualizar parcialmente dados de um tipoDemanda existente | - Requisição PATCH `/tipoDemanda/:id` com dados válidos e token<br>- Resposta 200 com dados atualizados          | Status 200 e dados atualizados no corpo |
-| Atualizar tipoDemanda inexistente  | Deve retornar erro ao tentar atualizar tipo inexistente       | - PATCH `/tipoDemanda/:idInvalido` com token<br>- Resposta 404 com mensagem "Recurso não encontrado"             | Status 404 e mensagem de erro           |
-| Deletar tipoDemanda                | Deve deletar um tipoDemanda existente com sucesso             | - POST para criar, DELETE `/tipoDemanda/:idCriado` com token<br>- Resposta 200 com confirmação e dados deletados | Status 200 e confirmação da exclusão    |
-| Deletar tipoDemanda inválido       | Deve retornar erro ao tentar deletar com ID inválido          | - DELETE `/tipoDemanda/:idInvalido` com token<br>- Resposta 404 com mensagem "Recurso não encontrado"            | Status 404 e mensagem de erro           |
+## Testes de Integração Implementados
+
+**Total de testes em tipoDemandaRoutes.test.js: 10 testes**
+
+| Funcionalidade                     | Status | Comportamento Esperado                                        | Cenários/Testes Implementados                                                                                    | Critérios de Aceite                     |
+| ---------------------------------- | ------ | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| Listar tipos de demanda            | ✅ Implementado | Deve retornar uma lista de tipos de demanda cadastrados       | - Requisição GET `/tipoDemanda` com token válido<br>- Resposta 200 com mensagem "Requisição bem-sucedida"        | Status 200 e lista no corpo da resposta |
+| Obter tipoDemanda por ID           | ✅ Implementado | Deve retornar tipoDemanda correspondente ao ID                | - Requisição GET `/tipoDemanda/:id` com ID válido e token<br>- Resposta 200 com objeto correspondente            | Status 200 e objeto correto no corpo    |
+| Obter tipoDemanda por ID inválido  | ✅ Implementado | Deve retornar erro quando ID não existe                       | - Requisição GET `/tipoDemanda/:idInvalido` com token<br>- Resposta 404 com mensagem "Recurso não encontrado em TipoDemanda."    | Status 404 com mensagem de erro         |
+| Criar novo tipoDemanda             | ✅ Implementado | Deve criar um novo tipoDemanda com dados válidos              | - Requisição POST `/tipoDemanda` com corpo válido (titulo, descricao, subdescricao, tipo, icone, link_imagem)<br>- Resposta 201 com dados criados                    | Status 201 e dados criados no corpo     |
+| Criar tipoDemanda com título vazio | ✅ Implementado | Deve retornar erro de validação                               | - Requisição POST `/tipoDemanda` com título vazio e token<br>- Resposta 400 com mensagem "Erro de validação. 1 campo(s) inválido(s)."    | Status 400 e mensagem de erro           |
+| Atualizar tipoDemanda              | ✅ Implementado | Deve atualizar parcialmente dados de um tipoDemanda existente | - Requisição PATCH `/tipoDemanda/:id` com dados válidos (ex: titulo) e token<br>- Resposta 200 com dados atualizados          | Status 200 e dados atualizados no corpo |
+| Atualizar tipoDemanda inexistente  | ✅ Implementado | Deve retornar erro ao tentar atualizar tipo inexistente       | - PATCH `/tipoDemanda/:idInvalido` com token<br>- Resposta 404 com mensagem "Recurso não encontrado em TipoDemanda."             | Status 404 e mensagem de erro           |
+| Deletar tipoDemanda                | ✅ Implementado | Deve deletar um tipoDemanda existente com sucesso             | - POST para criar, DELETE `/tipoDemanda/:idCriado` com token<br>- Resposta 200 com mensagem "TipoDemanda excluída com sucesso." e dados deletados | Status 200 e confirmação da exclusão    |
+| Deletar tipoDemanda inválido       | ✅ Implementado | Deve retornar erro ao tentar deletar com ID inválido          | - DELETE `/tipoDemanda/:idInvalido` com token<br>- Resposta 404 com mensagem "Recurso não encontrado em TipoDemanda."            | Status 404 e mensagem de erro           |
+
+## Rotas de Foto de TipoDemanda (Implementadas mas não testadas explicitamente)
+
+| Método | Rota                          | Status | Observação |
+| ------ | ----------------------------- | ------ | ---------- |
+| POST   | `/tipoDemanda/:id/foto`       | ⚠️ Sem testes de integração | Rota implementada conforme tipoDemandaRoutes.js |
+| DELETE | `/tipoDemanda/:id/foto`       | ⚠️ Sem testes de integração | Rota implementada conforme tipoDemandaRoutes.js |
+
+## Resumo de Cobertura
+
+- **Testes de Routes**: 10 testes (100% passando)
+- **Testes de Service**: 100% de cobertura em TipoDemandaService
+- **Testes de Repository**: 95.65% statements, 86.11% branches, 100% functions
+- **Operações CRUD**: Completamente testadas
+- **Validações**: Título vazio, ID inexistente, campos obrigatórios

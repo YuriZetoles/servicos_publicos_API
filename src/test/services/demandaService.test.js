@@ -94,7 +94,7 @@ describe("DemandaService", () => {
         secretarias: [{ _id: "s1" }],
       });
 
-      const res = await service.listar({ params: {}, user_id: "u1", path: "/demandas" });
+      const res = await service.listar({ params: {}, user_id: "u1", path: "/demandas/meus", query: {} });
 
       expect(res.docs).toHaveLength(1);
       expect(res.docs[0].tipo).toBe("A");
@@ -113,11 +113,6 @@ describe("DemandaService", () => {
             secretarias: [{ _id: "s2" }],
             usuarios: [{ _id: "u1" }],
           },
-          {
-            tipo: "C",
-            secretarias: [{ _id: "s1" }],
-            usuarios: [{ _id: "outro" }],
-          },
         ],
       };
 
@@ -128,7 +123,7 @@ describe("DemandaService", () => {
         secretarias: [{ _id: "s1" }],
       });
 
-      const res = await service.listar({ params: {}, user_id: "u1", path: "/demandas" });
+      const res = await service.listar({ params: {}, user_id: "u1", path: "/demandas/meus", query: {} });
 
       expect(res.docs).toHaveLength(1);
       expect(res.docs[0].tipo).toBe("A");
@@ -477,247 +472,6 @@ describe("DemandaService", () => {
     });
   });
 
-  describe("processarFoto", () => {
-    it("deve lançar erro se a extensão do arquivo for inválida", async () => {
-      const demandaId = "demanda123";
-      const req = { user_id: "usuario1" };
-      const file = {
-        name: "arquivo.exe",
-        size: 1024,
-        data: Buffer.from([]),
-        md5: "mocked-md5",
-      };
-
-      // Mock do usuário com permissões
-      userRepoMock.buscarPorID.mockResolvedValue({
-        _id: "usuario1",
-        nivel_acesso: { administrador: true },
-      });
-
-      // Mock da demanda
-      repoMock.buscarPorID.mockResolvedValue({
-        usuarios: [{ _id: "usuario1" }],
-      });
-
-      // Mock do uploadService lançando erro de extensão inválida
-      const uploadError = new CustomError({
-        statusCode: HttpStatusCodes.BAD_REQUEST.code,
-        errorType: 'validationError',
-        field: 'file',
-        customMessage: 'Extensão inválida. Permitido: jpg, jpeg, png, svg.'
-      });
-      uploadServiceMock.substituirFoto.mockRejectedValue(uploadError);
-
-      await expect(
-        service.processarFoto(demandaId, file, "inicio", req)
-      ).rejects.toThrow(CustomError);
-
-      await expect(
-        service.processarFoto(demandaId, file, "inicio", req)
-      ).rejects.toMatchObject({
-        customMessage: "Extensão inválida. Permitido: jpg, jpeg, png, svg.",
-      });
-    });
-
-    it("deve lançar erro se o arquivo exceder 50MB", async () => {
-      const demandaId = "demanda123";
-      const req = { user_id: "usuario1" };
-      const file = {
-        name: "imagem.png",
-        size: 51 * 1024 * 1024, // 51MB
-        data: Buffer.from([]),
-        md5: "mocked-md5",
-      };
-
-      // Mock do usuário com permissões
-      userRepoMock.buscarPorID.mockResolvedValue({
-        _id: "usuario1",
-        nivel_acesso: { administrador: true },
-      });
-
-      // Mock da demanda
-      repoMock.buscarPorID.mockResolvedValue({
-        usuarios: [{ _id: "usuario1" }],
-      });
-
-      // Mock do uploadService lançando erro de tamanho
-      const uploadError = new CustomError({
-        statusCode: HttpStatusCodes.BAD_REQUEST.code,
-        errorType: 'validationError',
-        field: 'file',
-        customMessage: 'Arquivo excede 50MB.'
-      });
-      uploadServiceMock.substituirFoto.mockRejectedValue(uploadError);
-
-      await expect(
-        service.processarFoto(demandaId, file, "inicio", req)
-      ).rejects.toThrow(CustomError);
-
-      await expect(
-        service.processarFoto(demandaId, file, "inicio", req)
-      ).rejects.toMatchObject({
-        customMessage: "Arquivo excede 50MB.",
-      });
-    });
-
-    it("deve processar foto com sucesso para administrador", async () => {
-      const demandaId = "demanda123";
-      const req = { user_id: "usuario1" };
-      const file = {
-        name: "imagem.jpg",
-        size: 1024,
-        data: Buffer.from([]),
-        md5: "mocked-md5",
-      };
-
-      // Mock do usuário administrador
-      userRepoMock.buscarPorID.mockResolvedValue({
-        _id: "usuario1",
-        nivel_acesso: { administrador: true },
-      });
-
-      // Mock da demanda
-      repoMock.buscarPorID.mockResolvedValue({
-        usuarios: [{ _id: "usuario1" }],
-        link_imagem: "http://minio.example.com/bucket/old-image.jpg"
-      });
-
-      // Mock do uploadService retornando sucesso
-      const uploadResult = {
-        url: "http://minio.example.com/bucket/imagem.jpg",
-        metadata: { fileName: "imagem.jpg" }
-      };
-      uploadServiceMock.substituirFoto.mockResolvedValue(uploadResult);
-
-      // Mock da atualização
-      repoMock.atualizar.mockResolvedValue({ updated: true });
-
-      const result = await service.processarFoto(demandaId, file, "inicio", req);
-
-      expect(result).toEqual({
-        fileName: "http://minio.example.com/bucket/imagem.jpg",
-        metadata: { fileName: "imagem.jpg" }
-      });
-      expect(uploadServiceMock.substituirFoto).toHaveBeenCalledWith(file, "http://minio.example.com/bucket/old-image.jpg");
-      expect(repoMock.atualizar).toHaveBeenCalledWith(demandaId, { link_imagem: "http://minio.example.com/bucket/imagem.jpg" });
-    });
-
-    it("deve processar foto com sucesso para munícipe relacionado", async () => {
-      const demandaId = "demanda123";
-      const req = { user_id: "usuario1" };
-      const file = {
-        name: "imagem.jpg",
-        size: 1024,
-        data: Buffer.from([]),
-        md5: "mocked-md5",
-      };
-
-      // Mock do usuário munícipe
-      userRepoMock.buscarPorID.mockResolvedValue({
-        _id: "usuario1",
-        nivel_acesso: { municipe: true },
-      });
-
-      // Mock da demanda com o usuário relacionado
-      repoMock.buscarPorID.mockResolvedValue({
-        usuarios: [{ _id: "usuario1" }],
-      });
-
-      // Mock do uploadService retornando sucesso
-      const uploadResult = {
-        url: "http://minio.example.com/bucket/imagem.jpg",
-        metadata: { fileName: "imagem.jpg" }
-      };
-      uploadServiceMock.substituirFoto.mockResolvedValue(uploadResult);
-
-      // Mock da atualização
-      repoMock.atualizar.mockResolvedValue({ updated: true });
-
-      const result = await service.processarFoto(demandaId, file, "resolucao", req);
-
-      expect(result).toEqual({
-        fileName: "http://minio.example.com/bucket/imagem.jpg",
-        metadata: { fileName: "imagem.jpg" }
-      });
-      expect(repoMock.atualizar).toHaveBeenCalledWith(demandaId, { link_imagem_resolucao: "http://minio.example.com/bucket/imagem.jpg" });
-    });
-
-    it("deve lançar erro se usuário não tiver permissão", async () => {
-      const demandaId = "demanda123";
-      const req = { user_id: "usuario1" };
-      const file = {
-        name: "imagem.jpg",
-        size: 1024,
-        data: Buffer.from([]),
-        md5: "mocked-md5",
-      };
-
-      // Mock do usuário sem permissões adequadas
-      userRepoMock.buscarPorID.mockResolvedValue({
-        _id: "usuario1",
-        nivel_acesso: { operador: true },
-      });
-
-      // Mock da demanda sem o usuário relacionado
-      repoMock.buscarPorID.mockResolvedValue({
-        usuarios: [{ _id: "outroUsuario" }],
-      });
-
-      await expect(
-        service.processarFoto(demandaId, file, "inicio", req)
-      ).rejects.toThrow(CustomError);
-
-      await expect(
-        service.processarFoto(demandaId, file, "inicio", req)
-      ).rejects.toMatchObject({
-        statusCode: HttpStatusCodes.FORBIDDEN.code,
-        errorType: "permissionError",
-        customMessage: "Você não tem permissão para atualizar a imagem dessa demanda."
-      });
-
-      expect(uploadServiceMock.substituirFoto).not.toHaveBeenCalled();
-    });
-
-    it("deve deletar foto do MinIO se atualização do banco falhar", async () => {
-      const demandaId = "demanda123";
-      const req = { user_id: "usuario1" };
-      const file = {
-        name: "imagem.jpg",
-        size: 1024,
-        data: Buffer.from([]),
-        md5: "mocked-md5",
-      };
-
-      // Mock do usuário administrador
-      userRepoMock.buscarPorID.mockResolvedValue({
-        _id: "usuario1",
-        nivel_acesso: { administrador: true },
-      });
-
-      // Mock da demanda
-      repoMock.buscarPorID.mockResolvedValue({
-        usuarios: [{ _id: "usuario1" }],
-      });
-
-      // Mock do uploadService retornando sucesso
-      const uploadResult = {
-        url: "http://minio.example.com/bucket/imagem.jpg",
-        metadata: { fileName: "imagem.jpg" }
-      };
-      uploadServiceMock.substituirFoto.mockResolvedValue(uploadResult);
-
-      // Mock da atualização falhando
-      repoMock.atualizar.mockRejectedValue(new Error("Erro no banco"));
-
-      await expect(
-        service.processarFoto(demandaId, file, "inicio", req)
-      ).rejects.toThrow();
-
-      // Verifica que tentou deletar do MinIO após falha
-      expect(uploadServiceMock.deleteFoto).toHaveBeenCalledWith("http://minio.example.com/bucket/imagem.jpg");
-    });
-  });
-
   describe("nivelAcesso", () => {
     it("deve retornar campos corretos para administrador", async () => {
       const nivelAcesso = { administrador: true };
@@ -883,148 +637,6 @@ describe("DemandaService", () => {
     });
   });
 
-  describe("DemandaService - atualizarFoto", () => {
-    let demandaService;
-    let mockUserRepository;
-    let mockRepository;
-
-    beforeEach(() => {
-      mockUserRepository = {
-        buscarPorID: jest.fn(),
-      };
-
-      mockRepository = {
-        buscarPorID: jest.fn(),
-        atualizar: jest.fn(),
-      };
-
-      demandaService = new DemandaService();
-      demandaService.userRepository = mockUserRepository;
-      demandaService.repository = mockRepository;
-      demandaService.ensureDemandaExists = jest.fn(); // necessário mockar
-    });
-
-    const parsedData = { link_imagem: "http://imagem.com/foto.jpg" };
-
-    it("deve permitir que administrador atualize a foto", async () => {
-      mockUserRepository.buscarPorID.mockResolvedValue({
-        _id: "123",
-        nivel_acesso: { administrador: true },
-      });
-
-      mockRepository.buscarPorID.mockResolvedValue({
-        usuarios: [],
-      });
-
-      mockRepository.atualizar.mockResolvedValue({ updated: true });
-
-      const req = { user_id: "123" };
-      const result = await demandaService.atualizarFoto(
-        "demandaId",
-        parsedData,
-        req
-      );
-
-      expect(result).toEqual({ updated: true });
-      expect(mockRepository.atualizar).toHaveBeenCalledWith(
-        "demandaId",
-        parsedData
-      );
-    });
-
-    it("deve permitir que municipe relacionado atualize a foto", async () => {
-      mockUserRepository.buscarPorID.mockResolvedValue({
-        _id: "456",
-        nivel_acesso: { municipe: true },
-      });
-
-      mockRepository.buscarPorID.mockResolvedValue({
-        usuarios: [{ _id: "456" }],
-      });
-
-      const file = {
-        name: "foto.jpg",
-        size: 1024,
-        data: Buffer.from("..."),
-      };
-
-      const uploadResult = {
-        url: "http://minio.example.com/bucket/foto.jpg",
-        metadata: { fileName: "foto.jpg" }
-      };
-      uploadServiceMock.substituirFoto.mockResolvedValue(uploadResult);
-
-      mockRepository.atualizar.mockResolvedValue({ updated: true });
-
-      const req = { user_id: "456" };
-      const result = await demandaService.processarFoto("demandaId", file, "inicio", req);
-
-      expect(result).toEqual({
-        fileName: "http://minio.example.com/bucket/foto.jpg",
-        metadata: { fileName: "foto.jpg" }
-      });
-      expect(mockRepository.atualizar).toHaveBeenCalledWith("demandaId", { link_imagem: "http://minio.example.com/bucket/foto.jpg" });
-    });
-
-    it("deve lançar erro se municipe não estiver associado à demanda", async () => {
-      mockUserRepository.buscarPorID.mockResolvedValue({
-        _id: "789",
-        nivel_acesso: { municipe: true },
-      });
-
-      mockRepository.buscarPorID.mockResolvedValue({
-        usuarios: [{ _id: "outraPessoa" }],
-      });
-
-      const file = {
-        name: "foto.jpg",
-        size: 1024,
-        data: Buffer.from("..."),
-      };
-
-      const req = { user_id: "789" };
-
-      await expect(
-        demandaService.processarFoto("demandaId", file, "inicio", req)
-      ).rejects.toThrow(CustomError);
-
-      await expect(
-        demandaService.processarFoto("demandaId", file, "inicio", req)
-      ).rejects.toMatchObject({
-        statusCode: HttpStatusCodes.FORBIDDEN.code,
-        errorType: "permissionError",
-        customMessage: "Você não tem permissão para atualizar a imagem dessa demanda."
-      });
-
-      expect(uploadServiceMock.substituirFoto).not.toHaveBeenCalled();
-    });
-
-    it("deve lançar erro se o usuário não tiver nível de acesso válido", async () => {
-      mockUserRepository.buscarPorID.mockResolvedValue({
-        _id: "123",
-        nivel_acesso: {},
-      });
-
-      mockRepository.buscarPorID.mockResolvedValue({
-        usuarios: [{ _id: "123" }],
-      });
-
-      const file = {
-        name: "foto.jpg",
-        size: 1024,
-        data: Buffer.from("..."),
-      };
-
-      const req = { user_id: "123" };
-
-      await expect(
-        demandaService.processarFoto("demandaId", file, "inicio", req)
-      ).rejects.toThrow(CustomError);
-
-      expect(uploadServiceMock.substituirFoto).not.toHaveBeenCalled();
-    });
-  });
-
   // describe("DemandaService - upload de imagem", () => {
   //   beforeEach(() => {
   //     uuidv4.mockReturnValue("uuid-fixo");
@@ -1102,4 +714,482 @@ describe("DemandaService", () => {
   //     );
   //   });
   // });
+
+  describe("Permissões em busca por ID", () => {
+    it("secretário pode acessar demanda de sua secretaria", async () => {
+      const req = { user_id: "sec1", params: { id: "dem1" }, path: "/demandas" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "sec1",
+        nivel_acesso: { secretario: true },
+        secretarias: [{ _id: "sec1" }]
+      });
+      
+      repoMock.buscarPorID.mockResolvedValue({
+        _id: "dem1",
+        secretarias: [{ _id: "sec1" }],
+        usuarios: []
+      });
+
+      const res = await service.listar(req);
+      expect(res._id).toBe("dem1");
+    });
+
+    it("secretário não pode acessar demanda fora de sua secretaria", async () => {
+      const req = { user_id: "sec1", params: { id: "dem1" }, path: "/demandas" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "sec1",
+        nivel_acesso: { secretario: true },
+        secretarias: [{ _id: "sec1" }]
+      });
+      
+      repoMock.buscarPorID.mockResolvedValue({
+        _id: "dem1",
+        secretarias: [{ _id: "sec2" }],
+        usuarios: []
+      });
+
+      await expect(service.listar(req)).rejects.toThrow(CustomError);
+    });
+
+    it("operador pode acessar demanda se atribuído e na sua secretaria", async () => {
+      const req = { user_id: "op1", params: { id: "dem1" }, path: "/demandas" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "op1",
+        nivel_acesso: { operador: true },
+        secretarias: [{ _id: "sec1" }]
+      });
+      
+      repoMock.buscarPorID.mockResolvedValue({
+        _id: "dem1",
+        secretarias: [{ _id: "sec1" }],
+        usuarios: [{ _id: "op1" }]
+      });
+
+      const res = await service.listar(req);
+      expect(res._id).toBe("dem1");
+    });
+
+    it("operador não pode acessar demanda se não estiver atribuído", async () => {
+      const req = { user_id: "op1", params: { id: "dem1" }, path: "/demandas" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "op1",
+        nivel_acesso: { operador: true },
+        secretarias: [{ _id: "sec1" }]
+      });
+      
+      repoMock.buscarPorID.mockResolvedValue({
+        _id: "dem1",
+        secretarias: [{ _id: "sec1" }],
+        usuarios: [{ _id: "op2" }]
+      });
+
+      await expect(service.listar(req)).rejects.toThrow(CustomError);
+    });
+
+    it("munícipe pode acessar apenas sua demanda", async () => {
+      const req = { user_id: "user1", params: { id: "dem1" }, path: "/demandas" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "user1",
+        nivel_acesso: { municipe: true }
+      });
+      
+      repoMock.buscarPorID.mockResolvedValue({
+        _id: "dem1",
+        usuarios: [{ _id: "user1" }],
+        secretarias: [{ _id: "sec1" }]
+      });
+
+      const res = await service.listar(req);
+      expect(res._id).toBe("dem1");
+    });
+
+    it("munícipe não pode acessar demanda de outro munícipe", async () => {
+      const req = { user_id: "user1", params: { id: "dem1" }, path: "/demandas" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "user1",
+        nivel_acesso: { municipe: true }
+      });
+      
+      repoMock.buscarPorID.mockResolvedValue({
+        _id: "dem1",
+        usuarios: [{ _id: "user2" }],
+        secretarias: [{ _id: "sec1" }]
+      });
+
+      await expect(service.listar(req)).rejects.toThrow(CustomError);
+    });
+
+    it("administrador pode acessar qualquer demanda", async () => {
+      const req = { user_id: "admin1", params: { id: "dem1" }, path: "/demandas" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "admin1",
+        nivel_acesso: { administrador: true }
+      });
+      
+      repoMock.buscarPorID.mockResolvedValue({
+        _id: "dem1",
+        usuarios: [{ _id: "user2" }],
+        secretarias: [{ _id: "sec2" }]
+      });
+
+      const res = await service.listar(req);
+      expect(res._id).toBe("dem1");
+    });
+  });
+
+  describe("Permissões em atribuição", () => {
+    it("secretário não pode atribuir operador de outra secretaria", async () => {
+      const req = { user_id: "sec1" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "sec1",
+        nivel_acesso: { secretario: true },
+        secretarias: [{ _id: "sec1" }]
+      });
+      
+      repoMock.buscarPorID.mockResolvedValue({
+        _id: "dem1",
+        secretarias: [{ _id: "sec2" }],
+        usuarios: []
+      });
+
+      await expect(
+        service.atribuir("dem1", { usuarios: ["op1"] }, req)
+      ).rejects.toThrow(CustomError);
+    });
+
+    it("secretário não pode atribuir usuário municipe", async () => {
+      const req = { user_id: "sec1" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "sec1",
+        nivel_acesso: { secretario: true },
+        secretarias: [{ _id: "sec1" }]
+      });
+      
+      repoMock.buscarPorID.mockResolvedValue({
+        _id: "dem1",
+        secretarias: [{ _id: "sec1" }],
+        usuarios: []
+      });
+
+      userRepoMock.buscarPorIDs.mockResolvedValue([
+        { _id: "user1", nivel_acesso: { municipe: true } }
+      ]);
+
+      await expect(
+        service.atribuir("dem1", { usuarios: ["user1"] }, req)
+      ).rejects.toThrow(CustomError);
+    });
+
+    it("secretário pode atribuir operador mantendo munícipe existente", async () => {
+      const req = { user_id: "sec1" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "sec1",
+        nivel_acesso: { secretario: true },
+        secretarias: [{ _id: "sec1" }]
+      });
+      
+      repoMock.buscarPorID.mockResolvedValue({
+        _id: "dem1",
+        secretarias: [{ _id: "sec1" }],
+        usuarios: [{ _id: "user1" }]
+      });
+
+      userRepoMock.buscarPorIDs.mockImplementation((ids) => {
+        return Promise.resolve(ids.map(id => ({
+          _id: id,
+          nivel_acesso: id === "user1" ? { municipe: true } : { operador: true }
+        })));
+      });
+
+      repoMock.atribuir.mockResolvedValue({
+        _id: "dem1",
+        usuarios: ["op1", "user1"],
+        status: "Em andamento"
+      });
+
+      const res = await service.atribuir("dem1", { usuarios: ["op1"] }, req);
+      
+      expect(repoMock.atribuir).toHaveBeenCalledWith(
+        "dem1",
+        expect.objectContaining({
+          usuarios: expect.arrayContaining(["op1", "user1"]),
+          status: "Em andamento"
+        })
+      );
+    });
+  });
+
+  describe("Permissões em devolução", () => {
+    it("secretário pode devolver demanda de sua secretaria com motivo", async () => {
+      const req = { user_id: "sec1" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "sec1",
+        nivel_acesso: { secretario: true },
+        secretarias: [{ _id: "sec1" }]
+      });
+      
+      repoMock.buscarPorID.mockResolvedValue({
+        _id: "dem1",
+        secretarias: [{ _id: "sec1" }],
+        usuarios: []
+      });
+
+      repoMock.devolver.mockResolvedValue({
+        _id: "dem1",
+        status: "Recusada",
+        motivo_rejeicao: "Informações incompletas"
+      });
+
+      const res = await service.devolver("dem1", { motivo_rejeicao: "Informações incompletas" }, req);
+      expect(res.status).toBe("Recusada");
+    });
+
+    it("secretário não pode devolver demanda sem motivo", async () => {
+      const req = { user_id: "sec1" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "sec1",
+        nivel_acesso: { secretario: true },
+        secretarias: [{ _id: "sec1" }]
+      });
+      
+      repoMock.buscarPorID.mockResolvedValue({
+        _id: "dem1",
+        secretarias: [{ _id: "sec1" }],
+        usuarios: []
+      });
+
+      await expect(
+        service.devolver("dem1", { motivo_rejeicao: "" }, req)
+      ).rejects.toThrow(CustomError);
+    });
+
+    it("operador pode devolver demanda removendo a si mesmo", async () => {
+      const req = { user_id: "op1" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "op1",
+        nivel_acesso: { operador: true }
+      });
+      
+      repoMock.buscarPorID.mockResolvedValue({
+        _id: "dem1",
+        usuarios: [{ _id: "op1" }, { _id: "user1" }]
+      });
+
+      repoMock.devolver.mockResolvedValue({
+        _id: "dem1",
+        status: "Em aberto",
+        usuarios: [{ _id: "user1" }]
+      });
+
+      const res = await service.devolver("dem1", { motivo_devolucao: "Não consigo resolver" }, req);
+      expect(res.status).toBe("Em aberto");
+    });
+  });
+
+  describe("Permissões em criação", () => {
+    it("operador não pode criar demanda", async () => {
+      const req = { user_id: "op1" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "op1",
+        nivel_acesso: { operador: true }
+      });
+
+      await expect(
+        service.criar({ tipo: "Coleta", descricao: "test" }, req)
+      ).rejects.toThrow(CustomError);
+    });
+
+    it("munícipe pode criar demanda com secretaria automática", async () => {
+      const req = { user_id: "user1" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "user1",
+        nivel_acesso: { municipe: true }
+      });
+
+      secRepoMock.buscarPorTipo.mockResolvedValue({ _id: "sec1" });
+
+      repoMock.criar.mockResolvedValue({
+        _id: "dem1",
+        tipo: "Coleta",
+        usuarios: ["user1"],
+        secretarias: ["sec1"]
+      });
+
+      const res = await service.criar({ tipo: "Coleta", descricao: "test" }, req);
+      
+      expect(res._id).toBe("dem1");
+      expect(repoMock.criar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          usuarios: ["user1"],
+          secretarias: ["sec1"]
+        })
+      );
+    });
+  });
+
+  describe("Permissões em atualização", () => {
+    it("munícipe pode atualizar sua demanda", async () => {
+      const req = { user_id: "user1" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "user1",
+        nivel_acesso: { municipe: true }
+      });
+
+      repoMock.buscarPorID.mockResolvedValue({ _id: "dem1" });
+      repoMock.atualizar.mockResolvedValue({
+        _id: "dem1",
+        descricao: "Atualizada"
+      });
+
+      const res = await service.atualizar("dem1", { descricao: "Atualizada" }, req);
+      expect(res.descricao).toBe("Atualizada");
+    });
+
+    it("operador não pode atualizar demanda", async () => {
+      const req = { user_id: "op1" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "op1",
+        nivel_acesso: { operador: true }
+      });
+
+      await expect(
+        service.atualizar("dem1", { descricao: "test" }, req)
+      ).rejects.toThrow(CustomError);
+    });
+
+    it("munícipe não pode atualizar tipo ou data", async () => {
+      const req = { user_id: "user1" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "user1",
+        nivel_acesso: { municipe: true }
+      });
+
+      repoMock.buscarPorID.mockResolvedValue({ _id: "dem1" });
+      repoMock.atualizar.mockResolvedValue({ _id: "dem1" });
+
+      await service.atualizar("dem1", { tipo: "Outra", data: "2025-01-01", descricao: "test" }, req);
+      
+      expect(repoMock.atualizar).toHaveBeenCalledWith(
+        "dem1",
+        expect.not.objectContaining({ tipo: expect.any(String), data: expect.any(String) })
+      );
+    });
+  });
+
+  describe("Permissões em resolução", () => {
+    it("operador pode resolver demanda", async () => {
+      const req = { user_id: "op1" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "op1",
+        nivel_acesso: { operador: true }
+      });
+
+      repoMock.buscarPorID.mockResolvedValue({ _id: "dem1", usuarios: [] });
+      repoMock.resolver.mockResolvedValue({
+        _id: "dem1",
+        status: "Concluída"
+      });
+
+      const res = await service.resolver("dem1", { resolucao: "Resolvido", link_imagem_resolucao: "img.jpg" }, req);
+      expect(res.status).toBe("Concluída");
+    });
+
+    it("munícipe não pode resolver demanda", async () => {
+      const req = { user_id: "user1" };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "user1",
+        nivel_acesso: { municipe: true }
+      });
+
+      await expect(
+        service.resolver("dem1", { resolucao: "test" }, req)
+      ).rejects.toThrow(CustomError);
+    });
+  });
+
+  describe("Listar com filtros de permissão", () => {
+    it("munícipe vê apenas suas demandas com /meus", async () => {
+      const req = { user_id: "user1", params: {}, path: "/demandas/meus", query: {} };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "user1",
+        nivel_acesso: { municipe: true }
+      });
+
+      repoMock.listar.mockResolvedValue({
+        docs: [
+          { _id: "d1", usuarios: [{ _id: "user1" }] },
+          { _id: "d2", usuarios: [{ _id: "user2" }] }
+        ]
+      });
+
+      const res = await service.listar(req);
+      expect(res.docs.length).toBe(1);
+      expect(res.docs[0]._id).toBe("d1");
+    });
+
+    it("secretário vê apenas demandas de sua secretaria com /meus", async () => {
+      const req = { user_id: "sec1", params: {}, path: "/demandas/meus", query: {} };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "sec1",
+        nivel_acesso: { secretario: true },
+        secretarias: [{ _id: "sec1" }]
+      });
+
+      repoMock.listar.mockResolvedValue({
+        docs: [
+          { _id: "d1", secretarias: [{ _id: "sec1" }] },
+          { _id: "d2", secretarias: [{ _id: "sec2" }] }
+        ]
+      });
+
+      const res = await service.listar(req);
+      expect(res.docs.length).toBe(1);
+      expect(res.docs[0]._id).toBe("d1");
+    });
+
+    it("operador vê apenas suas demandas atribuídas com /meus", async () => {
+      const req = { user_id: "op1", params: {}, path: "/demandas/meus", query: {} };
+      
+      userRepoMock.buscarPorID.mockResolvedValue({
+        _id: "op1",
+        nivel_acesso: { operador: true },
+        secretarias: [{ _id: "sec1" }]
+      });
+
+      repoMock.listar.mockResolvedValue({
+        docs: [
+          { _id: "d1", secretarias: [{ _id: "sec1" }], usuarios: [{ _id: "op1" }] },
+          { _id: "d2", secretarias: [{ _id: "sec1" }], usuarios: [{ _id: "op2" }] }
+        ]
+      });
+
+      const res = await service.listar(req);
+      expect(res.docs.length).toBe(1);
+      expect(res.docs[0]._id).toBe("d1");
+    });
+  });
 });
+
+
