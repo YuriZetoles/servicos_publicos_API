@@ -157,5 +157,240 @@ describe('Rotas de demanda', () => {
     const res = await request(app).delete("/demandas/6839c69706ec18da71924bbb").set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(404);
     expect(res.body.message).toBe("Recurso não encontrado em Demanda.");
-  }); 
+  });
+
+  describe('Cenários Críticos - Arrays de Imagens', () => {
+    it('POST - Deve aceitar múltiplas imagens em link_imagem como array', async () => {
+      const novaDemanda = {
+        tipo: 'Coleta',
+        status: 'Em aberto',
+        descricao: 'Teste com múltiplas imagens',
+        link_imagem: [
+          fakebr.internet.url() + "/" + uuid() + ".jpg",
+          fakebr.internet.url() + "/" + uuid() + ".jpg",
+          fakebr.internet.url() + "/" + uuid() + ".jpg"
+        ],
+        endereco: {
+          logradouro: "Rua Teste",
+          cep: "98765-432",
+          bairro: "Centro",
+          numero: 100,
+          cidade: "Vilhena",
+          estado: "RO"
+        },
+        usuarios: [],
+      };
+      const res = await request(app).post("/demandas").send(novaDemanda).set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(201);
+      expect(Array.isArray(res.body.data.link_imagem)).toBe(true);
+      expect(res.body.data.link_imagem.length).toBe(3);
+    });
+
+    it('POST - Deve aceitar demanda com array vazio de imagens', async () => {
+      const novaDemanda = {
+        tipo: 'Iluminação',
+        status: 'Em aberto',
+        descricao: 'Teste sem imagens',
+        link_imagem: [],
+        endereco: {
+          logradouro: "Rua Escura",
+          cep: "98765-432",
+          bairro: "Periferia",
+          numero: 50,
+          cidade: "Vilhena",
+          estado: "RO"
+        },
+        usuarios: [],
+      };
+      const res = await request(app).post("/demandas").send(novaDemanda).set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(201);
+      expect(Array.isArray(res.body.data.link_imagem)).toBe(true);
+      expect(res.body.data.link_imagem.length).toBe(0);
+    });
+
+    it('POST - Deve aceitar múltiplas imagens em link_imagem_resolucao', async () => {
+      const novaDemanda = {
+        tipo: 'Pavimentação',
+        status: 'Concluída',
+        descricao: 'Obra concluída com fotos antes e depois',
+        resolucao: 'Pista recapeada completamente',
+        link_imagem: [fakebr.internet.url() + "/" + uuid() + ".jpg"],
+        link_imagem_resolucao: [
+          fakebr.internet.url() + "/" + uuid() + ".jpg",
+          fakebr.internet.url() + "/" + uuid() + ".jpg"
+        ],
+        endereco: {
+          logradouro: "Av. Principal",
+          cep: "78965-432",
+          bairro: "Centro",
+          numero: 1,
+          cidade: "Vilhena",
+          estado: "RO"
+        },
+        usuarios: [],
+      };
+      const res = await request(app).post("/demandas").send(novaDemanda).set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(201);
+      expect(Array.isArray(res.body.data.link_imagem_resolucao)).toBe(true);
+      expect(res.body.data.link_imagem_resolucao.length).toBe(2);
+    });
+
+    it('PATCH - Deve permitir atualizar array de imagens com novas URLs', async () => {
+      const novaDemanda = {
+        tipo: 'Coleta',
+        status: 'Em aberto',
+        descricao: 'Para atualizar',
+        link_imagem: [fakebr.internet.url() + "/" + uuid() + ".jpg"],
+        endereco: {
+          logradouro: "Rua Update",
+          cep: "98765-432",
+          bairro: "Centro",
+          numero: 200,
+          cidade: "Vilhena",
+          estado: "RO"
+        },
+        usuarios: [],
+      };
+
+      const postRes = await request(app).post("/demandas").send(novaDemanda).set('Authorization', `Bearer ${token}`);
+      const demandaId = postRes.body.data._id;
+
+      const atualizacao = {
+        link_imagem: [
+          fakebr.internet.url() + "/" + uuid() + ".jpg",
+          fakebr.internet.url() + "/" + uuid() + ".jpg"
+        ]
+      };
+
+      const patchRes = await request(app).patch(`/demandas/${demandaId}`).send(atualizacao).set('Authorization', `Bearer ${token}`);
+      expect(patchRes.status).toBe(200);
+      expect(Array.isArray(patchRes.body.data.link_imagem)).toBe(true);
+      expect(patchRes.body.data.link_imagem.length).toBe(2);
+    });
+  });
+
+  describe('Cenários Críticos - Validação de Estados', () => {
+    it('POST - Deve criar demanda com status padrão "Em aberto"', async () => {
+      const novaDemanda = {
+        tipo: 'Saneamento',
+        descricao: 'Teste de status padrão',
+        link_imagem: [],
+        endereco: {
+          logradouro: "Rua Saneamento",
+          cep: "78965-432",
+          bairro: "Zona Rural",
+          numero: 500,
+          cidade: "Vilhena",
+          estado: "RO"
+        },
+        usuarios: [],
+      };
+      const res = await request(app).post("/demandas").send(novaDemanda).set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(201);
+      expect(res.body.data.status).toBe("Em aberto");
+    });
+
+    it('POST - Deve validar tipos de demanda válidos', async () => {
+      const tiposValidos = ["Coleta", "Iluminação", "Saneamento", "Árvores", "Animais", "Pavimentação"];
+      
+      for (const tipo of tiposValidos.slice(0, 2)) { // Testando 2 tipos para não poluir DB
+        const novaDemanda = {
+          tipo,
+          descricao: `Teste de tipo ${tipo}`,
+          link_imagem: [],
+          endereco: {
+            logradouro: "Rua Teste",
+            cep: "78965-432",
+            bairro: "Centro",
+            numero: 100,
+            cidade: "Vilhena",
+            estado: "RO"
+          },
+          usuarios: [],
+        };
+        const res = await request(app).post("/demandas").send(novaDemanda).set('Authorization', `Bearer ${token}`);
+        expect(res.status).toBe(201);
+        expect(res.body.data.tipo).toBe(tipo);
+      }
+    });
+
+    it('POST - Deve rejeitar tipo de demanda inválido', async () => {
+      const novaDemanda = {
+        tipo: 'TipoInexistente',
+        descricao: 'Teste com tipo inválido',
+        link_imagem: [],
+        endereco: {
+          logradouro: "Rua Teste",
+          cep: "78965-432",
+          bairro: "Centro",
+          numero: 100,
+          cidade: "Vilhena",
+          estado: "RO"
+        },
+        usuarios: [],
+      };
+      const res = await request(app).post("/demandas").send(novaDemanda).set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain("Erro de validação");
+    });
+  });
+
+  describe('Cenários Críticos - Campos Obrigatórios', () => {
+    it('POST - Deve rejeitar demanda sem logradouro', async () => {
+      const novaDemanda = {
+        tipo: 'Coleta',
+        descricao: 'Faltando logradouro',
+        link_imagem: [],
+        endereco: {
+          cep: "78965-432",
+          bairro: "Centro",
+          numero: 100,
+          cidade: "Vilhena",
+          estado: "RO"
+        },
+        usuarios: [],
+      };
+      const res = await request(app).post("/demandas").send(novaDemanda).set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain("Erro de validação");
+    });
+
+    it('POST - Deve rejeitar demanda sem bairro', async () => {
+      const novaDemanda = {
+        tipo: 'Coleta',
+        descricao: 'Faltando bairro',
+        link_imagem: [],
+        endereco: {
+          logradouro: "Rua Teste",
+          cep: "78965-432",
+          numero: 100,
+          cidade: "Vilhena",
+          estado: "RO"
+        },
+        usuarios: [],
+      };
+      const res = await request(app).post("/demandas").send(novaDemanda).set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain("Erro de validação");
+    });
+
+    it('POST - Deve rejeitar demanda sem descricao', async () => {
+      const novaDemanda = {
+        tipo: 'Coleta',
+        link_imagem: [],
+        endereco: {
+          logradouro: "Rua Teste",
+          cep: "78965-432",
+          bairro: "Centro",
+          numero: 100,
+          cidade: "Vilhena",
+          estado: "RO"
+        },
+        usuarios: [],
+      };
+      const res = await request(app).post("/demandas").send(novaDemanda).set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain("Erro de validação");
+    });
+  });
 });

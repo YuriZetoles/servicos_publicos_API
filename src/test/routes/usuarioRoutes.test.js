@@ -178,4 +178,201 @@ describe('Rotas de usuário', () => {
     expect(res.body.message).toBe("Recurso não encontrado em Usuário.");
   });
 
+  describe('Cenários Críticos - Relacionamento com Grupo (Singular)', () => {
+    it('POST - Deve aceitar usuario com grupo como string (ObjectId)', async () => {
+      const novoUsuario = {
+        nome: "Operador com Grupo " + Date.now(),
+        email: generateRandomEmail(),
+        cpf: generateRandomCPF(),
+        senha: "Senha@123",
+        data_nascimento: "15/03/1985",
+        celular: "11988887777",
+        cnh: generateRandomCNH(),
+        grupo: "507f1f77bcf86cd799439011", // ObjectId como string (singular)
+        endereco: {
+          logradouro: "Rua Teste",
+          cep: "12345-678",
+          bairro: "Centro",
+          numero: 123,
+          cidade: "São Paulo",
+          estado: "SP"
+        },
+        nivel_acesso: { operador: true },
+      };
+
+      const res = await request(app)
+        .post("/usuarios")
+        .send(novoUsuario)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(201);
+      expect(res.body.data).toHaveProperty("grupo");
+      // Grupo deve ser uma string (ObjectId), não um array
+      expect(typeof res.body.data.grupo === 'string' || res.body.data.grupo === null).toBe(true);
+    });
+
+    it('GET - Deve retornar usuario com grupo como string singular (ou object se populado)', async () => {
+      const res = await request(app)
+        .get(`/usuarios/${UsuarioId}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      // Grupo pode ser undefined, null, string (ObjectId) ou object (populado)
+      if (res.body.data.grupo !== undefined && res.body.data.grupo !== null) {
+        // Se é um objeto, é referência populada; se é string, é um ObjectId
+        const isStringOrObject = typeof res.body.data.grupo === 'string' || typeof res.body.data.grupo === 'object';
+        expect(isStringOrObject).toBe(true);
+        expect(Array.isArray(res.body.data.grupo)).toBe(false);
+      }
+    });
+  });
+
+  describe('Cenários Críticos - Validação de Dados Obrigatórios', () => {
+    it('POST - Deve rejeitar usuario sem data_nascimento', async () => {
+      const novoUsuario = {
+        nome: "Usuário Sem Data",
+        email: generateRandomEmail(),
+        cpf: generateRandomCPF(),
+        senha: "Senha@123",
+        // data_nascimento faltando
+        celular: "11988887777",
+        endereco: {
+          logradouro: "Rua Teste",
+          cep: "12345-678",
+          bairro: "Centro",
+          numero: 123,
+          cidade: "São Paulo",
+          estado: "SP"
+        },
+        nivel_acesso: { municipe: true },
+      };
+
+      const res = await request(app)
+        .post("/usuarios")
+        .send(novoUsuario)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain("Erro de validação");
+    });
+
+    it('POST - Deve rejeitar usuario sem email', async () => {
+      const novoUsuario = {
+        nome: "Usuário Sem Email",
+        cpf: generateRandomCPF(),
+        senha: "Senha@123",
+        data_nascimento: "15/03/1990",
+        celular: "11988887777",
+        endereco: {
+          logradouro: "Rua Teste",
+          cep: "12345-678",
+          bairro: "Centro",
+          numero: 123,
+          cidade: "São Paulo",
+          estado: "SP"
+        },
+        nivel_acesso: { municipe: true },
+      };
+
+      const res = await request(app)
+        .post("/usuarios")
+        .send(novoUsuario)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain("Erro de validação");
+    });
+
+    it('POST - Deve rejeitar usuario com senha fraca', async () => {
+      const novoUsuario = {
+        nome: "Usuário Senha Fraca " + Date.now(),
+        email: generateRandomEmail(),
+        cpf: generateRandomCPF(),
+        senha: "123456", // Senha fraca (sem caracteres especiais, maiúsculas)
+        data_nascimento: "15/03/1990",
+        celular: "11988887777",
+        endereco: {
+          logradouro: "Rua Teste",
+          cep: "12345-678",
+          bairro: "Centro",
+          numero: 123,
+          cidade: "São Paulo",
+          estado: "SP"
+        },
+        nivel_acesso: { municipe: true },
+      };
+
+      const res = await request(app)
+        .post("/usuarios")
+        .send(novoUsuario)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain("Erro de validação");
+    });
+  });
+
+  describe('Cenários Críticos - Estados Válidos (Enum)', () => {
+    it('POST - Deve aceitar usuario com estado válido do Brasil', async () => {
+      const estadosValidos = ["SP", "RJ", "MG", "BA", "RO"];
+
+      for (const estado of estadosValidos.slice(0, 2)) { // Testando 2 estados
+        const novoUsuario = {
+          nome: `Usuário ${estado} ` + Date.now(),
+          email: generateRandomEmail(),
+          cpf: generateRandomCPF(),
+          senha: "Senha@123",
+          data_nascimento: "15/03/1990",
+          celular: "11988887777",
+          cnh: generateRandomCNH(),
+          endereco: {
+            logradouro: "Rua Teste",
+            cep: "12345-678",
+            bairro: "Centro",
+            numero: 123,
+            cidade: "São Paulo",
+            estado
+          },
+          nivel_acesso: { municipe: true },
+        };
+
+        const res = await request(app)
+          .post("/usuarios")
+          .send(novoUsuario)
+          .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(201);
+        expect(res.body.data.endereco.estado).toBe(estado);
+      }
+    });
+
+    it('POST - Deve rejeitar usuario com estado inválido', async () => {
+      const novoUsuario = {
+        nome: "Usuário Estado Inválido",
+        email: generateRandomEmail(),
+        cpf: generateRandomCPF(),
+        senha: "Senha@123",
+        data_nascimento: "15/03/1990",
+        celular: "11988887777",
+        endereco: {
+          logradouro: "Rua Teste",
+          cep: "12345-678",
+          bairro: "Centro",
+          numero: 123,
+          cidade: "São Paulo",
+          estado: "XX" // Estado inválido
+        },
+        nivel_acesso: { municipe: true },
+      };
+
+      const res = await request(app)
+        .post("/usuarios")
+        .send(novoUsuario)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain("Erro de validação");
+    });
+  });
+
 });
