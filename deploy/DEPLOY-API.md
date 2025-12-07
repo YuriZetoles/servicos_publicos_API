@@ -20,7 +20,6 @@ kubectl apply -f deploy/servicos-db-publicos.yaml
 kubectl apply -f deploy/servicos-db-publicos.yaml
 kubectl apply -f deploy/servicos-publicos-configmap.secret.yaml
 kubectl apply -f deploy/servicos-api-publicos.yaml
-kubectl exec -it deployment/servicos-api-publicos -- npm run seed
 ```
 
 ## Atualizar Produção
