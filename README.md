@@ -55,7 +55,7 @@ Se quiser rodar **apenas a API** isoladamente:
 ```bash
 # 1. Configure credenciais de email
 # 1.1 Gere senha de aplicativo Gmail: https://myaccount.google.com/apppasswords
-# 1.2 Cadastre no Mailsender: https://ruan-silva-3001.code.fslab.dev/cadastro
+# 1.2 Cadastre no Mailsender: https://mailsender.app.fslab.dev/cadastro
 #     - Nome: Nome do projeto
 #     - Email: Seu email Gmail
 #     - Senha: Senha de aplicativo gerada
@@ -63,7 +63,7 @@ Se quiser rodar **apenas a API** isoladamente:
 
 # 2. Configure variáveis de ambiente
 nano .env
-# URL_MAIL_SERVICE="https://ruan-silva-5016.code.fslab.dev/api/emails/send"
+# URL_MAIL_SERVICE="https://mailsender.app.fslab.dev/api/emails/send"
 # MAIL_API_KEY="sua-api-key-copiada-do-mailsender"
 
 # 3. Inicie
@@ -251,4 +251,4 @@ src/
 
 ## 📄 Licença
 
-MIT
+> ### Este projeto está licenciado sob a [Licença MIT](./LICENSE).
