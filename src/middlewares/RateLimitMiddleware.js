@@ -51,7 +51,7 @@ export const authRateLimit = rateLimit({
 // Rate limiter mais restritivo para operações sensíveis (login, upload, etc.)
 export const strictRateLimit = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutos
-  max: 25, // Limite de 25 requisições por janela
+  max: 50, // Limite de 50 requisições por janela
   message: {
     message: 'Muitas tentativas. Tente novamente em 5 minutos.',
     data: null,
@@ -82,7 +82,7 @@ export const strictRateLimit = rateLimit({
 // Rate limiter específico para uploads (mais restritivo)
 export const uploadRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
-  max: 100, // Limite de 100 uploads por hora
+  max: 300, // Limite de 300 uploads por hora
   message: {
     message: 'Limite de uploads excedido. Tente novamente em 1 hora.',
     data: null,
@@ -113,7 +113,7 @@ export const uploadRateLimit = rateLimit({
 // Rate limiter para endpoints públicos (menos restritivo)
 export const publicRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 50, // Limite de 50 requisições por janela
+  max: 100, // Limite de 100 requisições por janela
   message: {
     message: 'Muitas requisições. Tente novamente em 15 minutos.',
     data: null,

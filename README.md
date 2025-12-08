@@ -3,7 +3,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-22+-green.svg)](https://nodejs.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-8.0+-blue.svg)](https://www.mongodb.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-553%20✅-brightgreen.svg)](https://jestjs.io/)
+[![Tests](https://img.shields.io/badge/Tests-641%20✅-brightgreen.svg)](https://jestjs.io/)
 
 API REST para gestão de demandas públicas municipais desenvolvida com Node.js, Express e MongoDB.
 
