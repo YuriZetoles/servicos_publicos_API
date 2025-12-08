@@ -2,7 +2,7 @@
 
 import "dotenv/config";
 import app from "./src/app.js";
-const port = process.env.API_PORT || 5011;
+const port = process.env.API_PORT || 5010;
 
 app.listen(port, (error) => {
     if (error) {
