@@ -66,7 +66,7 @@ class DemandaRepository {
             secretaria,
             page = 1
         } = req.query;
-        const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
+        const limite = Math.min(parseInt(req.query.limite, 10) || 10, 1000);
 
         const filterBuilder = new DemandaFilterBuild()
             .comTipo(tipo || '')
