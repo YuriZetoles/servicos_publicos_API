@@ -100,7 +100,7 @@ class DemandaRepository {
                 }
             ],
             sort: {
-                nome: 1
+                createdAt: -1
             }
         };
 
