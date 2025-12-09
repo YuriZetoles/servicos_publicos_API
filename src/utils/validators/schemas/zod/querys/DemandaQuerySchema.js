@@ -83,7 +83,7 @@ export const DemandaQuerySchema = z.object({
         .string()
         .optional()
         .transform((val) => (val ? parseInt(val, 10) : 10))
-        .refine((val) => Number.isInteger(val) && val > 0 && val <= 100, {
-            message: "Limite deve ser um número inteiro entre 1 e 100",
+        .refine((val) => Number.isInteger(val) && val > 0 && val <= 1000, {
+            message: "Limite deve ser um número inteiro entre 1 e 1000",
         }),
 });
